@@ -37,6 +37,44 @@ export default function ProductDetails({ product, onClose }: Props) {
             </button>
           </div>
 
+          {/* Body */}
+          <div className="p-4 flex flex-col gap-4">
+            <div className="aspect-4/3 bg-gray-100 overflow-hidden rounded-md">
+              <img
+                src={product.image}
+                alt={product.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Badge>{product.storeName}</Badge>
+              {product.compareAtPrice && product.compareAtPrice > product.price && (
+                <Badge>On Sale</Badge>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-baseline gap-2">
+                <span className="text-lg font-bold">
+                  {money(product.price)}
+                </span>
+                {product.compareAtPrice && product.compareAtPrice > product.price && (
+                  <span className="text-sm line-through text-gray-500">
+                    {money(product.compareAtPrice)}
+                  </span>
+                )}
+              </div>
+              <Rating value={4.3} count={128} />
+            </div>
+
+            <p className="text-sm text-gray-600 leading-relaxed">
+              This is a sample description for {product.title}. You can replace
+              this with real product details, specifications, and customer
+              reviews.
+            </p>
+          </div>
+
           
         </div>
       </div>
