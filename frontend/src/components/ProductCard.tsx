@@ -26,8 +26,15 @@ export default function ProductCard({ p }: { p: Product }) {
       </div>
       <h3 className="text-base font-semibold line-clamp-1">{p.title}</h3>
 
-
-      
+      {/* prices */}
+      <div className="flex items-center gap-2">
+        <span className="text-lg font-bold">{money(p.price)}</span>
+        {p.compareAtPrice && p.compareAtPrice > p.price && (
+          <span className="text-sm text-gray-500 line-through">
+            {money(p.compareAtPrice)}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
