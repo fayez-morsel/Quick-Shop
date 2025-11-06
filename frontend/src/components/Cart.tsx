@@ -89,7 +89,29 @@ export default function Cart() {
           )}
         </div>
 
-        
+        {/* Footer */}
+        <div className="border-t border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-medium text-gray-700">Total</span>
+            <span className="font-semibold text-gray-900">
+              {money(total)}
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={clearCart}
+              className="flex-1 rounded-md border border-gray-300 py-1.5 text-sm hover:bg-gray-50"
+            >
+              Clear
+            </button>
+            <button
+              className="flex-1 rounded-md bg-blue-600 py-1.5 text-sm text-white hover:bg-blue-700"
+              disabled={cart.length === 0}
+            >
+              Checkout
+            </button>
+          </div>
+        </div>
       </div>
     </>
   );
