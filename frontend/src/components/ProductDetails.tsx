@@ -18,10 +18,7 @@ export default function ProductDetails({ product, onClose }: Props) {
   return (
     <>
       {/* Overlay */}
-      <div
-        onClick={onClose}
-        className="fixed inset-0 bg-black/40 z-40"
-      />
+      <div onClick={onClose} className="fixed inset-0 bg-black/40 z-40" />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -49,9 +46,10 @@ export default function ProductDetails({ product, onClose }: Props) {
 
             <div className="flex flex-wrap gap-2">
               <Badge>{product.storeName}</Badge>
-              {product.compareAtPrice && product.compareAtPrice > product.price && (
-                <Badge>On Sale</Badge>
-              )}
+              {product.compareAtPrice &&
+                product.compareAtPrice > product.price && (
+                  <Badge>On Sale</Badge>
+                )}
             </div>
 
             <div className="flex items-center justify-between">
@@ -59,11 +57,12 @@ export default function ProductDetails({ product, onClose }: Props) {
                 <span className="text-lg font-bold">
                   {money(product.price)}
                 </span>
-                {product.compareAtPrice && product.compareAtPrice > product.price && (
-                  <span className="text-sm line-through text-gray-500">
-                    {money(product.compareAtPrice)}
-                  </span>
-                )}
+                {product.compareAtPrice &&
+                  product.compareAtPrice > product.price && (
+                    <span className="text-sm line-through text-gray-500">
+                      {money(product.compareAtPrice)}
+                    </span>
+                  )}
               </div>
               <Rating value={4.3} count={128} />
             </div>
@@ -75,7 +74,21 @@ export default function ProductDetails({ product, onClose }: Props) {
             </p>
           </div>
 
-          
+          {/* Footer */}
+          <div className="border-t border-gray-200 p-4 flex justify-end gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-1.5 rounded-md border border-gray-300 text-sm hover:bg-gray-50"
+            >
+              Close
+            </button>
+            <button
+              onClick={() => addToCart(product.id)}
+              className="px-4 py-1.5 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
+            >
+              Add to Cart
+            </button>
+          </div>
         </div>
       </div>
     </>
