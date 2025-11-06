@@ -30,6 +30,17 @@ export default function Filters() {
         <option value="priceLow">Price: Low → High</option>
         <option value="priceHigh">Price: High → Low</option>
       </select>
+
+      {/* Discount toggle */}
+      <label className="flex items-center gap-2 test-sm">
+        <input
+          type="checkbox"
+          checked={discountedOnly}
+          onChange={(e) => setDiscounted(e.target.checked)}
+          className="h-4 w-4 accent-blue-600"
+        />
+        On Sale Only
+      </label>
     </div>
   );
 }
