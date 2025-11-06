@@ -56,8 +56,7 @@ export const useStore = create<State & Actions>((set, _get) => ({
       price: 40,
       storeId: "style-co",
       storeName: "Style & Co",
-      image:
-        "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9b?w=800",
+      image: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9b?w=800",
       inStock: true,
     },
   ],
@@ -66,41 +65,41 @@ export const useStore = create<State & Actions>((set, _get) => ({
     store: "all",
     minPrice: 0,
     maxPrice: 9999,
-    discountedOnly:false,
+    discountedOnly: false,
     sortBy: "popular",
   },
   cart: [],
-  ui: { cartOpen: false},
+  ui: { cartOpen: false },
 
   // Action
   //filters
   setQuery: (q) =>
     set(
-        (s) =>
+      (s) =>
         ({
-            ...s,
-            filters: {...s.filters, query: q},
-        }) as Partial<State>
+          ...s,
+          filters: { ...s.filters, query: q },
+        } as Partial<State>)
     ),
 
-    setSort: (sort) =>
-        set(
-            (s) =>
-            ({
-                ...s,
-                filters: { ...s.filters, sortBy: sort as FilterState["sortBy"]}
-            }) as Partial<State>
-        ),
-        setDiscounted: (v) =>
+  setSort: (sort) =>
+    set(
+      (s) =>
+        ({
+          ...s,
+          filters: { ...s.filters, sortBy: sort as FilterState["sortBy"] },
+        } as Partial<State>)
+    ),
+  setDiscounted: (v) =>
     set(
       (s) =>
         ({
           ...s,
           filters: { ...s.filters, discountedOnly: v },
-        }) as Partial<State>
+        } as Partial<State>)
     ),
-    // Cart
-    addToCart: (id) =>
+  // Cart
+  addToCart: (id) =>
     set((s) => {
       const exists = s.cart.find((c) => c.productId === id);
       return {
@@ -111,9 +110,13 @@ export const useStore = create<State & Actions>((set, _get) => ({
           : [...s.cart, { productId: id, qty: 1 }],
       };
     }),
-    removeFromCart: (id) =>
-        set((s) => ({ cart: s.cart.filter((c) => c.productId !== id)})),
-  
+  removeFromCart: (id) =>
+    set((s) => ({ cart: s.cart.filter((c) => c.productId !== id) })),
+  setQty: (id, qty) =>
+    set((s) => ({
+      cart: s.cart.map((c) =>
+        c.productId === id ? { ...c, qty: Math.max(1, qty) } : c
+      ),
+    })),
+  clearCart: () => set({ cart: [] })
 }));
-
-
