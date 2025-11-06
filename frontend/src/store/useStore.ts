@@ -111,6 +111,8 @@ export const useStore = create<State & Actions>((set, _get) => ({
           : [...s.cart, { productId: id, qty: 1 }],
       };
     }),
+    removeFromCart: (id) =>
+        set((s) => ({ cart: s.cart.filter((c) => c.productId !== id)})),
   
 }));
 
