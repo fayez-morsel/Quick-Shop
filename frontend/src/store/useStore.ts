@@ -73,31 +73,11 @@ export const useStore = create<State & Actions>((set, _get) => ({
 
   // Action
   //filters
-  setQuery: (q) =>
-    set(
-      (s) =>
-        ({
-          ...s,
-          filters: { ...s.filters, query: q },
-        } as Partial<State>)
-    ),
-
-  setSort: (sort) =>
-    set(
-      (s) =>
-        ({
-          ...s,
-          filters: { ...s.filters, sortBy: sort as FilterState["sortBy"] },
-        } as Partial<State>)
-    ),
+  setQuery: (q) => set((s) => ({ filters: { ...s.filters, query: q } })),
+  setSort: (sort) => set((s) => ({ filters: { ...s.filters, sortBy: sort } })),
   setDiscounted: (v) =>
-    set(
-      (s) =>
-        ({
-          ...s,
-          filters: { ...s.filters, discountedOnly: v },
-        } as Partial<State>)
-    ),
+    set((s) => ({ filters: { ...s.filters, discountedOnly: v } })),
+
   // Cart
   addToCart: (id) =>
     set((s) => {
@@ -122,32 +102,5 @@ export const useStore = create<State & Actions>((set, _get) => ({
   toggleCart: () => set((s) => ({ ui: { cartOpen: !s.ui.cartOpen } })),
 }));
 
-// Selectors
-export const useCartCount = () =>
-  useStore((s) => s.cart.reduce((sum, c) => sum + c.qty, 0));
-
-export const useFilteredProducts = () =>
-  useStore((s) => {
-    const { query, store, minPrice, maxPrice, discountedOnly, sortBy } =
-      s.filters;
-    let list = [...s.products];
-
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      list = list.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.storeName.toLowerCase().includes(q)
-      );
-    }
-
-    if (store !== "all") list = list.filter((p) => p.storeId === store);
-    list = list.filter((p) => p.price >= minPrice && p.price <= maxPrice);
-    if (discountedOnly)
-      list = list.filter((p) => p.compareAtPrice && p.compareAtPrice > p.price);
-
-    if (sortBy === "priceLow") list.sort((a, b) => a.price - b.price);
-    if (sortBy === "priceHigh") list.sort((a, b) => b.price - a.price);
-
-    return list;
-  });
+export const useProducts = () => useStore((s) => s.products);
+export const useFilters = () => useStore((s) => s.filters);
