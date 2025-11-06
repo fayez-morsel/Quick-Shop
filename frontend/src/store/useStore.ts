@@ -61,7 +61,14 @@ export const useStore = create<State & Actions>((set, _get) => ({
       inStock: true,
     },
   ],
-
+  filters: {
+    query: "",
+    store: "all",
+    minPrice: 0,
+    maxPrice: 9999,
+    discountedOnly:false,
+    sortBy: "popular",
+  },
   
 }));
 
