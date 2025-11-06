@@ -69,6 +69,35 @@ export const useStore = create<State & Actions>((set, _get) => ({
     discountedOnly:false,
     sortBy: "popular",
   },
+  cart: [],
+  ui: { cartOpen: false},
+
+  //action
+  setQuery: (q) =>
+    set(
+        (s) =>
+        ({
+            ...s,
+            filters: {...s.filters, query: q},
+        }) as Partial<State>
+    ),
+
+    setSort: (sort) =>
+        set(
+            (s) =>
+            ({
+                ...s,
+                filters: { ...s.filters, sortBy: sort as FilterState["sortBy"]}
+            }) as Partial<State>
+        ),
+        setDiscounted: (v) =>
+    set(
+      (s) =>
+        ({
+          ...s,
+          filters: { ...s.filters, discountedOnly: v },
+        }) as Partial<State>
+    ),
   
 }));
 
