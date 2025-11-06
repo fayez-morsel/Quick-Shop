@@ -10,3 +10,8 @@ export type Product = {
     inStock: boolean;
 };
 
+// Cart item
+export type CartItem = {
+    productId: string;
+    qty: number;
+};
