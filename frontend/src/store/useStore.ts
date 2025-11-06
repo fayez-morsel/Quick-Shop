@@ -118,5 +118,6 @@ export const useStore = create<State & Actions>((set, _get) => ({
         c.productId === id ? { ...c, qty: Math.max(1, qty) } : c
       ),
     })),
-  clearCart: () => set({ cart: [] })
+  clearCart: () => set({ cart: [] }),
+  toggleCart: () => set((s) => ({ ui: { cartOpen: !s.ui.cartOpen } })),
 }));
