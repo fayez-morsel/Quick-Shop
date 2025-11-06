@@ -72,7 +72,8 @@ export const useStore = create<State & Actions>((set, _get) => ({
   cart: [],
   ui: { cartOpen: false},
 
-  //action
+  // Action
+  //filters
   setQuery: (q) =>
     set(
         (s) =>
@@ -98,6 +99,18 @@ export const useStore = create<State & Actions>((set, _get) => ({
           filters: { ...s.filters, discountedOnly: v },
         }) as Partial<State>
     ),
+    // Cart
+    addToCart: (id) =>
+    set((s) => {
+      const exists = s.cart.find((c) => c.productId === id);
+      return {
+        cart: exists
+          ? s.cart.map((c) =>
+              c.productId === id ? { ...c, qty: c.qty + 1 } : c
+            )
+          : [...s.cart, { productId: id, qty: 1 }],
+      };
+    }),
   
 }));
 
