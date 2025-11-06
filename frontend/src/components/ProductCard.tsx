@@ -18,6 +18,16 @@ export default function ProductCard({ p }: { p: Product }) {
           className="h-full w-full object-cover"
         />
       </div>
+
+      {/* Store + title */}
+      <div className="flex flex-wrap gap-2 items-center">
+        <Badge>{p.storeName}</Badge>
+        {!p.inStock && <Badge>OUt of stock</Badge>}
+      </div>
+      <h3 className="text-base font-semibold line-clamp-1">{p.title}</h3>
+
+
+      
     </div>
   );
 }
