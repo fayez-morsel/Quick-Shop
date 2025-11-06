@@ -25,3 +25,8 @@ export type FilterState = {
   discountedOnly: boolean;
   sortBy: "popular" | "priceLow" | "priceHigh";
 };
+
+// UI state
+export type UIState = {
+    cartOpen: boolean;
+}
