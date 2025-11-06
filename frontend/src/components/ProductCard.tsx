@@ -35,6 +35,22 @@ export default function ProductCard({ p }: { p: Product }) {
           </span>
         )}
       </div>
+
+      {/* rating */}
+      <Rating value={Math.random() * 2 + 3} count={Math.floor(Math.random() * 100) + 1} />
+
+      {/* add button */}
+      <button
+      onClick={() => addToCart(p.id)}
+      disabled={!p.inStock}
+      className={`mt-auto rounded-md py-1.5 font-medium test-sm test-white transition ${
+        p.inStock
+            ? "bg-blue-600 hover:bg-blue-700"
+            : "bg-gray-400 cursor-not-allowed"
+      }`}
+      >
+        {p.inStock ? "Add to Cart" : "Out of Stock"}
+      </button>
     </div>
   );
 }
