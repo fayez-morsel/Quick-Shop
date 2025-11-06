@@ -1,6 +1,7 @@
-import React from "react";
+import { useState } from "react";
 import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
+import OrderConfirmation from "./OrderConfirmation";
 
 /** 🛒 Floating cart panel */
 export default function Cart() {
@@ -12,19 +13,25 @@ export default function Cart() {
   const setQty = useStore((s) => s.setQty);
   const removeFromCart = useStore((s) => s.removeFromCart);
 
+  const [Confirmed, setConfirmed] = useState(false);
+
   const total = cart.reduce((sum, c) => {
     const p = products.find((x) => x.id === c.productId);
     return sum + (p ? p.price * c.qty : 0);
   }, 0);
 
+  const handleCheckout = () => {
+    if (cart.length === 0) return;
+    setConfirmed(true);
+    clearCart();
+    toggleCart();
+  };
+
   return (
     <>
       {/* Overlay */}
       {cartOpen && (
-        <div
-          onClick={toggleCart}
-          className="fixed inset-0 bg-black/40 z-40"
-        />
+        <div onClick={toggleCart} className="fixed inset-0 bg-black/40 z-40" />
       )}
 
       {/* Panel */}
@@ -93,9 +100,7 @@ export default function Cart() {
         <div className="border-t border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="font-medium text-gray-700">Total</span>
-            <span className="font-semibold text-gray-900">
-              {money(total)}
-            </span>
+            <span className="font-semibold text-gray-900">{money(total)}</span>
           </div>
           <div className="flex gap-2">
             <button
@@ -113,6 +118,8 @@ export default function Cart() {
           </div>
         </div>
       </div>
+
+      <OrderConfirmation open={Confirmed} onClose={() => setConfirmed(false)} />
     </>
   );
 }
