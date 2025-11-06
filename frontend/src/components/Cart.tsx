@@ -17,12 +17,26 @@ export default function Cart() {
   }, 0);
 
   <>
-  {/* Overlay */}
-  {cartOpen && (
+    {/* Overlay */}
+    {cartOpen && (
+      <div onClick={toggleCart} className="fixed inset-0 bg-black/40 z-40" />
+    )}
+
+    {/* Panel */}
     <div
-        onClick={toggleCart}
-        className="fixed inset-0 bg-black/40 z-40"
-    />
-  )}
-  </>
+        className={`fixed right-0 top-0 h-full w-80 bg-white shadow-xl x-50 transform transition-transform duration-300 ${
+        cartOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+    >
+        <div className="flex items-center justify-between border-b border-gray-200 p-4">
+            <h2 className="text-lg font-semibold">My Cart</h2>
+            <button
+            onClick={toggleCart}
+            className="text-gray-500 hover:text-gray-700"
+            >
+                X
+            </button>
+        </div>
+    </div>
+  </>;
 }
