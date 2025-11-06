@@ -3,7 +3,7 @@ import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
 import OrderConfirmation from "./OrderConfirmation";
 
-/** 🛒 Floating cart panel */
+
 export default function Cart() {
   const cart = useStore((s) => s.cart);
   const products = useStore((s) => s.products);
@@ -13,7 +13,7 @@ export default function Cart() {
   const setQty = useStore((s) => s.setQty);
   const removeFromCart = useStore((s) => s.removeFromCart);
 
-  const [Confirmed, setConfirmed] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
   const total = cart.reduce((sum, c) => {
     const p = products.find((x) => x.id === c.productId);
@@ -23,15 +23,18 @@ export default function Cart() {
   const handleCheckout = () => {
     if (cart.length === 0) return;
     setConfirmed(true);
-    clearCart();
-    toggleCart();
+    clearCart(); 
+    toggleCart(); 
   };
 
   return (
     <>
       {/* Overlay */}
       {cartOpen && (
-        <div onClick={toggleCart} className="fixed inset-0 bg-black/40 z-40" />
+        <div
+          onClick={toggleCart}
+          className="fixed inset-0 bg-black/40 z-40"
+        />
       )}
 
       {/* Panel */}
@@ -66,7 +69,7 @@ export default function Cart() {
                   <div className="flex-1">
                     <p className="text-sm font-medium">{p.title}</p>
                     <p className="text-gray-500 text-xs">
-                      {money(p.price)} x {c.qty}
+                      {money(p.price)} X {c.qty}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
@@ -100,7 +103,9 @@ export default function Cart() {
         <div className="border-t border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="font-medium text-gray-700">Total</span>
-            <span className="font-semibold text-gray-900">{money(total)}</span>
+            <span className="font-semibold text-gray-900">
+              {money(total)}
+            </span>
           </div>
           <div className="flex gap-2">
             <button
@@ -110,6 +115,7 @@ export default function Cart() {
               Clear
             </button>
             <button
+              onClick={handleCheckout}
               className="flex-1 rounded-md bg-blue-600 py-1.5 text-sm text-white hover:bg-blue-700"
               disabled={cart.length === 0}
             >
@@ -119,7 +125,10 @@ export default function Cart() {
         </div>
       </div>
 
-      <OrderConfirmation open={Confirmed} onClose={() => setConfirmed(false)} />
+      <OrderConfirmation
+        open={confirmed}
+        onClose={() => setConfirmed(false)}
+      />
     </>
   );
 }
