@@ -121,3 +121,33 @@ export const useStore = create<State & Actions>((set, _get) => ({
   clearCart: () => set({ cart: [] }),
   toggleCart: () => set((s) => ({ ui: { cartOpen: !s.ui.cartOpen } })),
 }));
+
+// Selectors
+export const useCartCount = () =>
+  useStore((s) => s.cart.reduce((sum, c) => sum + c.qty, 0));
+
+export const useFilteredProducts = () =>
+  useStore((s) => {
+    const { query, store, minPrice, maxPrice, discountedOnly, sortBy } =
+      s.filters;
+    let list = [...s.products];
+
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          p.storeName.toLowerCase().includes(q)
+      );
+    }
+
+    if (store !== "all") list = list.filter((p) => p.storeId === store);
+    list = list.filter((p) => p.price >= minPrice && p.price <= maxPrice);
+    if (discountedOnly)
+      list = list.filter((p) => p.compareAtPrice && p.compareAtPrice > p.price);
+
+    if (sortBy === "priceLow") list.sort((a, b) => a.price - b.price);
+    if (sortBy === "priceHigh") list.sort((a, b) => b.price - a.price);
+
+    return list;
+  });
