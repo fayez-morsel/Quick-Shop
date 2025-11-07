@@ -9,7 +9,6 @@ type Props = {
   onClose: () => void;
 };
 
-/** 🪟 Modal showing full product details */
 export default function ProductDetails({ product, onClose }: Props) {
   const addToCart = useStore((s) => s.addToCart);
 
@@ -22,21 +21,30 @@ export default function ProductDetails({ product, onClose }: Props) {
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg w-full max-w-lg overflow-hidden">
+        <div
+          className="rounded-lg shadow-xl w-full max-w-lg overflow-hidden border border-(--border-color)"
+          style={{
+            backgroundColor: "var(--bg-card)",
+            color: "var(--text-main)",
+          }}
+        >
           {/* Header */}
-          <div className="flex justify-between items-center border-b border-gray-200 px-4 py-3">
+          <div className="flex justify-between items-center border-b border-(--border-color) px-4 py-3">
             <h2 className="text-lg font-semibold">{product.title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-(--text-secondary) hover:text-(--color-primary) transition-colors"
             >
-              ✕
+              &times;
             </button>
           </div>
 
           {/* Body */}
           <div className="p-4 flex flex-col gap-4">
-            <div className="aspect-4/3 bg-gray-100 overflow-hidden rounded-md">
+            <div
+              className="aspect-4/3 overflow-hidden rounded-md"
+              style={{ backgroundColor: "var(--bg-main)" }}
+            >
               <img
                 src={product.image}
                 alt={product.title}
@@ -59,15 +67,33 @@ export default function ProductDetails({ product, onClose }: Props) {
                 </span>
                 {product.compareAtPrice &&
                   product.compareAtPrice > product.price && (
-                    <span className="text-sm line-through text-gray-500">
+                    <span
+                      className="text-sm line-through"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
                       {money(product.compareAtPrice)}
                     </span>
                   )}
               </div>
-              <Rating value={4.3} count={128} />
+              {product.rating ? (
+                <Rating
+                  value={product.rating.value}
+                  count={product.rating.count}
+                />
+              ) : (
+                <span
+                  className="text-xs"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  No ratings yet
+                </span>
+              )}
             </div>
 
-            <p className="text-sm text-gray-600 leading-relaxed">
+            <p
+              className="text-sm leading-relaxed"
+              style={{ color: "var(--text-secondary)" }}
+            >
               This is a sample description for {product.title}. You can replace
               this with real product details, specifications, and customer
               reviews.
@@ -75,16 +101,16 @@ export default function ProductDetails({ product, onClose }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-gray-200 p-4 flex justify-end gap-2">
+          <div className="border-t border-(--border-color) p-4 flex justify-end gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-1.5 rounded-md border border-gray-300 text-sm hover:bg-gray-50"
+              className="px-4 py-1.5 rounded-md border border-(--border-color) text-sm transition-colors hover:bg-(--bg-main)"
             >
               Close
             </button>
             <button
               onClick={() => addToCart(product.id)}
-              className="px-4 py-1.5 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
+              className="px-4 py-1.5 rounded-md text-white text-sm transition-all bg-linear-to-r from-(--color-primary) to-(--color-primary-dark) hover:shadow-[0_0_12px_var(--color-primary)]"
             >
               Add to Cart
             </button>
