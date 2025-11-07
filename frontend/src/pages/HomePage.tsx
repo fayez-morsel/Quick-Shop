@@ -27,17 +27,47 @@ export default function HomePage() {
 
       {/* CATEGORY CHIPS */}
       <section className="text-center">
-            <h2 className="text-xl font-semibold mb-4">Shop by category</h2>
-            <div className="flex flex-wrap justify-center gap-3">
-                {["Tech", "Fashion", "Home", "Sport", "Beauty", "Toys"].map((cat) => (
-                    <button
-                    key={cat}
-                    className="px-4 py-2 bg-blue-100 tex-blue-700 rounded-full text-sm font-medium hover:bg-blue-200"
-                    >
-                        {cat}
-                    </button>
-                ))}
+        <h2 className="text-xl font-semibold mb-4">Shop by category</h2>
+        <div className="flex flex-wrap justify-center gap-3">
+          {["Tech", "Fashion", "Home", "Sport", "Beauty", "Toys"].map((cat) => (
+            <button
+              key={cat}
+              className="px-4 py-2 bg-blue-100 tex-blue-700 rounded-full text-sm font-medium hover:bg-blue-200"
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURED PRODUCTS */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Featured Products</h2>
+          <button className="text-blue-600 text-sm hover:underline">
+            View all
+          </button>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {products.slice(0, 8).map((p) => (
+            <div
+              key={p.id}
+              className="bg-white rounded-lg shadow p-4 flex flex-col gap-3"
+            >
+              <img
+                src={p.image}
+                alt={p.title}
+                className="aspect-4/3 rounded-md object-cover"
+              />
+              <h3 className="text-sm font-medium line-clamp-1">{p.title}</h3>
+              <p className="text-blue-600 font-semibold">{money(p.price)}</p>
+              <button className="mt-auto rounded-md bg-blue-600 text-white text-sm py-1.5 hover:bg-blue-700">
+                Add to cart
+              </button>
             </div>
+          ))}
+        </div>
       </section>
     </div>
   );
