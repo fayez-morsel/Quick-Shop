@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-
 :root {
   --color-primary: #2563eb;
   --color-primary-dark: #1d4ed8;
@@ -16,6 +15,7 @@
   --text-main: #111827;
   --text-secondary: #4b5563;
   --border-color: #e5e7eb;
+  --bg-input: #ffffff;
 }
 
 html[data-theme="dark"] {
@@ -33,14 +33,27 @@ html[data-theme="dark"] {
   --text-main: #e2e8f0;
   --text-secondary: #94a3b8;
   --border-color: #334155;
+  --bg-input: #1e293b;
 }
 
-@keyframes float { 0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)} }
-@utility animate-float { animation: float 6s ease-in-out infinite; }
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
+}
 
-html,body {
+html,
+body {
   background-color: var(--bg-main);
   color: var(--text-main);
-  font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-  transition: background-color .3s,color .3s;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial;
+  transition: background-color 0.3s, color 0.3s;
 }
