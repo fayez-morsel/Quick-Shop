@@ -59,6 +59,7 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      
 
       {/* FEATURED PRODUCTS */}
       <section>
