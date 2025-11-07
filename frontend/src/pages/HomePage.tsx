@@ -24,6 +24,21 @@ export default function HomePage() {
           </button>
         </div>
       </section>
+
+      {/* CATEGORY CHIPS */}
+      <section className="text-center">
+            <h2 className="text-xl font-semibold mb-4">Shop by category</h2>
+            <div className="flex flex-wrap justify-center gap-3">
+                {["Tech", "Fashion", "Home", "Sport", "Beauty", "Toys"].map((cat) => (
+                    <button
+                    key={cat}
+                    className="px-4 py-2 bg-blue-100 tex-blue-700 rounded-full text-sm font-medium hover:bg-blue-200"
+                    >
+                        {cat}
+                    </button>
+                ))}
+            </div>
+      </section>
     </div>
   );
 }
