@@ -69,6 +69,31 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* WHY CHOOSE SECTION */}
+      <section className="bg-blue-50 rounded-xl p-8 text-center grid sm:grid-cols-3 gap-6">
+        <div>
+          <div className="text-blue-600 text-4xl mb-2">🛍</div>
+          <h3 className="font-semibold">Verified Sellers</h3>
+          <p className="text-gray-600 text-sm">
+            Buy only from verified and trusted stores.
+          </p>
+        </div>
+        <div>
+          <div className="text-blue-600 text-4xl mb-2">🚚</div>
+          <h3 className="font-semibold">Fast Shipping</h3>
+          <p className="text-gray-600 text-sm">
+            Get your products quickly and safely.
+          </p>
+        </div>
+        <div>
+          <div className="text-blue-600 text-4xl mb-2">💳</div>
+          <h3 className="font-semibold">Secure Payments</h3>
+          <p className="text-gray-600 text-sm">
+            Your information is encrypted and protected.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
