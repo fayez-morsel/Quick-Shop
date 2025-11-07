@@ -8,6 +8,10 @@ export type Product = {
   storeName: string;
   image: string;
   inStock: boolean;
+  rating?: {
+    value: number;
+    count: number;
+  };
 };
 
 // Cart item
