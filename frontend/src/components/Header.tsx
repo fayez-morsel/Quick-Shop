@@ -1,9 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/useStore";
 import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   const toggleCart = useStore((s) => s.toggleCart);
   const count = useStore((s) => s.cart.reduce((sum, c) => sum + c.qty, 0));
+  const navigate = useNavigate();
 
   return (
     <header
@@ -16,12 +18,16 @@ export default function Header() {
     >
       <div className="mx-auto max-w-6xl flex flex-wrap items-center justify-between px-4 py-3 gap-3">
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-white rounded-md"
+        >
           <div className="h-8 w-8 bg-white text-(--color-primary-dark) rounded-md grid place-items-center font-bold text-sm">
             S
           </div>
           <span className="font-semibold text-lg tracking-tight">ShopHub</span>
-        </div>
+        </button>
 
         <div className="flex flex-wrap items-center gap-3 ml-auto">
           {/* Search */}
@@ -46,7 +52,9 @@ export default function Header() {
 
           <ThemeToggle />
 
-          <button className="bg-white text-(--color-primary-dark) text-sm font-semibold px-3 py-1.5 rounded-md hover:bg-(--color-accent)/20 transition">
+          <button 
+          onClick={() => navigate("/login")}
+          className="bg-white text-(--color-primary-dark) text-sm font-semibold px-3 py-1.5 rounded-md hover:bg-(--color-accent)/20 transition">
             Login
           </button>
 
