@@ -6,33 +6,39 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-12">
-      {/* HERO SECCTION */}
-      <section className="bg=blue-600 text-white text-center rounded-xl py-16 px-6">
-        <h1 className="text-3xl font-bold mb-3">
-          Discover Amazing Products from Trusted Stores
-        </h1>
-        <p className="max-w-2xl mx-auto text-blue-100 mb-6">
-          Shop the latest products from verified sellers. Quality guaranteed,
-          fast shipping, and exceptional customer service.
-        </p>
-        <div className="flex justify-center gap-3">
-          <button className="bg-white text-blue-600 px-4 py-2 rounded-md font-medium hover:bg-blue-50">
-            Shop Now
-          </button>
-          <button className="border border-white px-4 py-2 rounded-md font-medium hover:bg-white/10">
-            Become a Seller
-          </button>
+      {/* HERO */}
+      <section className="relative overflow-hidden rounded-[--radius-lg] bg-linear-to-r from-[--color-primary-dark] via-[--color-primary] to-[--color-indigo-600] text-white text-center py-20 px-6 shadow-lg">
+        <div className="absolute inset-0 bg-linear-to-b from-white/10 to-transparent opacity-30" />
+        <div className="relative z-10 max-w-3xl mx-auto">
+          <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
+            Discover Amazing Products from{" "}
+            <span className="text-[--color-accent]">Trusted Stores</span>
+          </h1>
+          <p className="text-blue-100 text-base sm:text-lg mb-8 max-w-2xl mx-auto">
+            Shop the latest items from verified sellers — enjoy quality, fast
+            shipping, and secure payments, all in one place.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <button className="bg-white text-[--color-primary] px-6 py-2.5 rounded-md font-semibold text-sm sm:text-base hover:bg-blue-50 transition">
+              🛍️ Shop Now
+            </button>
+            <button className="border border-white px-6 py-2.5 rounded-md font-semibold text-sm sm:text-base hover:bg-white/10 transition">
+              Become a Seller
+            </button>
+          </div>
         </div>
+        <div className="absolute -top-10 -left-10 w-48 h-48 bg-[--color-primary]/20 blur-3xl rounded-full animate-float" />
+        <div className="absolute bottom-0 right-0 w-64 h-64 bg-[--color-indigo-600]/20 blur-3xl rounded-full animate-float" />
       </section>
 
       {/* CATEGORY CHIPS */}
       <section className="text-center">
-        <h2 className="text-xl font-semibold mb-4">Shop by category</h2>
+        <h2 className="text-xl font-semibold mb-4">Shop by Category</h2>
         <div className="flex flex-wrap justify-center gap-3">
           {["Tech", "Fashion", "Home", "Sport", "Beauty", "Toys"].map((cat) => (
             <button
               key={cat}
-              className="px-4 py-2 bg-blue-100 tex-blue-700 rounded-full text-sm font-medium hover:bg-blue-200"
+              className="px-4 py-2 bg-[--color-primary]/10 text-[--color-primary-dark] rounded-full text-sm font-medium hover:bg-[--color-primary]/20 transition"
             >
               {cat}
             </button>
@@ -44,7 +50,7 @@ export default function HomePage() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Featured Products</h2>
-          <button className="text-blue-600 text-sm hover:underline">
+          <button className="text-[--color-primary] text-sm hover:underline">
             View all
           </button>
         </div>
@@ -53,16 +59,18 @@ export default function HomePage() {
           {products.slice(0, 8).map((p) => (
             <div
               key={p.id}
-              className="bg-white rounded-lg shadow p-4 flex flex-col gap-3"
+              className="bg-white rounded-[--radius-lg] shadow p-4 flex flex-col gap-3 hover:shadow-md transition"
             >
               <img
                 src={p.image}
                 alt={p.title}
-                className="aspect-4/3 rounded-md object-cover"
+                className="aspect-4/3 rounded-[--radius-lg] object-cover"
               />
               <h3 className="text-sm font-medium line-clamp-1">{p.title}</h3>
-              <p className="text-blue-600 font-semibold">{money(p.price)}</p>
-              <button className="mt-auto rounded-md bg-blue-600 text-white text-sm py-1.5 hover:bg-blue-700">
+              <p className="text-[--color-primary] font-semibold">
+                {money(p.price)}
+              </p>
+              <button className="mt-auto rounded-[--radius-lg] bg-[--color-primary] text-white text-sm py-1.5 hover:bg-[--color-primary-dark]">
                 Add to cart
               </button>
             </div>
@@ -70,24 +78,24 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* WHY CHOOSE SECTION */}
-      <section className="bg-blue-50 rounded-xl p-8 text-center grid sm:grid-cols-3 gap-6">
+      {/* WHY CHOOSE */}
+      <section className="bg-[--color-primary]/5 rounded-[--radius-lg] p-8 text-center grid sm:grid-cols-3 gap-6">
         <div>
-          <div className="text-blue-600 text-4xl mb-2">🛍</div>
+          <div className="text-[--color-primary] text-4xl mb-2">🛍</div>
           <h3 className="font-semibold">Verified Sellers</h3>
           <p className="text-gray-600 text-sm">
             Buy only from verified and trusted stores.
           </p>
         </div>
         <div>
-          <div className="text-blue-600 text-4xl mb-2">🚚</div>
+          <div className="text-[--color-primary] text-4xl mb-2">🚚</div>
           <h3 className="font-semibold">Fast Shipping</h3>
           <p className="text-gray-600 text-sm">
             Get your products quickly and safely.
           </p>
         </div>
         <div>
-          <div className="text-blue-600 text-4xl mb-2">💳</div>
+          <div className="text-[--color-primary] text-4xl mb-2">💳</div>
           <h3 className="font-semibold">Secure Payments</h3>
           <p className="text-gray-600 text-sm">
             Your information is encrypted and protected.
