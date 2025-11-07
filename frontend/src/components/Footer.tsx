@@ -37,6 +37,43 @@ export default function Footer() {
             </li>
           </ul>
         </div>
+
+        {/* Customer Service */}
+        <div>
+          <h4 className="font-semibold text-white mb-3">Customer Service</h4>
+          <ul className="space-y-2">
+            <li>
+              <a href="#" className="hover:text-white">
+                FAQs
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white">
+                Returns
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white">
+                Shipping Info
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white">
+                Support
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* Connect */}
+        <div>
+          <h4 className="font-semibold text-white mb-3">Connect With Us</h4>
+          <ul className="space-y-2">
+            <li>📍 Lebanon</li>
+            <li>📞 +961 81633369</li>
+            <li>✉️ support@shophub.com</li>
+          </ul>
+        </div>
       </div>
     </footer>
   );
