@@ -59,7 +59,7 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-      
+
 
       {/* FEATURED PRODUCTS */}
       <section>
@@ -71,7 +71,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {products.slice(0, 8).map((p) => (
+          {products.slice(0, 12).map((p) => (
             <ProductCard key={p.id} p={p} onSelect={handleSelectProduct} />
           ))}
         </div>
