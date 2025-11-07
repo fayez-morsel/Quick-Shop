@@ -5,7 +5,7 @@ export default function Header() {
   const count = useStore((s) => s.cart.reduce((sum, c) => sum + c.qty, 0));
 
   return (
-    <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
+    <header className="bg-blue-700 text-white shadow">
       <div className="mx-auto max-w-6xl flex flex-wrap items-center justify-between px-4 py-3 gap-3">
         {/* Logo */}
         <div className="flex items-center gap-2">
