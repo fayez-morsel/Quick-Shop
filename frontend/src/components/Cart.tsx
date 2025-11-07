@@ -1,7 +1,11 @@
 import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
 
-export default function Cart() {
+type CartProps = {
+  onCheckoutComplete?: () => void;
+};
+
+export default function Cart({ onCheckoutComplete }: CartProps) {
   const cart = useStore((s) => s.cart);
   const products = useStore((s) => s.products);
   const toggleCart = useStore((s) => s.toggleCart);
@@ -14,6 +18,13 @@ export default function Cart() {
     const p = products.find((x) => x.id === c.productId);
     return sum + (p ? p.price * c.qty : 0);
   }, 0);
+
+  const handleCheckout = () => {
+    if (cart.length === 0) return;
+    toggleCart();
+    clearCart();
+    onCheckoutComplete?.();
+  };
 
   return (
     <>
@@ -108,6 +119,7 @@ export default function Cart() {
             </button>
             <button
               disabled={cart.length === 0}
+              onClick={handleCheckout}
               className="flex-1 rounded-md bg-(--color-primary) py-1.5 text-sm text-white
                          hover:bg-(--color-primary-dark) hover:shadow-[0_0_12px_var(--color-primary)]
                          transition disabled:opacity-50"
