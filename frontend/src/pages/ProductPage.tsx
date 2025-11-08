@@ -13,6 +13,19 @@ export default function ProductPage() {
   const setBrand = useStore((s) => s.setBrand);
   const clearFilters = useStore((s) => s.clearFilters);
 
+  const categories = useMemo(
+    () =>
+      Array.from(
+        new Set(products.map((p) => p.category).filter(Boolean))
+      ) as Category[],
+    [products]
+  );
+
+  const brands = useMemo(
+    () => Array.from(new Set(products.map((p) => p.storeName))) as Brand[],
+    [products]
+  );
+
   const filtered = useMemo(() => {
     let list = [...products];
 
@@ -61,7 +74,43 @@ export default function ProductPage() {
           ))}
         </select>
 
+        {/* Brand */}
+        <label className="block text-sm font-medium mb-1">Brand</label>
+        <select
+          value={filters.brand}
+          onChange={(e) => setBrand(e.target.value as Brand | "all")}
+          className="w-full mb-4 px-3 py-2 rounded-md border border-(--border-color) bg-(--bg-input) text-(--text-main)"
+        >
+          <option value="all">All</option>
+          {brands.map((b) => (
+            <option key={b} value={b}>
+              {b}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={clearFilters}
+          className="w-full mt-4 py-2 text-sm rounded-md bg-(--color-primary) text-white hover:bg-(--color-primary-dark)"
+        >
+          Clear Filters
+        </button>
       </aside>
+
+      {/* Product Grid */}
+      <div className="flex-1">
+        <div className="flex justify-between mb-4">
+          <h1 className="text-2xl font-semibold">All Products</h1>
+          <span className="text-sm text-(--text-secondary)">
+            {filtered.length} products found
+          </span>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          {filtered.map((p) => (
+            <ProductCard key={p.id} p={p} />
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
