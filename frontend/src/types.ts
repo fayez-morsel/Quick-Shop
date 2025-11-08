@@ -5,7 +5,8 @@ export type Product = {
   price: number;
   compareAtPrice?: number; // old price for discount display
   storeId: string;
-  storeName: string;
+  storeName: Brand;
+  category?: Category;
   image: string;
   inStock: boolean;
   rating?: {
@@ -24,6 +25,8 @@ export type CartItem = {
 export type FilterState = {
   query: string;
   store: string | "all";
+  category: Category | "all";
+  brand: Brand | "all";
   minPrice: number;
   maxPrice: number;
   discountedOnly: boolean;
@@ -34,3 +37,18 @@ export type FilterState = {
 export type UIState = {
     cartOpen: boolean;
 }
+
+export type Category =
+  | "Tech"
+  | "Sound"
+  | "Home"
+  | "Sport"
+  | "Accessories";
+
+  export type Brand =
+  | "Tech Hub"
+  | "KeyZone"
+  | "SoundWave"
+  | "DataHub"
+  | "ErgoWorks"
+  | "HomeLight";
