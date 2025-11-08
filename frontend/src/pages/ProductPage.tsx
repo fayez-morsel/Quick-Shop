@@ -35,4 +35,33 @@ export default function ProductPage() {
 
     return list;
   }, [products, filters]);
+
+  return (
+    <section className="flex flex-col md:flex-row gap-8 px-6 py-6 text-(--text-main)">
+      {/* Sidebar */}
+      <aside
+        className="w-full md:w-64 rounded-xl shadow p-5 h-fit"
+        style={{ backgroundColor: "var(--bg-card)" }}
+      >
+        <h2 className="text-xl font-semibold text-(--color-primary) mb-4">
+          Filters
+        </h2>
+        {/* Category */}
+        <label className="block text-sm font-medium mb-1">Category</label>
+        <select
+          value={filters.category}
+          onChange={(e) => setCategory(e.target.value as Category | "all")}
+          className="w-full mb-4 px-3 py-2 rounded-md border border-(--border-color) bg-(--bg-input) text-(--text-main)"
+        >
+          <option value="all">All</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+
+      </aside>
+    </section>
+  );
 }
