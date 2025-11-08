@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
+
 export default function LoginPage() {
+    const navigate = useNavigate();
   return (
     <div
       className="flex flex-col items-center justify-center min-h-screen px-4"
@@ -39,8 +43,19 @@ export default function LoginPage() {
                          focus:ring-2 focus:ring-(--color-primary) focus:outline-none"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Password</label>
+            <input
+              type="password"
+              placeholder="********"
+              className="w-full px-3 py-2 rounded-md border border-(--border-color)
+                         bg-(--bg-input) text-(--text-main)
+                         focus:ring-2 focus:ring-(--color-primary) focus:outline-none"
+            />
+          </div>
           <button
             type="button"
+            onClick={() => navigate("/")}
             className="w-full py-2 rounded-md text-white font-medium
                        bg-linear-to-r from-(--color-primary) to-(--color-primary-dark)
                        hover:opacity-90 transition"

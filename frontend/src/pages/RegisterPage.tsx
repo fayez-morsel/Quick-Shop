@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+
 export default function RegisterPage() {
+    const navigate = useNavigate();
   return (
     <div
       className="flex flex-col items-center justify-center min-h-screen px-4"
@@ -75,6 +78,7 @@ export default function RegisterPage() {
 
           <button
             type="button"
+            onClick={() => navigate("/")}
             className="w-full py-2 rounded-md text-white font-medium
                        bg-linear-to-r from-(--color-primary) to-(--color-primary-dark)
                        hover:opacity-90 transition"
