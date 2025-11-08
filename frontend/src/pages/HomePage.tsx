@@ -3,10 +3,12 @@ import type { Product } from "../types";
 import { useStore } from "../store/useStore";
 import ProductCard from "../components/ProductCard";
 import ProductDetails from "../components/ProductDetails";
+import { useNavigate } from "react-router-dom";
 
 export default function HomePage() {
   const products = useStore((s) => s.products);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const navigate = useNavigate();
 
   const handleSelectProduct = (product: Product) => setSelectedProduct(product);
   const handleCloseDetails = () => setSelectedProduct(null);
@@ -20,7 +22,7 @@ export default function HomePage() {
         from-(--color-primary-dark)
         via-(--color-primary)
         to-indigo-600
-        text-white text-center py-20 px-6 shadow-lg"
+        text-white text-center py-25 px-6 shadow-lg mt-5"
       >
         <div className="absolute inset-0 bg-linear-to-b from-white/10 to-transparent opacity-30" />
         <div className="relative z-10 max-w-3xl mx-auto">
@@ -33,7 +35,7 @@ export default function HomePage() {
             and secure payments, all in one place.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <button className="bg-white text-(--color-primary) px-6 py-2.5 rounded-md font-semibold text-sm sm:text-base hover:bg-blue-50 transition">
+            <button onClick={() => navigate("/product")} className="bg-white text-(--color-primary) px-6 py-2.5 rounded-md font-semibold text-sm sm:text-base hover:bg-blue-50 transition">
               🛍️ Shop Now
             </button>
             <button className="border border-white px-6 py-2.5 rounded-md font-semibold text-sm sm:text-base hover:bg-white/10 transition">
@@ -65,7 +67,7 @@ export default function HomePage() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Featured Products</h2>
-          <button className="text-(--color-primary) text-sm hover:underline">
+          <button onClick={() => navigate("/product")} className="text-(--color-primary) text-sm hover:underline">
             View all
           </button>
         </div>
