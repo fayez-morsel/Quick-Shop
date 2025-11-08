@@ -6,9 +6,6 @@ import type { Category, Brand } from "../types";
 export default function ProductPage() {
   const products = useStore((s) => s.products);
   const filters = useStore((s) => s.filters);
-  const setQuery = useStore((s) => s.setQuery);
-  const setSort = useStore((s) => s.setSort);
-  const setDiscounted = useStore((s) => s.setDiscounted);
   const setCategory = useStore((s) => s.setCategory);
   const setBrand = useStore((s) => s.setBrand);
   const clearFilters = useStore((s) => s.clearFilters);
@@ -96,7 +93,7 @@ export default function ProductPage() {
         </button>
       </aside>
 
-      {/* Product Grid */}
+      {/* Product */}
       <div className="flex-1">
         <div className="flex justify-between mb-4">
           <h1 className="text-2xl font-semibold">All Products</h1>
