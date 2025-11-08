@@ -45,7 +45,7 @@ export default function Header() {
           </div>
 
           <nav className="hidden sm:flex items-center gap-4 text-sm font-medium">
-            <button className="hover:text-(--color-accent)">Products</button>
+            <button onClick={() => navigate("/product")} className="hover:text-(--color-accent)">Products</button>
             <button className="hover:text-(--color-accent)">Stores</button>
             <button className="hover:text-(--color-accent)">About</button>
           </nav>
