@@ -1,5 +1,12 @@
 import { create } from "zustand";
-import type { Product, CartItem, FilterState, UIState } from "../types";
+import type {
+  Product,
+  CartItem,
+  FilterState,
+  UIState,
+  Category,
+  Brand,
+} from "../types";
 
 //types for state and action
 
@@ -15,6 +22,9 @@ type Actions = {
   setQuery: (q: string) => void;
   setSort: (sort: "popular" | "priceLow" | "priceHigh") => void;
   setDiscounted: (v: boolean) => void;
+  setCategory: (category: Category | "all") => void; 
+  setBrand: (brand: Brand | "all") => void; 
+  clearFilters: () => void;
 
   // cart
   addToCart: (id: string) => void;
@@ -35,6 +45,7 @@ export const useStore = create<State & Actions>((set) => ({
       compareAtPrice: 150,
       storeId: "tech-hub",
       storeName: "Tech Hub",
+      category: "Sound",
       image:
         "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800",
       inStock: true,
@@ -59,6 +70,7 @@ export const useStore = create<State & Actions>((set) => ({
       compareAtPrice: 109,
       storeId: "keyzone",
       storeName: "KeyZone",
+      category: "Tech",
       image:
         "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800",
       inStock: true,
@@ -95,6 +107,7 @@ export const useStore = create<State & Actions>((set) => ({
       compareAtPrice: 89,
       storeId: "soundwave",
       storeName: "SoundWave",
+      category: "Sound",
       image:
         "https://images.unsplash.com/photo-1585386959984-a41552231693?w=800",
       inStock: true,
@@ -131,6 +144,7 @@ export const useStore = create<State & Actions>((set) => ({
       compareAtPrice: 49,
       storeId: "ergoworks",
       storeName: "ErgoWorks",
+      category: "Home",
       image:
         "https://images.unsplash.com/photo-1588874299471-8c58d8e9f2c2?w=800",
       inStock: true,
@@ -176,6 +190,8 @@ export const useStore = create<State & Actions>((set) => ({
   filters: {
     query: "",
     store: "all",
+    category: "all",
+    brand: "all",
     minPrice: 0,
     maxPrice: 9999,
     discountedOnly: false,
@@ -190,6 +206,24 @@ export const useStore = create<State & Actions>((set) => ({
   setSort: (sort) => set((s) => ({ filters: { ...s.filters, sortBy: sort } })),
   setDiscounted: (v) =>
     set((s) => ({ filters: { ...s.filters, discountedOnly: v } })),
+  setCategory: (category: Category | "all") =>
+    set((s) => ({ filters: { ...s.filters, category } })),
+  setBrand: (brand: Brand | "all") =>
+    set((s) => ({ filters: { ...s.filters, brand } })), 
+
+  clearFilters: () =>
+    set((_s) => ({
+      filters: {
+        query: "",
+        store: "all",
+        category: "all",
+        brand: "all",
+        minPrice: 0,
+        maxPrice: 9999,
+        discountedOnly: false,
+        sortBy: "popular",
+      },
+    })),
 
   // Cart
   addToCart: (id) =>
