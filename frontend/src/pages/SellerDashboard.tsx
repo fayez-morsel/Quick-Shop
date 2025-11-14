@@ -411,6 +411,103 @@ export default function SellerDahsboard() {
             ))}
           </div>
         </section>
+                {/* Order management */}
+        <section className="rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.5em] text-slate-500">
+                Order management
+              </p>
+              <h2 className="text-2xl font-bold text-slate-900">
+                Customer orders
+              </h2>
+            </div>
+            <div className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-600">
+              <RefreshCw className="h-4 w-4" />
+              Live sync
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            {orders.map((order) => (
+              <article
+                key={order.id}
+                className="rounded-3xl border border-slate-200 bg-[#f7f9ff] p-4 shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">
+                      {order.buyerName}
+                    </p>
+                    <p className="text-lg font-semibold text-slate-900">
+                      Order #{order.id}
+                    </p>
+                  </div>
+                  <span className="text-sm font-semibold text-slate-600">
+                    {new Date(order.placedAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-4 text-sm text-slate-600 sm:grid-cols-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em]">
+                      Total
+                    </p>
+                    <p className="text-lg font-semibold text-slate-900">
+                      {money(order.total)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em]">
+                      Items
+                    </p>
+                    <p className="text-base font-semibold text-slate-900">
+                      {order.items.reduce(
+                        (sum, item) => sum + item.qty,
+                        0
+                      )}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em]">
+                      Delivery
+                    </p>
+                    <p className="text-base font-semibold text-slate-900">
+                      {new Date(
+                        order.expectedDelivery
+                      ).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.4em] text-slate-500">
+                      Status
+                    </label>
+                    <select
+                      value={order.status}
+                      onChange={(event) =>
+                        updateOrderStatus(
+                          order.id,
+                          event.target.value as OrderStatus
+                        )
+                      }
+                      className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700"
+                    >
+                      {statusOptions.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
       </main>
     </div>
   );
