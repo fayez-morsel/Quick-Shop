@@ -42,3 +42,12 @@ type ProductFormState = {
   stock: string;
   image: string;
 };
+
+export default function SellerDahsboard() {
+  const products = useStore((s) => s.products);
+  const orders = useStore((s) => s.orders);
+  const addProduct = useStore((s) => s.addProduct);
+  const removeProduct = useStore((s) => s.removeProduct);
+  const updateProductDetails = useStore((s) => s.updateProductDetails);
+  const updateOrderStatus = useStore((s) => s.updateOrderStatus);
+}
