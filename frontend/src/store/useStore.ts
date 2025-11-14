@@ -255,8 +255,8 @@ export const useStore = create<State & Actions>((set) => ({
       storeName: "Tech Hub",
       stock: 14,
       category: "Accessories",
-      image:
-        "https://images.unsplash.com/photo-1519741491512-df7d06f1f9a3?auto=format&fit=crop&w=800&q=60",
+     image:
+        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=60",
       inStock: true,
       rating: { value: 4.7, count: 316 },
     },
