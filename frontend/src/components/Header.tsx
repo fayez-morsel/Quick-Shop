@@ -1,4 +1,4 @@
-import { Heart, Menu, Search, ShoppingCart, Ticket, X } from "lucide-react";
+import { Heart, Menu, ShoppingCart, Ticket, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/useStore";
 import { useEffect, useState } from "react";
@@ -15,8 +15,6 @@ export default function Header() {
   const isAuthenticated = useStore((s) => s.isAuthenticated);
   const userRole = useStore((s) => s.userRole);
   const logout = useStore((s) => s.logout);
-  const searchQuery = useStore((s) => s.filters.query);
-  const setQuery = useStore((s) => s.setQuery);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1000);
   useEffect(() => {
@@ -52,19 +50,6 @@ export default function Header() {
             <span className="text-emerald-200">Quick</span>
             <span className="text-yellow-300">Shop</span>
           </button>
-
-          {isDesktop && (
-            <div className="relative mx-auto w-[300px] bg-white/30 rounded-2xl">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/80" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search products..."
-                className="w-full rounded-full border border-white/40 bg-white/10 px-10 py-2 text-sm text-white placeholder-white/80 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/70"
-              />
-            </div>
-          )}
 
           {isDesktop ? (
             <div className="ml-auto flex items-center gap-2">
@@ -140,8 +125,8 @@ export default function Header() {
             className="fixed inset-0 z-40 bg-black/40"
             onClick={() => setMenuOpen(false)}
           />
-          <aside className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col gap-6 bg-white px-6 py-6 text-slate-900 shadow-2xl">
-            <div className="flex items-center justify-between">
+          <aside className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col items-center gap-6 bg-white px-6 py-6 text-slate-900 shadow-2xl">
+            <div className="flex w-full items-center justify-between gap-4">
               <span className="text-lg font-semibold">Menu</span>
               <button
                 type="button"
@@ -152,23 +137,13 @@ export default function Header() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search products..."
-                className="w-full rounded-full border border-slate-300 bg-slate-100 px-10 py-2 text-sm text-slate-900 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
             <button
               type="button"
               onClick={() => {
                 toggleCart();
                 setMenuOpen(false);
               }}
-              className="flex items-center gap-3 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
+              className="flex w-full items-center justify-center gap-3 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-center"
             >
               <ShoppingCart className="h-5 w-5" />
               Cart
@@ -182,7 +157,7 @@ export default function Header() {
                 navigate("/support");
                 setMenuOpen(false);
               }}
-              className="flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
+              className="flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-center"
             >
               <Ticket className="h-4 w-4" />
               Support
@@ -194,7 +169,7 @@ export default function Header() {
                   navigate("/seller");
                   setMenuOpen(false);
                 }}
-                className="flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 text-center"
               >
                 Seller Hub
               </button>
@@ -205,10 +180,20 @@ export default function Header() {
                 navigate("/favorites");
                 setMenuOpen(false);
               }}
-              className="flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
+              className="flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-center"
             >
               <Heart className="h-4 w-4" />
               Favorites
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                navigate("/product");
+                setMenuOpen(false);
+              }}
+              className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 text-center"
+            >
+              Products
             </button>
             <button
               type="button"
@@ -220,29 +205,9 @@ export default function Header() {
                 }
                 setMenuOpen(false);
               }}
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900"
+              className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 text-center"
             >
               {isAuthenticated ? "Log out" : "Log in"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                navigate("/register");
-                setMenuOpen(false);
-              }}
-              className="rounded-full bg-[#0d4bc9] px-4 py-2 text-sm font-semibold text-white"
-            >
-              Register
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                navigate("/product");
-                setMenuOpen(false);
-              }}
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900"
-            >
-              Products
             </button>
           </aside>
         </>
