@@ -214,6 +214,22 @@ export default function SellerDahsboard() {
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             </div>
+
+            {/* Compare-at */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-600">
+                Compare-at ($)
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.compareAtPrice}
+                onChange={(event) =>
+                  handleFormChange("compareAtPrice", event.target.value)
+                }
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
           </form>
         </section>
       </main>
