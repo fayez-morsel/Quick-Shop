@@ -295,7 +295,124 @@ export default function SellerDahsboard() {
             </div>
           </form>
         </section>
+
+        {/* Inventory feed */}
+        <section className="space-y-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">
+              Inventory feed
+            </p>
+            <h2 className="text-2xl font-bold text-slate-900">
+              Your product catalog
+            </h2>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {sellerProducts.map((product) => (
+              <article
+                key={product.id}
+                className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+                      {product.storeName}
+                    </p>
+                    <h3 className="text-xl font-semibold text-slate-900">
+                      {product.title}
+                    </h3>
+                  </div>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      product.inStock
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-rose-100 text-rose-700"
+                    }`}
+                  >
+                    {product.inStock ? "In stock" : "Out of stock"}
+                  </span>
+                </div>
+
+                <p className="mt-2 text-sm text-slate-500">
+                  {product.category ?? "General"}
+                </p>
+
+                <div className="mt-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold text-[#0d4bc9]">
+                      {money(product.price)}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      Inventory: {product.stock}
+                    </p>
+                    {product.discountExpires && (
+                      <p className="text-xs text-slate-500">
+                        Discount ends{" "}
+                        {new Date(product.discountExpires).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col items-end gap-2 text-xs font-semibold uppercase text-slate-500">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateProductDetails(product.id, {
+                          stock: product.inStock
+                            ? 0
+                            : Math.max(product.stock, 10),
+                          inStock: product.inStock ? false : true,
+                        })
+                      }
+                      className="rounded-full border border-slate-200 px-3 py-1 text-[11px] tracking-[0.5em]"
+                    >
+                      {product.inStock ? "Mark out" : "Restock"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateProductDetails(product.id, {
+                          discounted: true,
+                          discountExpires: new Date(
+                            Date.now() + 7 * 24 * 60 * 60 * 1000
+                          ).toISOString(),
+                        })
+                      }
+                      className="rounded-full border border-slate-200 px-3 py-1 text-[11px] tracking-[0.5em]"
+                    >
+                      Add 7-day discount
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateProductDetails(product.id, {
+                        price: product.price * 0.95,
+                        compareAtPrice: product.compareAtPrice ?? product.price,
+                      })
+                    }
+                    className="rounded-full border border-blue-500 px-3 py-1 text-blue-600"
+                  >
+                    Deepen price
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeProduct(product.id)}
+                    className="rounded-full border border-slate-200 px-3 py-1 text-slate-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );
 }
+
