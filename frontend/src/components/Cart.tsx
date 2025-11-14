@@ -47,14 +47,14 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
         }`}
       >
         <div className="flex h-full min-h-screen flex-col border-l border-[#0b3ca9] shadow-2xl">
-          <header className="flex items-center justify-between bg-gradient-to-r from-[#0b47c7] to-[#0c409f] px-6 py-4 text-lg font-semibold text-white">
+          <header className="flex items-center justify-between bg-linear-to-r from-[#0b47c7] to-[#0c409f] px-6 py-4 text-lg font-semibold text-white">
             <span>My Cart</span>
             <button
               type="button"
               onClick={toggleCart}
               className="text-white/70 transition hover:text-white"
             >
-              ×
+              X
             </button>
           </header>
 
