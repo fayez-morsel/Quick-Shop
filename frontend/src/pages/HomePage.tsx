@@ -140,35 +140,35 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 pt-10">
-        {/* Categories */}
-        <section className="space-y-6 rounded-[40px] bg-[#e8f2ff] px-6 py-10 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-slate-900">Shop by Category</h2>
-          </div>
-          <div className="overflow-hidden">
-            <div className="flex gap-5 overflow-x-auto pb-4 pr-4 sm:gap-6 sm:pr-6 lg:grid lg:grid-cols-6 lg:overflow-visible lg:pr-0">
-              {categoryOptions.map(({ label, value, Icon, accent, iconColor }) => (
-                <button
-                  type="button"
-                  key={`${label}-${value}`}
-                  onClick={() => handleCategorySelect(value)}
-                  className="shrink-0 w-[200px] rounded-[28px] border border-white bg-white px-5 py-6 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-300 lg:w-auto"
-                >
-                  <span
-                    className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full ${accent}`}
+      <div className="flex flex-col gap-12 px-0 pt-10">
+        <section className="w-full space-y-6   px-6 py-10 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+          <div className="mx-auto max-w-6xl space-y-6">
+            <div className="text-center">
+              <h2 className="text-3xl font-semibold text-slate-900">Shop by Category</h2>
+            </div>
+            <div className="overflow-hidden">
+              <div className="flex gap-5 overflow-x-auto pb-4 pr-4 sm:gap-6 sm:pr-6 lg:grid lg:grid-cols-6 lg:overflow-visible lg:pr-0">
+                {categoryOptions.map(({ label, value, Icon, accent, iconColor }) => (
+                  <button
+                    type="button"
+                    key={`${label}-${value}`}
+                    onClick={() => handleCategorySelect(value)}
+                    className="shrink-0 w-[200px] rounded-[28px] border border-white bg-white px-5 py-6 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-300 lg:w-auto"
                   >
-                    <Icon className={`h-6 w-6 ${iconColor}`} aria-hidden />
-                  </span>
-                  <p className="text-base font-semibold text-slate-900">{label}</p>
-                </button>
-              ))}
+                    <span
+                      className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full ${accent}`}
+                    >
+                      <Icon className={`h-6 w-6 ${iconColor}`} aria-hidden />
+                    </span>
+                    <p className="text-base font-semibold text-slate-900">{label}</p>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Featured products */}
-        <section className="space-y-6">
+        <section className="mx-auto w-full max-w-6xl space-y-6 px-4">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="text-3xl font-bold text-slate-900">Featured Products</h2>
             <div className="ml-auto">
@@ -192,19 +192,20 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Why choose */}
-        <section className="bg-white/80 px-6 py-10 text-center shadow">
-          <h2 className="text-3xl font-bold text-slate-900">Why Choose ShopHub?</h2>
-          <div className="mt-10 grid gap-6 sm:grid-cols-3">
-            {highlights.map(({ title, description, icon: Icon }) => (
-              <div key={title} className="space-y-4 px-4">
-                <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e3f0ff] text-[#0a45c5]">
-                  <Icon className="h-7 w-7" aria-hidden />
-                </span>
-                <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
-                <p className="text-sm text-slate-500">{description}</p>
-              </div>
-            ))}
+        <section className="w-full px-6 py-10 text-center">
+          <div className="mx-auto max-w-6xl space-y-10">
+            <h2 className="text-3xl font-bold text-slate-900">Why Choose ShopHub?</h2>
+            <div className="mt-10 grid gap-6 sm:grid-cols-3">
+              {highlights.map(({ title, description, icon: Icon }) => (
+                <div key={title} className="space-y-4 px-4">
+                  <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e3f0ff] text-[#0a45c5]">
+                    <Icon className="h-7 w-7" aria-hidden />
+                  </span>
+                  <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
+                  <p className="text-sm text-slate-500">{description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </div>
