@@ -1,15 +1,71 @@
-import { ArrowRight, CheckCircle2, Dumbbell, Shield, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Dumbbell,
+  Gift,
+  Home as HomeIcon,
+  Laptop,
+  Shirt,
+  Shield,
+  Zap,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import ProductCard from "../components/ProductCard";
-import ProductDetails from "../components/ProductDetails";
 import { useStore } from "../store/useStore";
-import type { Product } from "../types";
+import type { Category } from "../types";
 
-const categories = Array.from({ length: 6 }, () => ({
-  label: "sport",
-  icon: Dumbbell,
-}));
+const categoryOptions: {
+  label: string;
+  value: Category;
+  Icon: LucideIcon;
+  accent: string;
+  iconColor: string;
+}[] = [
+  {
+    label: "Electronics",
+    value: "Tech",
+    Icon: Laptop,
+    accent: "bg-[#dce7ff]",
+    iconColor: "text-[#1d4ed8]",
+  },
+  {
+    label: "Sports",
+    value: "Sport",
+    Icon: Dumbbell,
+    accent: "bg-[#e3f8ef]",
+    iconColor: "text-[#059669]",
+  },
+  {
+    label: "Home",
+    value: "Home",
+    Icon: HomeIcon,
+    accent: "bg-[#fff8dc]",
+    iconColor: "text-[#ca8a04]",
+  },
+  {
+    label: "Fashion",
+    value: "Accessories",
+    Icon: Shirt,
+    accent: "bg-[#ffe9f2]",
+    iconColor: "text-[#be185d]",
+  },
+  {
+    label: "Books",
+    value: "Books",
+    Icon: BookOpen,
+    accent: "bg-[#ede9fe]",
+    iconColor: "text-[#6d28d9]",
+  },
+  {
+    label: "Gifts",
+    value: "Gifts",
+    Icon: Gift,
+    accent: "bg-[#ffe5e0]",
+    iconColor: "text-[#dc2626]",
+  },
+];
 
 const highlights = [
   {
@@ -32,23 +88,33 @@ const highlights = [
 
 export default function HomePage() {
   const products = useStore((s) => s.products);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const navigate = useNavigate();
+  const setCategory = useStore((s) => s.setCategory);
+  const setBrand = useStore((s) => s.setBrand);
+  const setQuery = useStore((s) => s.setQuery);
 
   const featured = products.slice(0, 8);
 
+  const handleCategorySelect = (value: Category) => {
+    setCategory([value]);
+    setBrand("all");
+    setQuery("");
+    navigate("/product");
+  };
+
   return (
     <div className="bg-[#dfeeff] pb-10">
-      {/* Hero banner full width */}
+      {/* Hero banner*/}
       <section className="w-full bg-linear-to-r from-[#0b4fd3] via-[#0d6ef6] to-[#0b39a2] px-6 py-16 text-white shadow-lg">
-          <div className="mx-auto max-w-5xl">
-            <h1
-              className="mt-4 font-extrabold leading-snug"
-              style={{ fontSize: "clamp(2.75rem, 5vw, 4.5rem)" }}
-            >
-              Discover Amazing Products from Trusted Stores
-            </h1>
-          <p className="mt-4 max-w-2xl text-base text-blue-100 sm:text-lg">
+        <div className="mx-auto max-w-5xl">
+          <h1
+            className="mt-4 font-bold leading-snug"
+            style={{ fontSize: "clamp(1.75rem, 5vw, 3.5rem)" }}
+          >
+            Discover Amazing Products from Trusted Stores
+          </h1>
+          <p className="mt-4 max-w-2xl text-base text-blue-100 sm:text-lg"
+          style={{ fontSize: "clamp(0.75rem, 2vw, 1.5rem)" }}>
             Shop the latest products from verified sellers. Quality guaranteed,
             fast shipping, and exceptional customer service.
           </p>
@@ -63,9 +129,12 @@ export default function HomePage() {
             </button>
             <button
               type="button"
+              onClick={() =>
+                navigate("/login", { state: { role: "seller" } })
+              }
               className="rounded-full border border-white/60 px-8 py-3 text-sm font-semibold text-white hover:bg-white/10"
             >
-              Become a Seller
+              Become a seller
             </button>
           </div>
         </div>
@@ -73,26 +142,28 @@ export default function HomePage() {
 
       <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 pt-10">
         {/* Categories */}
-        <section className="space-y-6">
+        <section className="space-y-6 rounded-[40px] bg-[#e8f2ff] px-6 py-10 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-slate-900">Shop by Category</h2>
           </div>
-          <div className="grid grid-cols-2 gap-4 pb-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-6">
-            {categories.map(({ label, icon: Icon }, index) => (
-              <div
-                key={`${label}-${index}`}
-                className="rounded-4xl bg-white p-6 text-center shadow-sm ring-1 ring-blue-50 transition hover:-translate-y-1 hover:shadow-md"
-              >
-                <span
-                  className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[#e3f1ff] text-[#0a45c5]"
+          <div className="overflow-hidden">
+            <div className="flex gap-5 overflow-x-auto pb-4 pr-4 sm:gap-6 sm:pr-6 lg:grid lg:grid-cols-6 lg:overflow-visible lg:pr-0">
+              {categoryOptions.map(({ label, value, Icon, accent, iconColor }) => (
+                <button
+                  type="button"
+                  key={`${label}-${value}`}
+                  onClick={() => handleCategorySelect(value)}
+                  className="shrink-0 w-[200px] rounded-[28px] border border-white bg-white px-5 py-6 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-300 lg:w-auto"
                 >
-                  <Icon className="h-8 w-8" aria-hidden />
-                </span>
-                <p className="text-base font-semibold capitalize text-slate-900">
-                  {label}
-                </p>
-              </div>
-            ))}
+                  <span
+                    className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full ${accent}`}
+                  >
+                    <Icon className={`h-6 w-6 ${iconColor}`} aria-hidden />
+                  </span>
+                  <p className="text-base font-semibold text-slate-900">{label}</p>
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -115,14 +186,14 @@ export default function HomePage() {
               <ProductCard
                 key={product.id}
                 product={product}
-                onSelect={setSelectedProduct}
+                onSelect={() => navigate(`/product/${product.id}`)}
               />
             ))}
           </div>
         </section>
 
         {/* Why choose */}
-        <section className="rounded-4xl bg-white/80 px-6 py-10 text-center shadow">
+        <section className="bg-white/80 px-6 py-10 text-center shadow">
           <h2 className="text-3xl font-bold text-slate-900">Why Choose ShopHub?</h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {highlights.map(({ title, description, icon: Icon }) => (
@@ -138,10 +209,6 @@ export default function HomePage() {
         </section>
       </div>
 
-      <ProductDetails
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-      />
     </div>
   );
 }
