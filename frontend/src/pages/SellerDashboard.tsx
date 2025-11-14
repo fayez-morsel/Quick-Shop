@@ -266,6 +266,22 @@ export default function SellerDahsboard() {
                 ))}
               </select>
             </div>
+
+             {/* Image URL */}
+            <div className="space-y-2 md:col-span-3">
+              <label className="text-xs font-semibold text-slate-600">
+                Image URL
+              </label>
+              <input
+                type="text"
+                value={form.image}
+                onChange={(event) =>
+                  handleFormChange("image", event.target.value)
+                }
+                placeholder="https://images.unsplash.com/..."
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
           </form>
         </section>
       </main>
