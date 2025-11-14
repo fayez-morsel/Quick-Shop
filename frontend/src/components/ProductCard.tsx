@@ -1,109 +1,131 @@
-import { useStore } from "../store/useStore";
+import { Heart, ShoppingCart } from "lucide-react";
+import clsx from "clsx";
+import type { MouseEvent } from "react";
 import type { Product } from "../types";
+import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
 import Rating from "./Rating";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
-  p: Product;
+  product: Product;
   onSelect?: (product: Product) => void;
 };
 
-export default function ProductCard({ p, onSelect }: Props) {
+export default function ProductCard({ product, onSelect }: Props) {
   const addToCart = useStore((s) => s.addToCart);
-  const isInteractive = Boolean(onSelect);
+  const favorites = useStore((s) => s.favorites);
+  const toggleFavorite = useStore((s) => s.toggleFavorite);
+  const isFavorite = favorites.includes(product.id);
+  const isClickable = Boolean(onSelect);
+  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const navigate = useNavigate();
+  const hasDiscount =
+    Boolean(product.discounted) &&
+    typeof product.compareAtPrice === "number" &&
+    product.compareAtPrice > product.price;
+  const discountPercent =
+    hasDiscount && product.compareAtPrice
+      ? Math.round(
+          ((product.compareAtPrice - product.price) / product.compareAtPrice) * 100
+        )
+      : null;
 
-  const handleCardClick = () => {
-    if (!onSelect) return;
-    onSelect(p);
+  const handleClick = () => {
+    if (onSelect) onSelect(product);
+  };
+
+  const handleToggleFavorite = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    toggleFavorite(product.id);
+  };
+
+  const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    addToCart(product.id);
   };
 
   return (
-    <div
-      className={`rounded-lg shadow-sm transition-all duration-300 p-4 flex flex-col gap-3
-                 hover:shadow-[0_0_25px_rgba(37,99,235,0.3)] hover:-translate-y-1 relative group ${
-                   isInteractive ? "cursor-pointer focus-visible:outline focus-visible:outline-(--color-primary)" : ""
-                 }`}
-      onClick={handleCardClick}
-      onKeyDown={
-        isInteractive
-          ? (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onSelect?.(p);
-              }
-            }
-          : undefined
-      }
-      role={isInteractive ? "button" : undefined}
-      tabIndex={isInteractive ? 0 : undefined}
-      style={{
-        backgroundColor: "var(--bg-card)",
-        color: "var(--text-main)",
+    <article
+      className={clsx(
+        "group flex h-full min-h-[520px] flex-col overflow-hidden rounded-4xl bg-white shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-xl",
+        isClickable && "cursor-pointer focus-visible:outline focus-visible:outline-blue-300"
+      )}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={handleClick}
+      onKeyDown={(event) => {
+        if (!isClickable) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleClick();
+        }
       }}
     >
-      {/* image */}
-      <div className="aspect-4/3 overflow-hidden rounded-md">
+      <div className="relative w-full overflow-hidden rounded-t-4xl flex-[0_0_50%]">
         <img
-          src={p.image}
-          alt={p.title}
-          className="h-full w-full object-cover rounded-md transition-transform duration-500 group-hover:scale-105"
+          src={product.image}
+          alt={product.title}
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
-      </div>
-
-      {/* store + stock badges */}
-      <div className="flex flex-wrap gap-2 items-center mt-2">
-        <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-(--color-primary)/10 text-(--color-primary-dark)">
-          {p.storeName}
-        </span>
-        {!p.inStock && (
-          <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
-            Out of stock
+        <button
+          type="button"
+          onClick={handleToggleFavorite}
+          className={clsx(
+            "absolute right-4 top-4 rounded-full border border-white/70 bg-white/90 p-2 shadow transition",
+            isFavorite
+              ? "text-rose-500 shadow-lg"
+              : "text-slate-500 hover:text-rose-500"
+          )}
+          aria-pressed={isFavorite}
+          aria-label="Toggle favorite"
+        >
+          <Heart className="h-4 w-4" aria-hidden />
+        </button>
+        {hasDiscount && (
+          <span className="absolute left-4 bottom-4 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-lg">
+            {discountPercent ? `${discountPercent}% OFF` : "Sale"}
           </span>
         )}
       </div>
 
-      {/* title */}
-      <h3
-        className="text-base font-semibold line-clamp-1 group-hover:text-(--color-primary)
-                   transition-colors duration-300"
-      >
-        {p.title}
-      </h3>
-
-      {/* prices */}
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-lg font-bold text-(--color-primary)">
-          {money(p.price)}
-        </span>
-        {p.compareAtPrice && p.compareAtPrice > p.price && (
-          <span className="text-sm text-(--text-secondary) line-through">
-            {money(p.compareAtPrice)}
-          </span>
-        )}
-      </div>
-
-      {/* rating */}
-      {p.rating && (
-        <div className="transition-all duration-300 group-hover:drop-shadow-[0_0_6px_var(--color-accent)]">
-          <Rating value={p.rating.value} count={p.rating.count} />
+      <div className="flex flex-1 flex-col gap-3 px-5 pb-5 pt-4">
+        <div className="space-y-1">
+          <h3 className="text-2xl font-semibold text-slate-900">{product.title}</h3>
+          <p className="text-sm text-slate-500">
+            High-quality {
+              (product.category ?? "Product").toLowerCase()
+            } gear with noise cancellation.
+          </p>
         </div>
-      )}
 
-      {/* button */}
-      <button
-        onClick={(event) => {
-          event.stopPropagation();
-          addToCart(p.id);
-        }}
-        disabled={!p.inStock}
-        className={`mt-auto rounded-md py-1.5 font-medium text-sm text-white transition-all duration-300 ${
-          p.inStock
-            ? "bg-linear-to-r from-(--color-primary) to-(--color-primary-dark) hover:shadow-[0_0_12px_var(--color-primary)]"
-            : "bg-gray-400 cursor-not-allowed"
-        }`}
-      >
-        {p.inStock ? "Add to Cart" : "Out of Stock"}
-      </button>
-    </div>
+        {product.rating && (
+          <Rating value={product.rating.value} count={product.rating.count} />
+        )}
+
+        <div className="space-y-0.5">
+          <p className="text-2xl font-bold text-[#0d4bc9]">{money(product.price)}</p>
+          <p className="text-sm text-slate-500">{product.storeName}</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          disabled={!product.inStock}
+          className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0d4bc9] px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#0b3ba2] disabled:cursor-not-allowed disabled:bg-slate-300"
+        >
+          <ShoppingCart className="h-5 w-5" aria-hidden />
+          {product.inStock ? "Add to Cart" : "Out of Stock"}
+        </button>
+      </div>
+    </article>
   );
 }
