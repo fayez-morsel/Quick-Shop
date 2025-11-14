@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/useStore";
+import ProductCard from "../components/ProductCard";
 
 
 export default function FavoritesPage() {
@@ -26,6 +27,26 @@ export default function FavoritesPage() {
       </div>
     );
   }
+
+  return (
+    <div className="min-h-screen bg-[#dfeeff] px-4 py-10">
+      <div className="mx-auto max-w-6xl space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Favorites</h1>
+          <p className="text-sm text-slate-600">{favoriteProducts.length} products saved</p>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {favoriteProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onSelect={() => navigate(`/product/${product.id}`)}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   
 }
