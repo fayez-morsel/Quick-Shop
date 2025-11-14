@@ -162,13 +162,6 @@ export default function ProductPage() {
       <div className="space-y-3">
         <button
           type="button"
-          onClick={() => setMaxPrice(filters.maxPrice)}
-          className="w-full rounded-full bg-[#0d4bc9] px-4 py-2 text-sm font-semibold text-white"
-        >
-          Apply
-        </button>
-        <button
-          type="button"
           onClick={clearFilters}
           className="w-full rounded-full border border-blue-500 px-4 py-2 text-sm font-semibold text-blue-600"
         >
@@ -206,18 +199,20 @@ export default function ProductPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-8 lg:flex-row">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
           {isDesktop && (
-            <aside className="w-full max-w-xs shrink-0 rounded-4xl border border-slate-200 bg-white p-6 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+            <aside className="self-start w-full max-w-xs shrink-0 rounded-4xl border border-slate-200 bg-white p-6 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
               {FiltersPanel}
             </aside>
           )}
           <div className="flex-1">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-              {filtered.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+          <div className="grid gap-6 auto-rows-fr sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+            {filtered.map((product) => (
+              <div key={product.id} className="flex h-full">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
           </div>
         </div>
 
@@ -238,7 +233,9 @@ export default function ProductPage() {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              {FiltersPanel}
+              <div className="flex flex-1 flex-col overflow-y-auto pr-1 pb-3">
+                {FiltersPanel}
+              </div>
             </aside>
           </>
         )}
