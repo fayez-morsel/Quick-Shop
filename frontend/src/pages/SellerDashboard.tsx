@@ -267,7 +267,7 @@ export default function SellerDahsboard() {
               </select>
             </div>
 
-             {/* Image URL */}
+            {/* Image URL */}
             <div className="space-y-2 md:col-span-3">
               <label className="text-xs font-semibold text-slate-600">
                 Image URL
@@ -281,6 +281,17 @@ export default function SellerDahsboard() {
                 placeholder="https://images.unsplash.com/..."
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
+            </div>
+
+            {/* Submit */}
+            <div className="md:col-span-3">
+              <button
+                type="submit"
+                className="w-full rounded-full bg-[#0d4bc9] px-4 py-3 text-sm font-semibold text-white shadow hover:bg-[#0b3ba2]"
+              >
+                <Plus className="mr-2 inline-block h-4 w-4" aria-hidden />
+                Add product
+              </button>
             </div>
           </form>
         </section>
