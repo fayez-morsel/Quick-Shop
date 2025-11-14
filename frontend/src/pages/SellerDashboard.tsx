@@ -106,18 +106,6 @@ export default function SellerDashboard() {
 
   return (
     <div className="min-h-screen bg-[#dfeeff]">
-      <header className="border-b border-blue-900 bg-[#0c409f] px-4 py-6 text-white">
-        <div className="mx-auto max-w-6xl space-y-2 text-center">
-          <p className="text-xs uppercase tracking-[0.5em] text-blue-200">
-            QuickShop Seller Hub
-          </p>
-          <h1 className="text-4xl font-bold tracking-tight">Product & Order control</h1>
-          <p className="text-base text-blue-100">
-            Manage inventory, discounts, and order fulfillment with live controls.
-          </p>
-        </div>
-      </header>
-
       <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10">
         <section className="rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.12)]">
           <div className="flex items-center justify-between gap-3">
