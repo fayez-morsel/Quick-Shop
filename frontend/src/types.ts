@@ -7,12 +7,16 @@ export type Product = {
   storeId: string;
   storeName: Brand;
   category?: Category;
+  discounted?: boolean;
+  tagline?: string;
   image: string;
   inStock: boolean;
   rating?: {
     value: number;
     count: number;
   };
+  stock: number;
+  discountExpires?: string;
 };
 
 // Cart item
@@ -25,8 +29,8 @@ export type CartItem = {
 export type FilterState = {
   query: string;
   store: string | "all";
-  category: Category | "all";
-  brand: Brand | "all";
+  category: Category[];
+  brand: Brand[];
   minPrice: number;
   maxPrice: number;
   discountedOnly: boolean;
@@ -38,14 +42,42 @@ export type UIState = {
     cartOpen: boolean;
 }
 
+export type OrderStatus =
+  | "Pending"
+  | "Dispatched"
+  | "Delivered"
+  | "Delivery Unsuccessful"
+  | "Canceled";
+
+export type OrderItem = {
+  productId: string;
+  qty: number;
+};
+
+export type Order = {
+  id: string;
+  buyerName: string;
+  buyerEmail: string;
+  storeId: string;
+  items: OrderItem[];
+  total: number;
+  status: OrderStatus;
+  placedAt: string;
+  expectedDelivery: string;
+};
+
+export type UserRole = "buyer" | "seller";
+
 export type Category =
   | "Tech"
   | "Sound"
   | "Home"
   | "Sport"
-  | "Accessories";
+  | "Accessories"
+  | "Books"
+  | "Gifts";
 
-  export type Brand =
+export type Brand =
   | "Tech Hub"
   | "KeyZone"
   | "SoundWave"
