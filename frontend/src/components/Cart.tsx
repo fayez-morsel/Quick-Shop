@@ -14,13 +14,13 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
   const setQty = useStore((s) => s.setQty);
   const removeFromCart = useStore((s) => s.removeFromCart);
 
-  const total = cart.reduce((sum, c) => {
-    const p = products.find((x) => x.id === c.productId);
-    return sum + (p ? p.price * c.qty : 0);
+  const total = cart.reduce((sum, item) => {
+    const product = products.find((p) => p.id === item.productId);
+    return sum + (product ? product.price * item.qty : 0);
   }, 0);
 
   const handleCheckout = () => {
-    if (cart.length === 0) return;
+    if (!cart.length) return;
     toggleCart();
     clearCart();
     onCheckoutComplete?.();
@@ -29,105 +29,112 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
   return (
     <>
       {cartOpen && (
-        <div onClick={toggleCart} className="fixed inset-0 bg-black/40 z-40" />
+        <div onClick={toggleCart} className="fixed inset-0 z-40 bg-black/40" />
       )}
-
       <div
-        className={`fixed right-0 top-0 h-full w-80 z-50 transform transition-transform duration-300 ${
+        className={`fixed right-0 top-0 z-50 h-full w-80 transform border-l border-slate-100 bg-white text-slate-900 shadow-2xl transition-transform duration-300 dark:border-slate-700 dark:bg-slate-800 dark:text-white ${
           cartOpen ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{
-          backgroundColor: "var(--bg-cart)",
-          color: "var(--text-main)",
-          boxShadow: "0 0 40px rgba(0,0,0,0.25)",
-        }}
       >
-        {/* header */}
-        <div className="flex items-center justify-between border-b p-4 border-(--border-color)">
-          <h2 className="text-lg font-semibold">My Cart</h2>
+        <header className="flex items-center justify-between border-b border-slate-100 px-6 py-4 text-lg font-semibold dark:border-slate-700">
+          <span>My Cart</span>
           <button
+            type="button"
             onClick={toggleCart}
-            className="text-(--text-secondary) hover:text-(--color-primary) transition"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
           >
             ✕
           </button>
-        </div>
+        </header>
 
-        {/* items */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           {cart.length === 0 ? (
-            <p className="text-(--text-secondary) text-sm">
+            <p className="text-sm text-slate-500 dark:text-slate-300">
               Your cart is empty.
             </p>
           ) : (
-            cart.map((c) => {
-              const p = products.find((x) => x.id === c.productId);
-              if (!p) return null;
-              return (
-                <div
-                  key={c.productId}
-                  className="flex items-center justify-between gap-3 border-b pb-2 border-(--border-color)"
-                >
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{p.title}</p>
-                    <p className="text-(--text-secondary) text-xs">
-                      {money(p.price)} × {c.qty}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setQty(c.productId, c.qty - 1)}
-                      className="px-2 text-(--text-main) hover:text-(--color-primary) transition"
-                    >
-                      -
-                    </button>
-                    <span className="text-sm w-5 text-center">{c.qty}</span>
-                    <button
-                      onClick={() => setQty(c.productId, c.qty + 1)}
-                      className="px-2 text-(--text-main) hover:text-(--color-primary) transition"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => removeFromCart(c.productId)}
-                    className="text-(--text-secondary) hover:text-red-600 transition"
+            <ul className="space-y-4">
+              {cart.map((item) => {
+                const product = products.find((p) => p.id === item.productId);
+                if (!product) return null;
+                return (
+                  <li
+                    key={item.productId}
+                    className="rounded-2xl border border-slate-100 p-3 text-sm dark:border-slate-700"
                   >
-                    🗑
-                  </button>
-                </div>
-              );
-            })
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-slate-900 dark:text-white">
+                          {product.title}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-300">
+                          {money(product.price)}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFromCart(item.productId)}
+                        className="text-xs text-slate-400 hover:text-rose-500"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex items-center rounded-full border border-slate-200 dark:border-slate-600">
+                        <button
+                          type="button"
+                          onClick={() => setQty(item.productId, item.qty - 1)}
+                          className="px-3 py-1 text-lg"
+                        >
+                          −
+                        </button>
+                        <span className="px-3 text-sm font-semibold">
+                          {item.qty}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setQty(item.productId, item.qty + 1)}
+                          className="px-3 py-1 text-lg"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                        {money(product.price * item.qty)}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
 
-        {/* footer */}
-        <div className="border-t border-(--border-color) p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="font-medium">Total</span>
-            <span className="font-semibold text-(--color-primary)">
+        <footer className="border-t border-slate-100 px-6 py-5 dark:border-slate-700">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-slate-500 dark:text-slate-300">Total</span>
+            <span className="text-lg font-bold text-[#0d4bc9] dark:text-blue-200">
               {money(total)}
             </span>
           </div>
-          <div className="flex gap-2">
+          <div className="mt-4 flex gap-2">
             <button
+              type="button"
               onClick={clearCart}
-              className="flex-1 rounded-md border border-(--border-color) py-1.5 text-sm
-                         hover:bg-(--color-primary)/10 transition"
+              className="flex-1 rounded-full border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-white dark:hover:bg-slate-700"
             >
               Clear
             </button>
             <button
-              disabled={cart.length === 0}
+              type="button"
               onClick={handleCheckout}
-              className="flex-1 rounded-md bg-(--color-primary) py-1.5 text-sm text-white
-                         hover:bg-(--color-primary-dark) hover:shadow-[0_0_12px_var(--color-primary)]
-                         transition disabled:opacity-50"
+              disabled={!cart.length}
+              className="flex-1 rounded-full bg-[#0d4bc9] px-3 py-2 text-sm font-semibold text-white hover:bg-[#0b3ba2] disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-blue-500 dark:hover:bg-blue-400"
             >
               Checkout
             </button>
           </div>
-        </div>
+        </footer>
       </div>
     </>
   );

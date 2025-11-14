@@ -1,75 +1,134 @@
+import { Heart, Menu, ShoppingCart, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../store/useStore";
-import ThemeToggle from "./ThemeToggle";
+import { useState } from "react";
+
+const iconButtonBase =
+  "rounded-full border border-white/30 p-2 text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
 
 export default function Header() {
-  const toggleCart = useStore((s) => s.toggleCart);
-  const count = useStore((s) => s.cart.reduce((sum, c) => sum + c.qty, 0));
   const navigate = useNavigate();
+  const toggleCart = useStore((s) => s.toggleCart);
+  const cartCount = useStore((s) =>
+    s.cart.reduce((sum, item) => sum + item.qty, 0)
+  );
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const Actions = ({ stacked = false }: { stacked?: boolean }) => (
+    <div className={`flex gap-3 ${stacked ? "flex-col" : "items-center"}`}>
+      <button
+        type="button"
+        className={`${iconButtonBase} ${stacked ? "w-full justify-center" : ""}`}
+        aria-label="Favorites"
+      >
+        <Heart className="h-5 w-5" aria-hidden />
+      </button>
+      <button
+        type="button"
+        onClick={toggleCart}
+        className={`${iconButtonBase} ${stacked ? "w-full justify-center" : ""} relative`}
+        aria-label="Cart"
+      >
+        <ShoppingCart className="h-5 w-5" aria-hidden />
+        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#fcd34d] text-[10px] font-bold text-slate-900">
+          {cartCount}
+        </span>
+      </button>
+    </div>
+  );
+
+  const compactButtonBase =
+    "flex items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
+
+  const LoginButton = ({
+    className = "",
+    stacked = false,
+  }: {
+    className?: string;
+    stacked?: boolean;
+  }) => (
+    <button
+      type="button"
+      onClick={() => navigate("/login")}
+      className={`${compactButtonBase} bg-[#dcdcdc] text-slate-900 shadow hover:bg-white ${
+        stacked ? "w-full text-center min-w-0" : "min-w-[120px]"
+      } ${className}`}
+    >
+      Log in
+    </button>
+  );
+
+  const MenuButton = ({
+    className = "",
+    stacked = false,
+  }: {
+    className?: string;
+    stacked?: boolean;
+  }) => (
+    <button
+      type="button"
+      onClick={() => setMenuOpen(true)}
+      className={`${compactButtonBase} border border-white/40 bg-white/10 text-white hover:bg-white/20 ${
+        stacked ? "w-full text-center min-w-0" : "min-w-[120px]"
+      } ${className}`}
+      aria-label="Open filters"
+    >
+      <Menu className="h-5 w-5" aria-hidden />
+      <span className="sr-only">Open filters</span>
+    </button>
+  );
 
   return (
-    <header
-      className="shadow sticky top-0 z-40"
-      style={{
-        background:
-          "linear-gradient(90deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)",
-        color: "white",
-      }}
-    >
-      <div className="mx-auto max-w-6xl flex flex-wrap items-center justify-between px-4 py-3 gap-3">
-        {/* Logo */}
+    <header className="sticky top-0 z-40 w-full bg-[#0b47c7] px-6 shadow-md shadow-blue-900/30">
+      <div className="flex w-full max-w-screen-2xl flex-wrap items-center gap-3 px-4 py-3 text-white lg:mx-auto lg:flex-nowrap lg:px-6 lg:py-4">
         <button
           type="button"
           onClick={() => navigate("/")}
-          className="flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-white rounded-md"
+          className="flex items-center gap-1 text-2xl font-bold leading-none cursor-pointer"
+          aria-label="Go to homepage"
         >
-          <div className="h-8 w-8 bg-white text-(--color-primary-dark) rounded-md grid place-items-center font-bold text-sm">
-            S
-          </div>
-          <span className="font-semibold text-lg tracking-tight">ShopHub</span>
+          <span className="text-emerald-200">Quick</span>
+          <span className="text-amber-300">shop</span>
         </button>
-
-        <div className="flex flex-wrap items-center gap-3 ml-auto">
-          {/* Search */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="rounded-md px-3 py-1.5 text-sm w-40 sm:w-60 border border-(--border-color)
-                         bg-white/90 text-gray-800 placeholder-gray-500 focus:ring-2
-                         focus:ring-(--color-accent) focus:outline-none"
-            />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500">
-              🔍
-            </span>
-          </div>
-
-          <nav className="hidden sm:flex items-center gap-4 text-sm font-medium">
-            <button onClick={() => navigate("/product")} className="hover:text-(--color-accent)">Products</button>
-            <button className="hover:text-(--color-accent)">Stores</button>
-            <button className="hover:text-(--color-accent)">About</button>
-          </nav>
-
-          <ThemeToggle />
-
-          <button 
-          onClick={() => navigate("/login")}
-          className="bg-white text-(--color-primary-dark) text-sm font-semibold px-3 py-1.5 rounded-md hover:bg-(--color-accent)/20 transition">
-            Login
-          </button>
-
-          <button
-            onClick={toggleCart}
-            className="relative bg-(--color-accent) text-(--color-primary-dark)
-                       hover:bg-white px-3 py-1.5 rounded-md text-sm font-semibold transition"
-          >
-            Cart
-            <span className="absolute -top-1 -right-2 bg-white text-(--color-primary-dark) text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-              {count}
-            </span>
-          </button>
+        <div className="hidden items-center gap-3 lg:flex">
+          <Actions />
+          <LoginButton />
+        </div>
+        <div className="ml-auto flex items-center gap-3 lg:hidden">
+          <MenuButton className="text-xs" />
+          <LoginButton className="text-xs" />
         </div>
       </div>
+
+      {menuOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMenuOpen(false)} />
+          <aside className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col gap-5 bg-[#0b47c7] px-5 py-6 text-white shadow-2xl lg:hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-semibold">Filters</span>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                className={iconButtonBase}
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" aria-hidden />
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                navigate("/product");
+                setMenuOpen(false);
+              }}
+              className="text-left text-sm font-semibold hover:text-white/80"
+            >
+              Products
+            </button>
+            <Actions stacked />
+          </aside>
+        </>
+      )}
     </header>
   );
 }
