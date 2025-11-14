@@ -34,13 +34,6 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-[#dfeeff]">
-      <header className="border-b border-blue-900 bg-[#0c409f] px-4 py-6 text-white">
-        <div className="mx-auto max-w-5xl text-center text-lg font-semibold tracking-[0.3em]">
-          <span className="text-emerald-200">Quick</span>
-          <span className="text-yellow-300">Shop</span>
-        </div>
-      </header>
-
       <main className="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-12">
         <section className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.5em] text-[#0c409f]">
