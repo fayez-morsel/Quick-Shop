@@ -51,7 +51,7 @@ export default function SellerDahsboard() {
   const updateProductDetails = useStore((s) => s.updateProductDetails);
   const updateOrderStatus = useStore((s) => s.updateOrderStatus);
 
-    const [form, setForm] = useState<ProductFormState>({
+  const [form, setForm] = useState<ProductFormState>({
     title: "",
     price: "0",
     compareAtPrice: "0",
@@ -63,8 +63,7 @@ export default function SellerDahsboard() {
       "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=60",
   });
 
-
-    const handleFormChange = <K extends keyof ProductFormState>(
+  const handleFormChange = <K extends keyof ProductFormState>(
     field: K,
     value: ProductFormState[K]
   ) =>
@@ -73,4 +72,39 @@ export default function SellerDahsboard() {
       [field]: value,
     }));
 
+  const handleAddProduct = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!form.title.trim()) return;
+
+    const price = Number(form.price);
+    const compareAtPrice = Number(form.compareAtPrice);
+    const stock = Math.max(0, Number(form.stock));
+    const newProductId = `p-${Date.now()}`;
+
+    addProduct({
+      id: newProductId,
+      title: form.title,
+      price: Number.isNaN(price) ? 0 : price,
+      compareAtPrice:
+        Number.isFinite(compareAtPrice) && compareAtPrice > price
+          ? compareAtPrice
+          : undefined,
+      storeId: form.storeId,
+      storeName: form.storeName,
+      category: form.category,
+      image: form.image,
+      inStock: stock > 0,
+      rating: { value: 0, count: 0 },
+      stock,
+    });
+
+    setForm((prev) => ({
+      ...prev,
+      title: "",
+      price: "0",
+      compareAtPrice: "0",
+      stock: "10",
+    }));
+  };
 }
