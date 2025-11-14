@@ -184,7 +184,22 @@ export default function SellerDahsboard() {
               </select>
             </div>
 
-           
+            {/* Store ID */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-600">
+                Store ID
+              </label>
+              <input
+                type="text"
+                value={form.storeId}
+                onChange={(event) =>
+                  handleFormChange("storeId", event.target.value)
+                }
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            
           </form>
         </section>
       </main>
