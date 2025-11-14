@@ -16,6 +16,8 @@ export default function ProductCard({ product, onSelect }: Props) {
   const addToCart = useStore((s) => s.addToCart);
   const favorites = useStore((s) => s.favorites);
   const toggleFavorite = useStore((s) => s.toggleFavorite);
+  const tagline =
+    product.tagline ?? `High-quality ${(product.category ?? "Product").toLowerCase()} gear crafted for you.`;
   const isFavorite = favorites.includes(product.id);
   const isClickable = Boolean(onSelect);
   const isAuthenticated = useStore((s) => s.isAuthenticated);
@@ -70,7 +72,10 @@ export default function ProductCard({ product, onSelect }: Props) {
         }
       }}
     >
-      <div className="relative w-full overflow-hidden rounded-t-4xl flex-[0_0_50%]">
+      <div
+        className="relative w-full overflow-hidden rounded-t-4xl"
+        style={{ aspectRatio: "3 / 2" }}
+      >
         <img
           src={product.image}
           alt={product.title}
@@ -100,11 +105,7 @@ export default function ProductCard({ product, onSelect }: Props) {
       <div className="flex flex-1 flex-col gap-3 px-5 pb-5 pt-4">
         <div className="space-y-1">
           <h3 className="text-2xl font-semibold text-slate-900">{product.title}</h3>
-          <p className="text-sm text-slate-500">
-            High-quality {
-              (product.category ?? "Product").toLowerCase()
-            } gear with noise cancellation.
-          </p>
+          <p className="text-sm text-slate-500">{tagline}</p>
         </div>
 
         {product.rating && (
