@@ -124,7 +124,57 @@ export default function ProductDetailsPage() {
           </div>
         </section>
 
-        
+        <section className="rounded-4xl bg-white p-6 shadow-xl">
+          <h2 className="text-2xl font-semibold text-slate-900">Customer Reviews</h2>
+          <p className="text-sm text-slate-500">Write a review</p>
+          <div className="mt-4 space-y-3 rounded-3xl bg-[#f0f5ff] p-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600">Rating</label>
+              <select
+                value={reviewRating}
+                onChange={(e) => setReviewRating(Number(e.target.value))}
+                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+              >
+                {[5, 4, 3, 2, 1].map((rating) => (
+                  <option key={rating} value={rating}>
+                    {rating} stars
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600">
+                Your review
+              </label>
+              <textarea
+                value={reviewContent}
+                onChange={(e) => setReviewContent(e.target.value)}
+                className="mt-1 h-24 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                placeholder="Share your thoughts..."
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleSubmitReview}
+              className="inline-flex items-center justify-center rounded-full bg-[#0d4bc9] px-6 py-2 text-sm font-semibold text-white"
+            >
+              Submit Review
+            </button>
+          </div>
+          {reviewList.length > 0 && (
+            <div className="mt-6 space-y-4">
+              {reviewList.map((rev, index) => (
+                <div key={index} className="rounded-2xl border border-slate-200 p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <Rating value={rev.rating} count={0} />
+                    <span className="text-xs text-slate-500">User review</span>
+                  </div>
+                  <p className="text-sm text-slate-700">{rev.content}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );
