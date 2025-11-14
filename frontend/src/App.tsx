@@ -7,6 +7,11 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Cart from "./components/Cart";
 import OrderConfirmation from "./components/OrderConfirmation";
+import ProductPage from "./pages/ProductPage";
+import ProductDetailsPage from "./pages/ProductDetailsPage";
+import FavoritesPage from "./pages/FavoritesPage";
+import SupportPage from "./pages/SupportPage";
+import SellerDashboard from "./pages/SellerDashboard";
 
 export default function App() {
   const [confirmationOpen, setConfirmationOpen] = useState(false);
@@ -16,19 +21,18 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div
-        className="flex flex-col min-h-screen"
-        style={{
-          background: "linear-gradient(180deg, var(--bg-main), var(--bg-card))",
-          color: "var(--text-main)",
-        }}
-      >
+      <div className="flex min-h-screen flex-col bg-[#dfeeff] font-sans text-slate-900">
         <Header />
-        <main className="flex-1 px-20">
+        <main className="flex-1">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/product" element={<ProductPage />} />
+            <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/product/:id" element={<ProductDetailsPage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/seller" element={<SellerDashboard />} />
           </Routes>
         </main>
         <Footer />
