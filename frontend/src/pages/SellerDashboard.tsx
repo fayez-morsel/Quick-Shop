@@ -50,4 +50,27 @@ export default function SellerDahsboard() {
   const removeProduct = useStore((s) => s.removeProduct);
   const updateProductDetails = useStore((s) => s.updateProductDetails);
   const updateOrderStatus = useStore((s) => s.updateOrderStatus);
+
+    const [form, setForm] = useState<ProductFormState>({
+    title: "",
+    price: "0",
+    compareAtPrice: "0",
+    storeId: "tech-hub",
+    storeName: "Tech Hub",
+    category: "Tech" as Category,
+    stock: "10",
+    image:
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=60",
+  });
+
+
+    const handleFormChange = <K extends keyof ProductFormState>(
+    field: K,
+    value: ProductFormState[K]
+  ) =>
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
 }
