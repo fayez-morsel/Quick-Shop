@@ -411,7 +411,7 @@ export default function SellerDahsboard() {
             ))}
           </div>
         </section>
-                {/* Order management */}
+        {/* Order management */}
         <section className="rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -450,23 +450,16 @@ export default function SellerDahsboard() {
 
                 <div className="mt-3 grid grid-cols-2 gap-4 text-sm text-slate-600 sm:grid-cols-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.4em]">
-                      Total
-                    </p>
+                    <p className="text-xs uppercase tracking-[0.4em]">Total</p>
                     <p className="text-lg font-semibold text-slate-900">
                       {money(order.total)}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-xs uppercase tracking-[0.4em]">
-                      Items
-                    </p>
+                    <p className="text-xs uppercase tracking-[0.4em]">Items</p>
                     <p className="text-base font-semibold text-slate-900">
-                      {order.items.reduce(
-                        (sum, item) => sum + item.qty,
-                        0
-                      )}
+                      {order.items.reduce((sum, item) => sum + item.qty, 0)}
                     </p>
                   </div>
 
@@ -475,9 +468,7 @@ export default function SellerDahsboard() {
                       Delivery
                     </p>
                     <p className="text-base font-semibold text-slate-900">
-                      {new Date(
-                        order.expectedDelivery
-                      ).toLocaleDateString()}
+                      {new Date(order.expectedDelivery).toLocaleDateString()}
                     </p>
                   </div>
 
@@ -507,9 +498,7 @@ export default function SellerDahsboard() {
             ))}
           </div>
         </section>
-
       </main>
     </div>
   );
 }
-
