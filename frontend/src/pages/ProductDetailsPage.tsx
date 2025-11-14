@@ -36,16 +36,9 @@ export default function ProductDetailsPage() {
 
   return (
     <div className="min-h-screen bg-[#d9ebff]">
-      <header className="border-b border-blue-900 bg-[#0c409f] px-4 py-4 text-white shadow-md">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 text-lg font-semibold">
-          <span className="text-emerald-200">Shop</span>
-          <span className="text-yellow-300">Up</span>
-        </div>
-      </header>
-
       <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10">
         <section className="grid gap-8 rounded-4xl bg-white p-6 shadow-xl md:grid-cols-[1fr_1fr]">
-          <div className="h-full overflow-hidden rounded-3xl bg-slate-50">
+          <div className="h-[60vh] overflow-hidden rounded-3xl bg-slate-50">
             <img
               src={product.image}
               alt={product.title}
