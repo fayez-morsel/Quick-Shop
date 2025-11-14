@@ -53,16 +53,18 @@ export default function Header() {
             <span className="text-yellow-300">Shop</span>
           </button>
 
-          <div className="relative mx-auto w-[300px] bg-white/30 rounded-2xl">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/80" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search products..."
-              className="w-full rounded-full border border-white/40 bg-white/10 px-10 py-2 text-sm text-white placeholder-white/80 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/70"
-            />
-          </div>
+          {isDesktop && (
+            <div className="relative mx-auto w-[300px] bg-white/30 rounded-2xl">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/80" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search products..."
+                className="w-full rounded-full border border-white/40 bg-white/10 px-10 py-2 text-sm text-white placeholder-white/80 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/70"
+              />
+            </div>
+          )}
 
           {isDesktop ? (
             <div className="ml-auto flex items-center gap-2">
@@ -151,13 +153,13 @@ export default function Header() {
               </button>
             </div>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search products..."
-                className="w-full rounded-full border border-white/30 bg-white/10 px-10 py-2 text-sm text-white placeholder-white/70 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                className="w-full rounded-full border border-slate-300 bg-slate-100 px-10 py-2 text-sm text-slate-900 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             </div>
             <button
