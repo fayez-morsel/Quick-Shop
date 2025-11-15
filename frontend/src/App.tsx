@@ -22,12 +22,26 @@ import ProductDetailsPage from "./pages/ProductDetailsPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import SupportPage from "./pages/SupportPage";
 import SellerDashboard from "./pages/SellerDashboard";
+import { useStore } from "./store/useStore";
 
 export default function App() {
   const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const userName = useStore((s) => s.userName);
+  const userEmail = useStore((s) => s.userEmail);
+  const markOrderConfirmed = useStore((s) => s.markOrderConfirmed);
 
-  const handleCheckoutComplete = () => setConfirmationOpen(true);
-  const handleCloseConfirmation = () => setConfirmationOpen(false);
+  const handleCheckoutComplete = (orderId?: string) => {
+    if (!orderId) {
+      return;
+    }
+    setPendingOrderId(orderId);
+    setConfirmationOpen(true);
+  };
+  const handleCloseConfirmation = () => {
+    setConfirmationOpen(false);
+    setPendingOrderId(null);
+  };
 
   return (
     <BrowserRouter>
@@ -51,6 +65,10 @@ export default function App() {
         <OrderConfirmation
           open={confirmationOpen}
           onClose={handleCloseConfirmation}
+          customerName={userName}
+          customerEmail={userEmail}
+          orderId={pendingOrderId ?? undefined}
+          onVerified={(orderId) => markOrderConfirmed(orderId)}
         />
       </div>
     </BrowserRouter>
