@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import { useStore } from "../store/useStore";
 import type { Category, Brand } from "../types";
@@ -32,6 +33,8 @@ export default function ProductPage() {
     useStore.setState((s) => ({
       filters: { ...s.filters, maxPrice: v },
     }));
+
+  const navigate = useNavigate();
 
   const categories = useMemo(
     () =>
@@ -209,7 +212,10 @@ export default function ProductPage() {
           <div className="grid gap-6 auto-rows-fr sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
             {filtered.map((product) => (
               <div key={product.id} className="flex h-full">
-                <ProductCard product={product} />
+                <ProductCard
+                  product={product}
+                  onSelect={() => navigate(`/product/${product.id}`)}
+                />
               </div>
             ))}
           </div>
