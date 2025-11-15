@@ -1,3 +1,4 @@
+import { Trash2, X } from "lucide-react";
 import { useStore } from "../store/useStore";
 import { useNavigate } from "react-router-dom";
 import { money } from "../utils/format";
@@ -52,9 +53,10 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
             <button
               type="button"
               onClick={toggleCart}
-              className="text-white/70 transition hover:text-white"
+              className="cursor-pointer text-white/70 transition duration-200 ease-in-out hover:text-white"
+              aria-label="Close cart"
             >
-              X
+              <X className="h-5 w-5" aria-hidden />
             </button>
           </header>
 
@@ -71,8 +73,13 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                       key={item.productId}
                       className="rounded-2xl border border-slate-100 p-3 text-sm"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={product.image}
+                          alt={product.title}
+                          className="h-16 w-16 rounded-2xl object-cover shadow-sm"
+                        />
+                        <div className="flex-1">
                           <p className="font-semibold text-slate-900">
                             {product.title}
                           </p>
@@ -83,9 +90,11 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                         <button
                           type="button"
                           onClick={() => removeFromCart(item.productId)}
-                          className="text-xs text-slate-400 hover:text-rose-500"
+                          className="cursor-pointer text-rose-500 transition duration-200 ease-in-out hover:text-rose-600"
+                          aria-label={`Remove ${product.title} from cart`}
                         >
-                          Remove
+                          <Trash2 className="h-4 w-4" aria-hidden />
+                          <span className="sr-only">Remove product</span>
                         </button>
                       </div>
                       <div className="mt-3 flex items-center justify-between">
@@ -93,9 +102,9 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                           <button
                             type="button"
                             onClick={() => setQty(item.productId, item.qty - 1)}
-                            className="px-3 py-1 text-lg"
+                            className="cursor-pointer transition duration-200 ease-in-out px-3 py-1 text-lg"
                           >
-                            −
+                            -
                           </button>
                           <span className="px-3 text-sm font-semibold">
                             {item.qty}
@@ -103,7 +112,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                           <button
                             type="button"
                             onClick={() => setQty(item.productId, item.qty + 1)}
-                            className="px-3 py-1 text-lg"
+                            className="cursor-pointer transition duration-200 ease-in-out px-3 py-1 text-lg"
                           >
                             +
                           </button>
@@ -128,17 +137,17 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
               <button
                 type="button"
                 onClick={clearCart}
-                className="flex-1 rounded-full border border-white/40 px-3 py-2 text-sm font-semibold text-white/90 hover:bg-white/10"
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={handleCheckout}
-                disabled={!cart.length}
-                className="flex-1 rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#0c409f] hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-white/40"
-              >
-                Checkout
+              className="cursor-pointer flex-1 rounded-full border border-white/40 px-3 py-2 text-sm font-semibold text-white/90 transition duration-200 ease-in-out hover:bg-white/10"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              onClick={handleCheckout}
+              disabled={!cart.length}
+              className="cursor-pointer flex-1 rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#0c409f] transition duration-200 ease-in-out hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-white/40"
+            >
+              Checkout
               </button>
             </div>
           </footer>
