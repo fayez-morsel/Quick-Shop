@@ -53,7 +53,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
             <button
               type="button"
               onClick={toggleCart}
-              className="text-white/70 transition hover:text-white"
+              className="cursor-pointer text-white/70 transition duration-200 ease-in-out hover:text-white"
               aria-label="Close cart"
             >
               <X className="h-5 w-5" aria-hidden />
@@ -90,7 +90,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                         <button
                           type="button"
                           onClick={() => removeFromCart(item.productId)}
-                          className="text-rose-500 transition hover:text-rose-600"
+                          className="cursor-pointer text-rose-500 transition duration-200 ease-in-out hover:text-rose-600"
                           aria-label={`Remove ${product.title} from cart`}
                         >
                           <Trash2 className="h-4 w-4" aria-hidden />
@@ -102,7 +102,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                           <button
                             type="button"
                             onClick={() => setQty(item.productId, item.qty - 1)}
-                            className="px-3 py-1 text-lg"
+                            className="cursor-pointer transition duration-200 ease-in-out px-3 py-1 text-lg"
                           >
                             -
                           </button>
@@ -112,7 +112,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                           <button
                             type="button"
                             onClick={() => setQty(item.productId, item.qty + 1)}
-                            className="px-3 py-1 text-lg"
+                            className="cursor-pointer transition duration-200 ease-in-out px-3 py-1 text-lg"
                           >
                             +
                           </button>
@@ -137,17 +137,17 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
               <button
                 type="button"
                 onClick={clearCart}
-                className="flex-1 rounded-full border border-white/40 px-3 py-2 text-sm font-semibold text-white/90 hover:bg-white/10"
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={handleCheckout}
-                disabled={!cart.length}
-                className="flex-1 rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#0c409f] hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-white/40"
-              >
-                Checkout
+              className="cursor-pointer flex-1 rounded-full border border-white/40 px-3 py-2 text-sm font-semibold text-white/90 transition duration-200 ease-in-out hover:bg-white/10"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              onClick={handleCheckout}
+              disabled={!cart.length}
+              className="cursor-pointer flex-1 rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#0c409f] transition duration-200 ease-in-out hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-white/40"
+            >
+              Checkout
               </button>
             </div>
           </footer>
