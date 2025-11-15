@@ -8,6 +8,10 @@ const initialRole =
   typeof window !== "undefined"
     ? (localStorage.getItem("userRole") as UserRole | null) ?? "buyer"
     : "buyer";
+const initialName =
+  typeof window !== "undefined" ? localStorage.getItem("userName") ?? "" : "";
+const initialEmail =
+  typeof window !== "undefined" ? localStorage.getItem("userEmail") ?? "" : "";
 import type {
   Product,
   CartItem,
@@ -30,6 +34,8 @@ type State = {
   ui: UIState;
   isAuthenticated: boolean;
   userRole: UserRole;
+  userName: string;
+  userEmail: string;
   orders: Order[];
 };
 
@@ -59,6 +65,7 @@ type Actions = {
   login: (role: UserRole) => void;
   logout: () => void;
   setRole: (role: UserRole) => void;
+  setUserInfo: (info: { name: string; email: string }) => void;
 };
 export const useStore = create<State & Actions>((set) => ({
   // --- initial data ---
@@ -349,6 +356,8 @@ export const useStore = create<State & Actions>((set) => ({
   ui: { cartOpen: false },
   isAuthenticated: initialAuth,
   userRole: initialRole,
+  userName: initialName,
+  userEmail: initialEmail,
 
   // Action
   //filters
@@ -479,8 +488,10 @@ export const useStore = create<State & Actions>((set) => ({
       if (typeof window !== "undefined") {
         localStorage.removeItem("isAuthenticated");
         localStorage.setItem("userRole", "buyer");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("userEmail");
       }
-      return { isAuthenticated: false, userRole: "buyer" };
+      return { isAuthenticated: false, userRole: "buyer", userName: "", userEmail: "" };
     }),
   setRole: (role) =>
     set(() => {
@@ -488,6 +499,14 @@ export const useStore = create<State & Actions>((set) => ({
         localStorage.setItem("userRole", role);
       }
       return { userRole: role };
+    }),
+  setUserInfo: ({ name, email }) =>
+    set(() => {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("userName", name);
+        localStorage.setItem("userEmail", email);
+      }
+      return { userName: name, userEmail: email };
     }),
 }));
 
