@@ -1,3 +1,4 @@
+import { Trash2, X } from "lucide-react";
 import { useStore } from "../store/useStore";
 import { useNavigate } from "react-router-dom";
 import { money } from "../utils/format";
@@ -53,8 +54,9 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
               type="button"
               onClick={toggleCart}
               className="text-white/70 transition hover:text-white"
+              aria-label="Close cart"
             >
-              X
+              <X className="h-5 w-5" aria-hidden />
             </button>
           </header>
 
@@ -71,8 +73,13 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                       key={item.productId}
                       className="rounded-2xl border border-slate-100 p-3 text-sm"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={product.image}
+                          alt={product.title}
+                          className="h-16 w-16 rounded-2xl object-cover shadow-sm"
+                        />
+                        <div className="flex-1">
                           <p className="font-semibold text-slate-900">
                             {product.title}
                           </p>
@@ -83,9 +90,11 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                         <button
                           type="button"
                           onClick={() => removeFromCart(item.productId)}
-                          className="text-xs text-slate-400 hover:text-rose-500"
+                          className="text-rose-500 transition hover:text-rose-600"
+                          aria-label={`Remove ${product.title} from cart`}
                         >
-                          Remove
+                          <Trash2 className="h-4 w-4" aria-hidden />
+                          <span className="sr-only">Remove product</span>
                         </button>
                       </div>
                       <div className="mt-3 flex items-center justify-between">
@@ -95,7 +104,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                             onClick={() => setQty(item.productId, item.qty - 1)}
                             className="px-3 py-1 text-lg"
                           >
-                            −
+                            -
                           </button>
                           <span className="px-3 text-sm font-semibold">
                             {item.qty}
