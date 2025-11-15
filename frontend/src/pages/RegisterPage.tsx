@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useStore } from "../store/useStore";
 import type { UserRole } from "../types";
+import { addAccount, getAccountByEmailAndRole } from "../utils/auth";
 
 const emailPattern = /^\S+@\S+\.\S+$/;
 
@@ -52,6 +53,13 @@ export default function RegisterPage() {
       validationErrors.confirm = "Passwords do not match.";
     }
 
+    const trimmedEmail = form.email.trim().toLowerCase();
+    const password = form.password.trim();
+
+    if (!validationErrors.email && getAccountByEmailAndRole(trimmedEmail, role)) {
+      validationErrors.email = `You already have a ${role} account with this email.`;
+    }
+
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
       return;
@@ -59,7 +67,13 @@ export default function RegisterPage() {
 
     const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
     setErrors({});
-    setUserInfo({ name: fullName, email: form.email.trim() });
+    addAccount({
+      name: fullName || trimmedEmail.split("@")[0],
+      email: trimmedEmail,
+      password,
+      role,
+    });
+    setUserInfo({ name: fullName, email: trimmedEmail });
     login(role);
     navigate(role === "seller" ? "/seller" : "/");
   };
@@ -95,7 +109,7 @@ export default function RegisterPage() {
                 placeholder="John"
                 aria-invalid={Boolean(errors.firstName)}
               />
-              <p className="mt-1 min-h-[1.25rem] text-xs font-semibold text-rose-500">
+              <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
                 {errors.firstName || "\u00A0"}
               </p>
             </div>
@@ -110,7 +124,7 @@ export default function RegisterPage() {
                 placeholder="Doe"
                 aria-invalid={Boolean(errors.lastName)}
               />
-              <p className="mt-1 min-h-[1.25rem] text-xs font-semibold text-rose-500">
+              <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
                 {errors.lastName || "\u00A0"}
               </p>
             </div>
@@ -124,7 +138,7 @@ export default function RegisterPage() {
                 placeholder="you@example.com"
                 aria-invalid={Boolean(errors.email)}
               />
-              <p className="mt-1 min-h-[1.25rem] text-xs font-semibold text-rose-500">
+              <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
                 {errors.email || "\u00A0"}
               </p>
             </div>
@@ -140,7 +154,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 aria-invalid={Boolean(errors.password)}
               />
-              <p className="mt-1 min-h-[1.25rem] text-xs font-semibold text-rose-500">
+              <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
                 {errors.password || "\u00A0"}
               </p>
             </div>
@@ -156,7 +170,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 aria-invalid={Boolean(errors.confirm)}
               />
-              <p className="mt-1 min-h-[1.25rem] text-xs font-semibold text-rose-500">
+              <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
                 {errors.confirm || "\u00A0"}
               </p>
             </div>
