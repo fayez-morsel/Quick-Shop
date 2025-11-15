@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
@@ -9,6 +9,7 @@ type Review = {
   content: string;
   authorName: string;
   authorEmail: string;
+  orderId: string;
 };
 
 export default function ProductDetailsPage() {
@@ -18,11 +19,16 @@ export default function ProductDetailsPage() {
   const addToCart = useStore((s) => s.addToCart);
   const userName = useStore((s) => s.userName);
   const userEmail = useStore((s) => s.userEmail);
+  const confirmedOrderIds = useStore((s) => s.confirmedOrderIds);
+  const orders = useStore((s) => s.orders);
 
   const [quantity, setQuantity] = useState(1);
   const [reviewList, setReviewList] = useState<Review[]>([]);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewContent, setReviewContent] = useState("");
+  const [reviewError, setReviewError] = useState("");
+  const [reviewedOrderIds, setReviewedOrderIds] = useState<string[]>([]);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   if (!product) {
     return (
@@ -32,8 +38,48 @@ export default function ProductDetailsPage() {
     );
   }
 
+  const normalizedEmail = userEmail.trim().toLowerCase();
+  const eligibleOrders =
+    normalizedEmail.length > 0
+      ? orders.filter(
+          (order) =>
+            confirmedOrderIds.includes(order.id) &&
+            order.buyerEmail.toLowerCase() === normalizedEmail &&
+            order.items.some((item) => item.productId === product.id)
+        )
+      : [];
+  const availableOrders = eligibleOrders.filter(
+    (order) => !reviewedOrderIds.includes(order.id)
+  );
+
+  useEffect(() => {
+    if (availableOrders.length === 0) {
+      setSelectedOrderId(null);
+      return;
+    }
+    if (
+      !selectedOrderId ||
+      !availableOrders.some((order) => order.id === selectedOrderId)
+    ) {
+      setSelectedOrderId(availableOrders[0].id);
+    }
+  }, [availableOrders, selectedOrderId]);
+
   const handleSubmitReview = () => {
-    if (!reviewContent.trim()) return;
+    if (!reviewContent.trim()) {
+      setReviewError("Please share your experience before submitting.");
+      return;
+    }
+    if (!selectedOrderId) {
+      setReviewError(
+        "Select an order containing this product to submit your review."
+      );
+      return;
+    }
+    if (reviewedOrderIds.includes(selectedOrderId)) {
+      setReviewError("You've already reviewed that order.");
+      return;
+    }
     const authorName = userName || "Quick Shopper";
     const authorEmail = userEmail || "feedback@shopup.com";
     setReviewList((prev) => [
@@ -43,9 +89,12 @@ export default function ProductDetailsPage() {
         content: reviewContent.trim(),
         authorName,
         authorEmail,
+        orderId: selectedOrderId,
       },
     ]);
+    setReviewedOrderIds((prev) => [...prev, selectedOrderId]);
     setReviewContent("");
+    setReviewError("");
   };
 
   return (
@@ -152,6 +201,39 @@ export default function ProductDetailsPage() {
             Signed in as {userName || "guest"} ({userEmail || "private"})
           </p>
           <div className="mt-4 space-y-3 rounded-3xl bg-[#f0f5ff] p-4">
+            {availableOrders.length > 0 ? (
+              <div>
+                <label className="block text-xs font-semibold text-slate-600">
+                  Order
+                </label>
+                <select
+                  value={selectedOrderId ?? ""}
+                  onChange={(event) =>
+                    setSelectedOrderId(
+                      event.target.value ? event.target.value : null
+                    )
+                  }
+                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                >
+                  {availableOrders.map((order) => (
+                    <option key={order.id} value={order.id}>
+                      {order.id} • {new Date(order.placedAt).toLocaleDateString()}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">
+                  One review per completed order is allowed for this product.
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs font-semibold text-rose-500">
+                {eligibleOrders.length > 0
+                  ? "You already reviewed every eligible order that included this product."
+                  : userEmail
+                  ? "Purchase this product before leaving a review."
+                  : "Sign in to review products you've bought."}
+              </p>
+            )}
             <div>
               <label className="block text-xs font-semibold text-slate-600">
                 Rating
@@ -182,10 +264,14 @@ export default function ProductDetailsPage() {
             <button
               type="button"
               onClick={handleSubmitReview}
-              className="inline-flex items-center justify-center rounded-full bg-[#0d4bc9] px-6 py-2 text-sm font-semibold text-white"
+              disabled={!selectedOrderId}
+              className="inline-flex items-center justify-center rounded-full bg-[#0d4bc9] px-6 py-2 text-sm font-semibold text-white disabled:bg-slate-300"
             >
               Submit Review
             </button>
+            {reviewError && (
+              <p className="text-xs text-rose-500">{reviewError}</p>
+            )}
           </div>
           {reviewList.length > 0 && (
             <div className="mt-6 space-y-4">

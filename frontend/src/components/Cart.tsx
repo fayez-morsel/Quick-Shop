@@ -16,6 +16,9 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
   const setQty = useStore((s) => s.setQty);
   const removeFromCart = useStore((s) => s.removeFromCart);
   const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const placeOrder = useStore((s) => s.placeOrder);
+  const userName = useStore((s) => s.userName);
+  const userEmail = useStore((s) => s.userEmail);
   const navigate = useNavigate();
 
   const total = cart.reduce((sum, item) => {
@@ -30,6 +33,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
       return;
     }
     toggleCart();
+    placeOrder(cart, userName, userEmail);
     clearCart();
     onCheckoutComplete?.();
   };

@@ -66,8 +66,9 @@ type Actions = {
   logout: () => void;
   setRole: (role: UserRole) => void;
   setUserInfo: (info: { name: string; email: string }) => void;
+  placeOrder: (cart: CartItem[], buyerName: string, buyerEmail: string) => void;
 };
-export const useStore = create<State & Actions>((set) => ({
+export const useStore = create<State & Actions>((set, get) => ({
   // --- initial data ---
   products: [
     {
@@ -506,7 +507,41 @@ export const useStore = create<State & Actions>((set) => ({
         localStorage.setItem("userName", name);
         localStorage.setItem("userEmail", email);
       }
-      return { userName: name, userEmail: email };
+    return { userName: name, userEmail: email };
+  }),
+  placeOrder: (cart, buyerName, buyerEmail) =>
+    set((s) => {
+      if (!cart.length) {
+        return {};
+      }
+      const productLookup = Object.fromEntries(
+        s.products.map((product) => [product.id, product])
+      );
+      const total = cart.reduce((sum, item) => {
+        const product = productLookup[item.productId];
+        return sum + (product ? product.price * item.qty : 0);
+      }, 0);
+      if (!orderItems.length) {
+        return {};
+      }
+      const firstProduct = productLookup[cart[0].productId];
+      const order: Order = {
+        id: `o${Date.now()}`,
+        buyerName: buyerName || "Quick Shopper",
+        buyerEmail: buyerEmail || "guest@shopup.com",
+        storeId: firstProduct?.storeId ?? "quick-shop",
+        items: cart.map((item) => ({
+          productId: item.productId,
+          qty: item.qty,
+        })),
+        total,
+        status: "Pending",
+        placedAt: new Date().toISOString(),
+        expectedDelivery: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString(),
+      };
+      return { orders: [...s.orders, order] };
     }),
 }));
 
