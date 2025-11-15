@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-4">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <p className="text-l font-bold uppercase tracking-[0.4em] text-blue-200">
+              <p className="text-l font-bold uppercase text-blue-200">
                 <span className="text-emerald-200">Quick</span>
                 <span className="text-yellow-300">Shop</span>
               </p>

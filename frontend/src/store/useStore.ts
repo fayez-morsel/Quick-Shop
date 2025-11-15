@@ -36,6 +36,7 @@ type State = {
   userRole: UserRole;
   userName: string;
   userEmail: string;
+  confirmedOrderIds: string[];
   orders: Order[];
 };
 
@@ -66,8 +67,14 @@ type Actions = {
   logout: () => void;
   setRole: (role: UserRole) => void;
   setUserInfo: (info: { name: string; email: string }) => void;
+  placeOrder: (
+    cart: CartItem[],
+    buyerName: string,
+    buyerEmail: string
+  ) => string | null;
+  markOrderConfirmed: (orderId: string) => void;
 };
-export const useStore = create<State & Actions>((set) => ({
+export const useStore = create<State & Actions>((set, _get) => ({
   // --- initial data ---
   products: [
     {
@@ -340,6 +347,7 @@ export const useStore = create<State & Actions>((set) => ({
       expectedDelivery: "2025-10-14T00:00:00.000Z",
     },
   ],
+  confirmedOrderIds: ["o1", "o2", "o3"],
 
   filters: {
     query: "",
@@ -508,6 +516,52 @@ export const useStore = create<State & Actions>((set) => ({
       }
       return { userName: name, userEmail: email };
     }),
+  placeOrder: (cart, buyerName, buyerEmail) => {
+    if (!cart.length) {
+      return null;
+    }
+    let newOrderId: string | null = null;
+    set((s) => {
+      const productLookup = Object.fromEntries(
+        s.products.map((product) => [product.id, product])
+      );
+      const validItems = cart.filter((item) => productLookup[item.productId]);
+      if (!validItems.length) {
+        return {};
+      }
+      const total = validItems.reduce((sum, item) => {
+        const product = productLookup[item.productId];
+        return sum + (product ? product.price * item.qty : 0);
+      }, 0);
+      const firstProduct = productLookup[validItems[0].productId];
+      const orderId = `o${Date.now()}`;
+      const order: Order = {
+        id: orderId,
+        buyerName: buyerName || "Quick Shopper",
+        buyerEmail: buyerEmail || "guest@shopup.com",
+        storeId: firstProduct?.storeId ?? "quick-shop",
+        items: validItems.map((item) => ({
+          productId: item.productId,
+          qty: item.qty,
+        })),
+        total,
+        status: "Pending",
+        placedAt: new Date().toISOString(),
+        expectedDelivery: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString(),
+      };
+      newOrderId = orderId;
+      return { orders: [...s.orders, order] };
+    });
+    return newOrderId;
+  },
+  markOrderConfirmed: (orderId) =>
+    set((s) => ({
+      confirmedOrderIds: s.confirmedOrderIds.includes(orderId)
+        ? s.confirmedOrderIds
+        : [...s.confirmedOrderIds, orderId],
+    })),
 }));
 
 export const useFilters = () => useStore((s) => s.filters);

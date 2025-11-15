@@ -105,7 +105,7 @@ export default function HomePage() {
   return (
     <div className="bg-[#dfeeff] pb-10">
       {/* Hero banner*/}
-      <section className="w-full bg-linear-to-r from-[#0b4fd3] via-[#0d6ef6] to-[#0b39a2] px-6 py-16 text-white shadow-lg">
+      <section className="w-full bg-linear-to-r from-[#0d6ef6] via-[#0b4fd3] to-[#0b39a2] px-6 py-16 text-white shadow-lg">
         <div className="mx-auto max-w-5xl">
           <h1
             className="mt-4 font-bold leading-snug"
@@ -122,7 +122,7 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => navigate("/product")}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-[#0a45c5] shadow hover:bg-blue-50"
+              className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-[#0a45c5] shadow transition hover:bg-blue-50 hover:-translate-y-0.5"
             >
               Shop Now
               <ArrowRight className="h-4 w-4" aria-hidden />
@@ -132,7 +132,7 @@ export default function HomePage() {
               onClick={() =>
                 navigate("/login", { state: { role: "seller" } })
               }
-              className="rounded-full border border-white/60 px-8 py-3 text-sm font-semibold text-white hover:bg-white/10"
+              className="cursor-pointer rounded-full border border-white/60 px-8 py-3 text-sm font-semibold text-white transition hover:bg-white/10 hover:-translate-y-0.5"
             >
               Become a seller
             </button>
@@ -153,7 +153,7 @@ export default function HomePage() {
                     type="button"
                     key={`${label}-${value}`}
                     onClick={() => handleCategorySelect(value)}
-                    className="shrink-0 w-[200px] rounded-[28px] border border-white bg-white px-5 py-6 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-300 lg:w-auto"
+                  className="cursor-pointer shrink-0 w-[200px] rounded-[28px] border border-white bg-white px-5 py-6 text-center shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-300 lg:w-auto"
                   >
                     <span
                       className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full ${accent}`}
@@ -175,7 +175,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => navigate("/product")}
-                className="text-sm font-semibold text-[#0a45c5] hover:underline"
+                className="cursor-pointer text-sm font-semibold text-[#0a45c5] hover:underline"
               >
                 View all
               </button>
@@ -194,17 +194,20 @@ export default function HomePage() {
 
         <section className="w-full px-6 py-10 text-center">
           <div className="mx-auto max-w-6xl space-y-10">
-            <h2 className="text-3xl font-bold text-slate-900">Why Choose ShopHub?</h2>
+            <h2 className="text-3xl font-bold text-slate-900">Why Choose QuickShop?</h2>
             <div className="mt-10 grid gap-6 sm:grid-cols-3">
-              {highlights.map(({ title, description, icon: Icon }) => (
-                <div key={title} className="space-y-4 px-4">
-                  <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e3f0ff] text-[#0a45c5]">
-                    <Icon className="h-7 w-7" aria-hidden />
-                  </span>
-                  <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
-                  <p className="text-sm text-slate-500">{description}</p>
-                </div>
-              ))}
+            {highlights.map(({ title, description, icon: Icon }) => (
+              <div
+                key={title}
+                className="space-y-4 px-4 transition hover:-translate-y-1 hover:shadow-lg hover:bg-white/80"
+              >
+                <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e3f0ff] text-[#0a45c5]">
+                  <Icon className="h-7 w-7" aria-hidden />
+                </span>
+                <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
+                <p className="text-sm text-slate-500">{description}</p>
+              </div>
+            ))}
             </div>
           </div>
         </section>

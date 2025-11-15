@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { money } from "../utils/format";
 
 type CartProps = {
-  onCheckoutComplete?: () => void;
+  onCheckoutComplete?: (orderId?: string) => void;
 };
 
 export default function Cart({ onCheckoutComplete }: CartProps) {
@@ -12,6 +12,9 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
   const products = useStore((s) => s.products);
   const toggleCart = useStore((s) => s.toggleCart);
   const clearCart = useStore((s) => s.clearCart);
+  const placeOrder = useStore((s) => s.placeOrder);
+  const userName = useStore((s) => s.userName);
+  const userEmail = useStore((s) => s.userEmail);
   const cartOpen = useStore((s) => s.ui.cartOpen);
   const setQty = useStore((s) => s.setQty);
   const removeFromCart = useStore((s) => s.removeFromCart);
@@ -30,8 +33,11 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
       return;
     }
     toggleCart();
+    const orderId = placeOrder(cart, userName, userEmail);
     clearCart();
-    onCheckoutComplete?.();
+    if (orderId) {
+      onCheckoutComplete?.(orderId);
+    }
   };
 
   return (

@@ -5,6 +5,8 @@ type Props = {
   onClose: () => void;
   customerName?: string;
   customerEmail?: string;
+  orderId?: string | null;
+  onVerified?: (orderId: string) => void;
 };
 
 export default function OrderConfirmation({
@@ -12,6 +14,8 @@ export default function OrderConfirmation({
   onClose,
   customerName,
   customerEmail,
+  orderId,
+  onVerified,
 }: Props) {
   const [code, setCode] = useState("");
   const [verified, setVerified] = useState(false);
@@ -38,7 +42,12 @@ export default function OrderConfirmation({
       setError("Enter the 6-digit code we sent to your laptop or phone.");
       return;
     }
+    if (!orderId) {
+      setError("We couldn't locate the order to confirm.");
+      return;
+    }
     setVerified(true);
+    onVerified?.(orderId);
   };
 
   const handleClose = () => {
@@ -76,11 +85,11 @@ export default function OrderConfirmation({
               </div>
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold">Confirm Your Order</h2>
-                <p className="text-sm text-gray-600">
-                  Hi {customerName || "Shopper"}, we just pushed a 6-digit code
-                  to {customerEmail || "your inbox"}. Enter it below to finalize
-                  your purchase.
-                </p>
+              <p className="text-sm text-gray-600">
+                Hi {customerName || "Shopper"}, we just pushed a 6-digit code
+                to {customerEmail || "your inbox"}. Enter it below to finalize
+                your purchase{orderId ? ` for order ${orderId}` : ""}.
+              </p>
               </div>
 
               <div className="text-left space-y-2">
@@ -110,7 +119,7 @@ export default function OrderConfirmation({
 
               <button
                 onClick={handleConfirm}
-                disabled={code.length !== 6}
+                disabled={code.length !== 6 || !orderId}
                 className="w-full rounded-md bg-blue-600 text-white py-2 text-sm font-semibold tracking-wide hover:bg-blue-700 transition disabled:opacity-50 disabled:hover:bg-blue-600"
               >
                 Confirm Order
