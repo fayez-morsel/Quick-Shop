@@ -25,6 +25,8 @@ export default function SupportPage() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [cooldownError, setCooldownError] = useState("");
+  const [lastSubmittedAt, setLastSubmittedAt] = useState(0);
 
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -49,17 +51,29 @@ export default function SupportPage() {
       validationErrors.description = "Tell us a bit more about the issue.";
     }
 
+    const now = Date.now();
+    const cooldownMs = 5 * 60_000;
+    if (now - lastSubmittedAt < cooldownMs) {
+      setCooldownError(
+        "You can submit one ticket every five minutes. Please wait before submitting again."
+      );
+      return;
+    }
+
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
       setSubmitted(false);
       return;
     }
 
+    setCooldownError("");
+
     setErrors({});
     if (userName !== name || userEmail !== email) {
       setUserInfo({ name, email });
     }
     setSubmitted(true);
+    setLastSubmittedAt(now);
     setTimeout(() => {
       navigate("/");
     }, 1400);
@@ -164,6 +178,9 @@ export default function SupportPage() {
             >
               Submit ticket
             </button>
+            {cooldownError && (
+              <p className="mt-3 text-xs font-semibold text-rose-500">{cooldownError}</p>
+            )}
           </form>
           {submitted && (
             <div className="mt-6 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
