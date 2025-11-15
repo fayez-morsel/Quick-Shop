@@ -29,6 +29,7 @@ export default function ProductDetailsPage() {
   const [reviewError, setReviewError] = useState("");
   const [reviewedOrderIds, setReviewedOrderIds] = useState<string[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [reviewCooldowns, setReviewCooldowns] = useState<Record<string, number>>({});
 
   if (!product) {
     return (
@@ -80,6 +81,13 @@ export default function ProductDetailsPage() {
       setReviewError("You've already reviewed that order.");
       return;
     }
+    const now = Date.now();
+    const lastSubmitted = reviewCooldowns[selectedOrderId] ?? 0;
+    const cooldownMs = 5 * 60_000;
+    if (now - lastSubmitted < cooldownMs) {
+      setReviewError("You can submit one review per order every 5 minutes.");
+      return;
+    }
     const authorName = userName || "Quick Shopper";
     const authorEmail = userEmail || "feedback@shopup.com";
     setReviewList((prev) => [
@@ -95,6 +103,7 @@ export default function ProductDetailsPage() {
     setReviewedOrderIds((prev) => [...prev, selectedOrderId]);
     setReviewContent("");
     setReviewError("");
+    setReviewCooldowns((prev) => ({ ...prev, [selectedOrderId]: now }));
   };
 
   return (
