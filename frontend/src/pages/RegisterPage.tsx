@@ -177,22 +177,17 @@ export default function RegisterPage() {
             <div className="md:col-span-2">
               <div className="flex gap-3">
                 {(["buyer", "seller"] as const).map((option) => {
-                  const isSeller = option === "seller";
                   const isActive = role === option;
-                  const activeClass = isSeller
-                    ? "border-slate-900 bg-slate-900 text-white"
-                    : "border-[#0d4bc9] bg-[#0d4bc9] text-white";
-                  const inactiveClass = isSeller
-                    ? "border-slate-200 bg-slate-100 text-slate-700"
-                    : "border-slate-200 bg-white text-slate-600";
+                  const baseClass =
+                    "flex-1 rounded-full border px-4 py-3 text-sm font-semibold transition duration-200 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-300";
+                  const activeClass = "border-slate-900 bg-slate-900 text-white";
+                  const inactiveClass = "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-400";
                   return (
                     <button
                       key={option}
                       type="button"
                       onClick={() => setRole(option)}
-                      className={`flex-1 rounded-full border px-4 py-3 text-sm font-semibold transition ${
-                        isActive ? activeClass : inactiveClass
-                      }`}
+                      className={`${baseClass} ${isActive ? activeClass : inactiveClass}`}
                     >
                       {option === "seller" ? "Seller" : "Buyer"}
                     </button>
