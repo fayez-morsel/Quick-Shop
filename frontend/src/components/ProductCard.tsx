@@ -1,5 +1,6 @@
 import { Heart, ShoppingCart } from "lucide-react";
 import clsx from "clsx";
+import { useState } from "react";
 import type { MouseEvent } from "react";
 import type { Product } from "../types";
 import { useStore } from "../store/useStore";
@@ -32,6 +33,8 @@ export default function ProductCard({ product, onSelect }: Props) {
           ((product.compareAtPrice - product.price) / product.compareAtPrice) * 100
         )
       : null;
+
+  const [isPressingFavorite, setIsPressingFavorite] = useState(false);
 
   const handleClick = () => {
     if (onSelect) onSelect(product);
@@ -84,16 +87,22 @@ export default function ProductCard({ product, onSelect }: Props) {
         <button
           type="button"
           onClick={handleToggleFavorite}
+          onMouseDown={() => setIsPressingFavorite(true)}
+          onMouseUp={() => setIsPressingFavorite(false)}
+          onMouseLeave={() => setIsPressingFavorite(false)}
           className={clsx(
             "absolute right-4 top-4 rounded-full border border-white/70 bg-white/90 p-2 shadow transition",
-            isFavorite
-              ? "text-rose-500 shadow-lg"
-              : "text-slate-500 hover:text-rose-500"
+            isFavorite || isPressingFavorite ? "text-rose-500 shadow-lg" : "text-slate-500"
           )}
           aria-pressed={isFavorite}
           aria-label="Toggle favorite"
         >
-          <Heart className="h-4 w-4" aria-hidden />
+          <Heart
+            className="h-4 w-4 transition-all duration-200 ease-in-out"
+            fill={isFavorite || isPressingFavorite ? "currentColor" : "none"}
+            strokeWidth={1.5}
+            aria-hidden
+          />
         </button>
         {hasDiscount && (
           <span className="absolute left-4 bottom-4 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-lg">

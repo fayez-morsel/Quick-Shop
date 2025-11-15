@@ -181,7 +181,7 @@ export default function RegisterPage() {
                   const baseClass =
                     "flex-1 rounded-full border px-4 py-3 text-sm font-semibold transition duration-200 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-300";
                   const activeClass = "border-slate-900 bg-slate-900 text-white";
-                  const inactiveClass = "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-400";
+                  const inactiveClass = "border-slate-200 bg-slate-50 text-slate-600";
                   return (
                     <button
                       key={option}
