@@ -4,7 +4,11 @@ import { useStore } from "../store/useStore";
 import { useEffect, useState } from "react";
 
 const iconButtonBase =
-  "rounded-full border border-white/30 bg-white/10 p-2 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
+  "cursor-pointer rounded-full border border-white/30 bg-white/10 p-2 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
+const textButtonBase =
+  "cursor-pointer text-sm font-semibold tracking-wide text-white/80 transition hover:text-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
+const blurButtonBase =
+  "cursor-pointer rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-[#0b47c7] transition duration-200 ease-in-out backdrop-blur hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -45,7 +49,7 @@ export default function Header() {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="rounded-full  px-4 py-2 text-xl font-bold tracking-[0.25em]"
+            className="rounded-full  px-4 py-2 text-xl font-bold "
           >
             <span className="text-emerald-200">Quick</span>
             <span className="text-yellow-300">Shop</span>
@@ -55,34 +59,38 @@ export default function Header() {
             <div className="ml-auto flex items-center gap-2">
               <button
                 type="button"
-                className="text-sm font-semibold tracking-wide"
+                className={`${textButtonBase}`}
                 onClick={() => navigate("/product")}
               >
                 Products
               </button>
               <button
                 type="button"
+                onClick={() => navigate("/support")}
+                className={textButtonBase}
+              >
+                Support
+              </button>
+              <button
+                type="button"
                 onClick={() => navigate("/favorites")}
-                className={iconButtonBase}
+                className={`${iconButtonBase} shadow-lg shadow-slate-900/40`}
                 aria-label="View Favorites"
               >
                 <Heart className="h-4 w-4" />
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/support")}
-                className={iconButtonBase}
-                aria-label="Support"
-              >
-                <Ticket className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
                 onClick={() => toggleCart()}
-                className="flex items-center gap-2 rounded-full border border-white/30 px-4 py-2 text-sm font-semibold"
+                className={`${iconButtonBase} relative shadow-lg shadow-white/40`}
+                aria-label="View cart"
               >
                 <ShoppingCart className="h-4 w-4" aria-hidden />
-                {cartCount}
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 rounded-full bg-[#fcd34d] px-2 py-0.5 text-[10px] font-bold text-[#0b47c7]">
+                    {cartCount}
+                  </span>
+                )}
               </button>
               {userRole === "seller" && (
                 <button
@@ -97,7 +105,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#0b47c7]"
+                  className={blurButtonBase}
                 >
                   Log out
                 </button>
@@ -105,7 +113,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => navigate("/login")}
-                  className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#0b47c7]"
+                  className={blurButtonBase}
                 >
                   Log in
                 </button>
@@ -143,7 +151,7 @@ export default function Header() {
                 toggleCart();
                 setMenuOpen(false);
               }}
-              className="flex w-full items-center justify-center gap-3 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-center"
+              className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-center"
             >
               <ShoppingCart className="h-5 w-5" />
               Cart
