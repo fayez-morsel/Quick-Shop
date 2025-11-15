@@ -1,16 +1,82 @@
 import { Store } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { useStore } from "../store/useStore";
 import type { UserRole } from "../types";
+import { addAccount, getAccountByEmailAndRole } from "../utils/auth";
+
+const emailPattern = /^\S+@\S+\.\S+$/;
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const login = useStore((s) => s.login);
+  const setUserInfo = useStore((s) => s.setUserInfo);
   const [role, setRole] = useState<UserRole>(
     ((location.state as { role?: UserRole })?.role ?? "buyer") as UserRole
   );
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirm: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleChange = (field: keyof typeof form, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const validationErrors: Record<string, string> = {};
+
+    if (!form.firstName.trim()) {
+      validationErrors.firstName = "First name is required.";
+    }
+    if (!form.lastName.trim()) {
+      validationErrors.lastName = "Last name is required.";
+    }
+    if (!form.email.trim()) {
+      validationErrors.email = "Email is required.";
+    } else if (!emailPattern.test(form.email.trim())) {
+      validationErrors.email = "Enter a valid email address.";
+    }
+    if (!form.password.trim()) {
+      validationErrors.password = "Password is required.";
+    } else if (form.password.trim().length < 8) {
+      validationErrors.password = "Password must be at least 8 characters.";
+    }
+    if (form.password.trim() !== form.confirm.trim()) {
+      validationErrors.confirm = "Passwords do not match.";
+    }
+
+    const trimmedEmail = form.email.trim().toLowerCase();
+    const password = form.password.trim();
+
+    if (!validationErrors.email && getAccountByEmailAndRole(trimmedEmail, role)) {
+      validationErrors.email = `You already have a ${role} account with this email.`;
+    }
+
+    if (Object.keys(validationErrors).length) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
+    setErrors({});
+    addAccount({
+      name: fullName || trimmedEmail.split("@")[0],
+      email: trimmedEmail,
+      password,
+      role,
+    });
+    setUserInfo({ name: fullName, email: trimmedEmail });
+    login(role);
+    navigate(role === "seller" ? "/seller" : "/");
+  };
 
   return (
     <div className="min-h-screen  text-slate-900">
@@ -26,72 +92,114 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form className="mt-8 grid gap-5 md:grid-cols-2">
+          <form
+            className="mt-8 grid gap-5 md:grid-cols-2"
+            onSubmit={handleSubmit}
+          >
             <div>
-              <label className="text-sm font-semibold text-slate-600">First Name</label>
+              <label className="text-sm font-semibold text-slate-600">
+                First Name
+              </label>
               <input
+                value={form.firstName}
+                onChange={(event) =>
+                  handleChange("firstName", event.target.value)
+                }
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="John"
+                aria-invalid={Boolean(errors.firstName)}
               />
+              <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
+                {errors.firstName || "\u00A0"}
+              </p>
             </div>
             <div>
-              <label className="text-sm font-semibold text-slate-600">Last Name</label>
+              <label className="text-sm font-semibold text-slate-600">
+                Last Name
+              </label>
               <input
+                value={form.lastName}
+                onChange={(event) => handleChange("lastName", event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="Doe"
+                aria-invalid={Boolean(errors.lastName)}
               />
+              <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
+                {errors.lastName || "\u00A0"}
+              </p>
             </div>
             <div className="md:col-span-2">
               <label className="text-sm font-semibold text-slate-600">Email</label>
               <input
                 type="email"
+                value={form.email}
+                onChange={(event) => handleChange("email", event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="you@example.com"
+                aria-invalid={Boolean(errors.email)}
               />
+              <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
+                {errors.email || "\u00A0"}
+              </p>
             </div>
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-slate-600">Password</label>
+              <label className="text-sm font-semibold text-slate-600">
+                Password
+              </label>
               <input
                 type="password"
+                value={form.password}
+                onChange={(event) => handleChange("password", event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="••••••••"
+                aria-invalid={Boolean(errors.password)}
               />
+              <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
+                {errors.password || "\u00A0"}
+              </p>
             </div>
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-slate-600">Confirm Password</label>
+              <label className="text-sm font-semibold text-slate-600">
+                Confirm Password
+              </label>
               <input
                 type="password"
+                value={form.confirm}
+                onChange={(event) => handleChange("confirm", event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="••••••••"
+                aria-invalid={Boolean(errors.confirm)}
               />
+              <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
+                {errors.confirm || "\u00A0"}
+              </p>
             </div>
             <div className="md:col-span-2">
-            <div className="flex gap-3">
-              {(["buyer", "seller"] as const).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setRole(option)}
-                  className={`flex-1 rounded-full border px-4 py-3 text-sm font-semibold transition ${
-                    role === option
-                      ? "border-[#0d4bc9] bg-[#0d4bc9] text-white"
-                      : "border-slate-200 bg-white text-slate-600"
-                  }`}
-                >
-                  {option === "seller" ? "Seller" : "Buyer"}
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                login(role);
-                navigate(role === "seller" ? "/seller" : "/");
-              }}
-              className="mt-2 w-full rounded-full bg-[#0d4bc9] px-4 py-3 text-sm font-semibold text-white shadow hover:bg-[#0b3ba2]"
-            >
-              Create {role === "seller" ? "Seller" : "Buyer"} Account
-            </button>
+              <div className="flex gap-3">
+                {(["buyer", "seller"] as const).map((option) => {
+                  const isActive = role === option;
+                  const baseClass =
+                    "flex-1 rounded-full border px-4 py-3 text-sm font-semibold transition duration-200 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-300";
+                  const activeClass = "border-slate-900 bg-slate-900 text-white";
+                  const inactiveClass = "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-400";
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setRole(option)}
+                      className={`${baseClass} ${isActive ? activeClass : inactiveClass}`}
+                    >
+                      {option === "seller" ? "Seller" : "Buyer"}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="submit"
+                className="mt-2 w-full rounded-full bg-[#0d4bc9] px-4 py-3 text-sm font-semibold text-white shadow hover:bg-[#0b3ba2]"
+              >
+                Create {role === "seller" ? "Seller" : "Buyer"} Account
+              </button>
             </div>
           </form>
 

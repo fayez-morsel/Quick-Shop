@@ -7,6 +7,8 @@ import Rating from "../components/Rating";
 type Review = {
   rating: number;
   content: string;
+  authorName: string;
+  authorEmail: string;
 };
 
 export default function ProductDetailsPage() {
@@ -14,6 +16,8 @@ export default function ProductDetailsPage() {
   const navigate = useNavigate();
   const product = useStore((s) => s.products.find((p) => p.id === id));
   const addToCart = useStore((s) => s.addToCart);
+  const userName = useStore((s) => s.userName);
+  const userEmail = useStore((s) => s.userEmail);
 
   const [quantity, setQuantity] = useState(1);
   const [reviewList, setReviewList] = useState<Review[]>([]);
@@ -30,7 +34,17 @@ export default function ProductDetailsPage() {
 
   const handleSubmitReview = () => {
     if (!reviewContent.trim()) return;
-    setReviewList((prev) => [...prev, { rating: reviewRating, content: reviewContent }]);
+    const authorName = userName || "Quick Shopper";
+    const authorEmail = userEmail || "feedback@shopup.com";
+    setReviewList((prev) => [
+      ...prev,
+      {
+        rating: reviewRating,
+        content: reviewContent.trim(),
+        authorName,
+        authorEmail,
+      },
+    ]);
     setReviewContent("");
   };
 
@@ -50,14 +64,22 @@ export default function ProductDetailsPage() {
               <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
                 {product.storeName}
               </p>
-              <h1 className="text-4xl font-semibold text-slate-900">{product.title}</h1>
+              <h1 className="text-4xl font-semibold text-slate-900">
+                {product.title}
+              </h1>
               <div className="flex items-center gap-2">
-                <Rating value={product.rating?.value ?? 0} count={product.rating?.count ?? 0} />
-                <span className="text-sm text-slate-500">({product.rating?.count ?? 0} reviews)</span>
+                <Rating
+                  value={product.rating?.value ?? 0}
+                  count={product.rating?.count ?? 0}
+                />
               </div>
-              <p className="text-3xl font-bold text-[#0d4bc9]">{money(product.price)}</p>
+              <p className="text-3xl font-bold text-[#0d4bc9]">
+                {money(product.price)}
+              </p>
               {product.discounted && (
-                <p className="text-sm text-emerald-600">Discounted Price Available</p>
+                <p className="text-sm text-emerald-600">
+                  Discounted Price Available
+                </p>
               )}
             </div>
 
@@ -69,11 +91,15 @@ export default function ProductDetailsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-slate-500">Category</p>
-                  <p className="text-sm font-semibold text-slate-900">{product.category}</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {product.category}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Seller</p>
-                  <p className="text-sm font-semibold text-slate-900">{product.storeName}</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {product.storeName}
+                  </p>
                 </div>
               </div>
             </div>
@@ -118,11 +144,18 @@ export default function ProductDetailsPage() {
         </section>
 
         <section className="rounded-4xl bg-white p-6 shadow-xl">
-          <h2 className="text-2xl font-semibold text-slate-900">Customer Reviews</h2>
+          <h2 className="text-2xl font-semibold text-slate-900">
+            Customer Reviews
+          </h2>
           <p className="text-sm text-slate-500">Write a review</p>
+          <p className="text-xs text-slate-400">
+            Signed in as {userName || "guest"} ({userEmail || "private"})
+          </p>
           <div className="mt-4 space-y-3 rounded-3xl bg-[#f0f5ff] p-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600">Rating</label>
+              <label className="block text-xs font-semibold text-slate-600">
+                Rating
+              </label>
               <select
                 value={reviewRating}
                 onChange={(e) => setReviewRating(Number(e.target.value))}
@@ -157,10 +190,15 @@ export default function ProductDetailsPage() {
           {reviewList.length > 0 && (
             <div className="mt-6 space-y-4">
               {reviewList.map((rev, index) => (
-                <div key={index} className="rounded-2xl border border-slate-200 p-4">
+                <div
+                  key={index}
+                  className="rounded-2xl border border-slate-200 p-4"
+                >
                   <div className="mb-2 flex items-center gap-2">
                     <Rating value={rev.rating} count={0} />
-                    <span className="text-xs text-slate-500">User review</span>
+                    <span className="text-xs text-slate-500">
+                      {rev.authorName} - {rev.authorEmail}
+                    </span>
                   </div>
                   <p className="text-sm text-slate-700">{rev.content}</p>
                 </div>

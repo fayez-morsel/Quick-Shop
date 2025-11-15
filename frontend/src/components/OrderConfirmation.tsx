@@ -3,9 +3,16 @@ import { type ChangeEvent, useEffect, useState } from "react";
 type Props = {
   open: boolean;
   onClose: () => void;
+  customerName?: string;
+  customerEmail?: string;
 };
 
-export default function OrderConfirmation({ open, onClose }: Props) {
+export default function OrderConfirmation({
+  open,
+  onClose,
+  customerName,
+  customerEmail,
+}: Props) {
   const [code, setCode] = useState("");
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState("");
@@ -70,8 +77,9 @@ export default function OrderConfirmation({ open, onClose }: Props) {
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold">Confirm Your Order</h2>
                 <p className="text-sm text-gray-600">
-                  We just pushed a 6-digit code to your laptop and phone. Enter
-                  it below to finalize your purchase.
+                  Hi {customerName || "Shopper"}, we just pushed a 6-digit code
+                  to {customerEmail || "your inbox"}. Enter it below to finalize
+                  your purchase.
                 </p>
               </div>
 
@@ -127,8 +135,8 @@ export default function OrderConfirmation({ open, onClose }: Props) {
               </div>
               <h2 className="text-xl font-semibold">Code Verified!</h2>
               <p className="text-sm text-gray-600">
-                Thanks for confirming. Your order is locked in and we&apos;ll
-                keep you posted once it ships.
+                Thanks for confirming, {customerName || "Shopper"}. Your order
+                is locked in and we&apos;ll keep you posted once it ships.
               </p>
               <button
                 onClick={handleClose}

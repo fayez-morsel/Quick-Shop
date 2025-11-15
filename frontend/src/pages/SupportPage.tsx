@@ -1,6 +1,8 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
+import { useStore } from "../store/useStore";
 
 const issueTypes = [
   "Order issue",
@@ -12,20 +14,51 @@ const issueTypes = [
 
 export default function SupportPage() {
   const navigate = useNavigate();
+  const userName = useStore((s) => s.userName);
+  const userEmail = useStore((s) => s.userEmail);
+  const setUserInfo = useStore((s) => s.setUserInfo);
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+    name: userName,
+    email: userEmail,
     issue: issueTypes[0],
     description: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const name = formData.name.trim();
+    const email = formData.email.trim();
+    const description = formData.description.trim();
+    const validationErrors: Record<string, string> = {};
+
+    if (!name) {
+      validationErrors.name = "Please let us know who you are.";
+    }
+    if (!email) {
+      validationErrors.email = "We need an email to follow up.";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      validationErrors.email = "Provide a valid email address.";
+    }
+    if (!description || description.length < 10) {
+      validationErrors.description = "Tell us a bit more about the issue.";
+    }
+
+    if (Object.keys(validationErrors).length) {
+      setErrors(validationErrors);
+      setSubmitted(false);
+      return;
+    }
+
+    setErrors({});
+    if (userName !== name || userEmail !== email) {
+      setUserInfo({ name, email });
+    }
     setSubmitted(true);
     setTimeout(() => {
       navigate("/");
@@ -61,7 +94,13 @@ export default function SupportPage() {
                 required
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="John Doe"
+                aria-invalid={Boolean(errors.name)}
               />
+              {errors.name && (
+                <p className="mt-1 text-xs font-semibold text-rose-500">
+                  {errors.name}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-sm font-semibold text-slate-600">
@@ -74,7 +113,13 @@ export default function SupportPage() {
                 required
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="you@example.com"
+                aria-invalid={Boolean(errors.email)}
               />
+              {errors.email && (
+                <p className="mt-1 text-xs font-semibold text-rose-500">
+                  {errors.email}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-sm font-semibold text-slate-600">
@@ -104,7 +149,13 @@ export default function SupportPage() {
                 rows={5}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="Add as much detail as you can..."
+                aria-invalid={Boolean(errors.description)}
               />
+              {errors.description && (
+                <p className="mt-1 text-xs font-semibold text-rose-500">
+                  {errors.description}
+                </p>
+              )}
             </div>
 
             <button
