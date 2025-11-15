@@ -36,6 +36,7 @@ type State = {
   userRole: UserRole;
   userName: string;
   userEmail: string;
+  confirmedOrderIds: string[];
   orders: Order[];
 };
 
@@ -66,9 +67,14 @@ type Actions = {
   logout: () => void;
   setRole: (role: UserRole) => void;
   setUserInfo: (info: { name: string; email: string }) => void;
-  placeOrder: (cart: CartItem[], buyerName: string, buyerEmail: string) => void;
+  placeOrder: (
+    cart: CartItem[],
+    buyerName: string,
+    buyerEmail: string
+  ) => string | null;
+  markOrderConfirmed: (orderId: string) => void;
 };
-export const useStore = create<State & Actions>((set, get) => ({
+export const useStore = create<State & Actions>((set, _get) => ({
   // --- initial data ---
   products: [
     {
@@ -341,6 +347,7 @@ export const useStore = create<State & Actions>((set, get) => ({
       expectedDelivery: "2025-10-14T00:00:00.000Z",
     },
   ],
+  confirmedOrderIds: ["o1", "o2", "o3"],
 
   filters: {
     query: "",
@@ -507,30 +514,33 @@ export const useStore = create<State & Actions>((set, get) => ({
         localStorage.setItem("userName", name);
         localStorage.setItem("userEmail", email);
       }
-    return { userName: name, userEmail: email };
-  }),
-  placeOrder: (cart, buyerName, buyerEmail) =>
+      return { userName: name, userEmail: email };
+    }),
+  placeOrder: (cart, buyerName, buyerEmail) => {
+    if (!cart.length) {
+      return null;
+    }
+    let newOrderId: string | null = null;
     set((s) => {
-      if (!cart.length) {
-        return {};
-      }
       const productLookup = Object.fromEntries(
         s.products.map((product) => [product.id, product])
       );
-      const total = cart.reduce((sum, item) => {
+      const validItems = cart.filter((item) => productLookup[item.productId]);
+      if (!validItems.length) {
+        return {};
+      }
+      const total = validItems.reduce((sum, item) => {
         const product = productLookup[item.productId];
         return sum + (product ? product.price * item.qty : 0);
       }, 0);
-      if (!orderItems.length) {
-        return {};
-      }
-      const firstProduct = productLookup[cart[0].productId];
+      const firstProduct = productLookup[validItems[0].productId];
+      const orderId = `o${Date.now()}`;
       const order: Order = {
-        id: `o${Date.now()}`,
+        id: orderId,
         buyerName: buyerName || "Quick Shopper",
         buyerEmail: buyerEmail || "guest@shopup.com",
         storeId: firstProduct?.storeId ?? "quick-shop",
-        items: cart.map((item) => ({
+        items: validItems.map((item) => ({
           productId: item.productId,
           qty: item.qty,
         })),
@@ -541,8 +551,17 @@ export const useStore = create<State & Actions>((set, get) => ({
           Date.now() + 7 * 24 * 60 * 60 * 1000
         ).toISOString(),
       };
+      newOrderId = orderId;
       return { orders: [...s.orders, order] };
-    }),
+    });
+    return newOrderId;
+  },
+  markOrderConfirmed: (orderId) =>
+    set((s) => ({
+      confirmedOrderIds: s.confirmedOrderIds.includes(orderId)
+        ? s.confirmedOrderIds
+        : [...s.confirmedOrderIds, orderId],
+    })),
 }));
 
 export const useFilters = () => useStore((s) => s.filters);
