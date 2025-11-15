@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useStore } from "../store/useStore";
 import type { UserRole } from "../types";
+import { getAccountByEmail, getAccountByEmailAndRole } from "../utils/auth";
 
 const emailPattern = /^\S+@\S+\.\S+$/;
 
@@ -12,7 +13,6 @@ export default function LoginPage() {
   const location = useLocation();
   const login = useStore((s) => s.login);
   const setUserInfo = useStore((s) => s.setUserInfo);
-  const storedName = useStore((s) => s.userName);
   const [role, setRole] = useState<UserRole>(
     ((location.state as { role?: UserRole })?.role ?? "buyer") as UserRole
   );
@@ -44,11 +44,27 @@ export default function LoginPage() {
       return;
     }
 
-    const displayName =
-      storedName || form.email.split("@")[0] || "Quick Shopper";
+    const normalizedEmail = form.email.trim().toLowerCase();
+    const normalizedPassword = form.password.trim();
+    const account = getAccountByEmailAndRole(normalizedEmail, role);
+
+    if (!account) {
+      const registeredAccount = getAccountByEmail(normalizedEmail);
+      validationErrors.email = registeredAccount
+        ? `This email is registered as a ${registeredAccount.role} account.`
+        : "No account found with this email. Please register.";
+      setErrors(validationErrors);
+      return;
+    }
+
+    if (account.password !== normalizedPassword) {
+      setErrors({ password: "Incorrect password for this account." });
+      return;
+    }
+
     setErrors({});
     login(role);
-    setUserInfo({ name: displayName.trim(), email: form.email.trim() });
+    setUserInfo({ name: account.name, email: normalizedEmail });
     navigate(role === "seller" ? "/seller" : "/");
   };
 
@@ -77,7 +93,7 @@ export default function LoginPage() {
                 placeholder="john@example.com"
                 aria-invalid={Boolean(errors.email)}
               />
-              <p className="mt-1 min-h-[1.25rem] text-xs font-medium text-rose-500">
+              <p className="mt-1 min-h-5 text-xs font-medium text-rose-500">
                 {errors.email || "\u00A0"}
               </p>
             </div>
@@ -91,7 +107,7 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 aria-invalid={Boolean(errors.password)}
               />
-              <p className="mt-1 min-h-[1.25rem] text-xs font-medium text-rose-500">
+              <p className="mt-1 min-h-5 text-xs font-medium text-rose-500">
                 {errors.password || "\u00A0"}
               </p>
             </div>
