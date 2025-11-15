@@ -197,10 +197,7 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-slate-900">Why Choose QuickShop?</h2>
             <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {highlights.map(({ title, description, icon: Icon }) => (
-              <div
-                key={title}
-                className="space-y-4 px-4 transition hover:-translate-y-1 hover:shadow-lg hover:bg-white/80"
-              >
+              <div key={title} className="space-y-4 px-4">
                 <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e3f0ff] text-[#0a45c5]">
                   <Icon className="h-7 w-7" aria-hidden />
                 </span>
