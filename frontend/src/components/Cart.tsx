@@ -49,7 +49,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
         />
       )}
       <div
-        className={`fixed right-0 top-0 z-50 h-full min-h-screen w-80 transform transition-transform duration-300 ${
+        className={`fixed right-0 top-0 z-50 h-full min-h-screen w-120 transform transition-transform duration-300 ${
           cartOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -137,23 +137,25 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
           <footer className="border-t border-transparent bg-[#0c409f] px-6 py-5 text-white">
             <div className="flex items-center justify-between text-sm">
               <span className="text-white/70">Total</span>
-              <span className="text-lg font-bold text-white">{money(total)}</span>
+              <span className="text-lg font-bold text-white">
+                {money(total)}
+              </span>
             </div>
             <div className="mt-4 flex gap-2">
               <button
                 type="button"
                 onClick={clearCart}
-              className="cursor-pointer flex-1 rounded-full border border-white/40 px-3 py-2 text-sm font-semibold text-white/90 transition duration-200 ease-in-out hover:bg-white/10"
-            >
-              Clear
-            </button>
-            <button
-              type="button"
-              onClick={handleCheckout}
-              disabled={!cart.length}
-              className="cursor-pointer flex-1 rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#0c409f] transition duration-200 ease-in-out hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-white/40"
-            >
-              Checkout
+                className="cursor-pointer flex-1 rounded-full border border-white/40 px-3 py-2 text-sm font-semibold text-white/90 transition duration-200 ease-in-out hover:bg-white/10"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={handleCheckout}
+                disabled={!cart.length}
+                className="cursor-pointer flex-1 rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#0c409f] transition duration-200 ease-in-out hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-white/40"
+              >
+                Checkout
               </button>
             </div>
           </footer>

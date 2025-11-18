@@ -91,7 +91,7 @@ export default function ProductCard({ product, onSelect }: Props) {
           onMouseUp={() => setIsPressingFavorite(false)}
           onMouseLeave={() => setIsPressingFavorite(false)}
           className={clsx(
-            "absolute right-4 top-4 rounded-full border border-white/70 bg-white/90 p-2 shadow transition",
+            "absolute right-4 top-4 rounded-full border border-white/70 bg-white/90 p-2 shadow transition cursor-pointer",
             isFavorite || isPressingFavorite ? "text-rose-500 shadow-lg" : "text-slate-500"
           )}
           aria-pressed={isFavorite}
