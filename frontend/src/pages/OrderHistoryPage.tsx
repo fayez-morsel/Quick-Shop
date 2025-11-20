@@ -108,7 +108,7 @@ export default function OrderHistoryPage() {
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {metrics.map((metric) => (
           <article
-            key="{metric.label}"
+            key={metric.label}
             className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_25px_40px_rgba(15,23,42,0.08)]"
           >
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
@@ -119,6 +119,72 @@ export default function OrderHistoryPage() {
             </p>
           </article>
         ))}
+      </section>
+      <section className="rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">
+              Orders
+            </p>
+            <p className="text-xs text-slate-500">
+              Sorted by the most recent purchase
+            </p>
+          </div>
+          <p className="text-xs text-slate-500">
+            Showing {filteredOrders.length} orders
+          </p>
+        </div>
+        <div className="mt-6 overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead>
+              <tr className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                <th className="px-3 py-3">Order ID</th>
+                <th className="px-3 py-3">Date</th>
+                <th className="px-3 py-3">Store</th>
+                <th className="px-3 py-3">Items</th>
+                <th className="px-3 py-3">Amount</th>
+                <th className="px-3 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="text-slate-700">
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="py-6 text-center text-sm text-slate-400"
+                  >
+                    No orders match this search term
+                  </td>
+                </tr>
+              ) : (
+                filteredOrders.map((order) => (
+                  <tr key={order.id} className="border-t border-slate-100">
+                    <td className="px-3 py-4 font-mono text-xs font-semibold text-slate-600">
+                      {formatOrderId(order.id)}
+                    </td>
+                    <td className="px-3 py-4 text-slate-500">
+                      {formatDate(order.placedAt)}
+                    </td>
+                    <td className="px-3 py-4 font-semibold text-slate-900">
+                      {order.storeId}
+                    </td>
+                    <td className="px-3 py-4">{order.items.length} item(s)</td>
+                    <td className="px-3 py-4 font-semibold text-slate-900">
+                      {money(order.total)}
+                    </td>
+                    <td className="px-3 py-4">
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] ${statusStyles[order.status]}`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );
