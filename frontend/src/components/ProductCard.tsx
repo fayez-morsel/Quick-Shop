@@ -33,6 +33,13 @@ export default function ProductCard({ product, onSelect }: Props) {
           ((product.compareAtPrice - product.price) / product.compareAtPrice) * 100
         )
       : null;
+  const imageSources =
+    product.images && product.images.length > 0
+      ? product.images
+      : product.image
+      ? [product.image]
+      : [];
+  const mainImage = imageSources[0] || product.image;
 
   const [isPressingFavorite, setIsPressingFavorite] = useState(false);
 
@@ -80,7 +87,7 @@ export default function ProductCard({ product, onSelect }: Props) {
         style={{ aspectRatio: "3 / 2" }}
       >
         <img
-          src={product.image}
+          src={mainImage}
           alt={product.title}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
