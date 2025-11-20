@@ -70,7 +70,7 @@ export default function SellerLayout({
                 <button
                   type="button"
                   onClick={toggleSidebar}
-                  className="rounded-full border border-slate-200 bg-slate-100 p-2 text-slate-600 hover:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b3ca9]"
+                  className="rounded-full border border-slate-200 bg-slate-100 p-2 text-slate-600 hover:bg-slate-200 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-[#0b3ca9]"
                 >
                   {sidebarOpen ? (
                     <X className="h-5 w-5" />
