@@ -13,6 +13,7 @@ export default function LoginPage() {
   const location = useLocation();
   const login = useStore((s) => s.login);
   const setUserInfo = useStore((s) => s.setUserInfo);
+  const setSellerStoreId = useStore((s) => s.setSellerStoreId);
   const [role, setRole] = useState<UserRole>(
     ((location.state as { role?: UserRole })?.role ?? "buyer") as UserRole
   );
@@ -65,6 +66,7 @@ export default function LoginPage() {
     setErrors({});
     login(role);
     setUserInfo({ name: account.name, email: normalizedEmail });
+    setSellerStoreId(role === "seller" ? account.storeId ?? "" : "");
     navigate(role === "seller" ? "/seller" : "/");
   };
 
