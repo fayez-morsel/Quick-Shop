@@ -63,7 +63,17 @@ export default function SellerSidebar({
           );
         })}
       </nav>
-      
+      <div className="mt-auto rounded-3xl bg-[#0f2465] p-4 shadow-[0_25px_45px_rgba(15,23,42,0.25)]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#facc15] text-lg font-semibold text-slate-900">
+            {initials}
+          </div>
+          <div>
+            <p className="text-sm font-semibold">{userName || "Seller"}</p>
+            <p className="text-xs text-slate-300">{userEmail || "no-email@example.com"}</p>
+          </div>
+        </div>
+      </div>
     </aside>
   );
 }
