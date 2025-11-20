@@ -49,7 +49,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
         />
       )}
       <div
-        className={`fixed right-0 top-0 z-50 h-full min-h-screen w-120 transform transition-transform duration-300 ${
+        className={`fixed right-0 top-0 z-50 h-full min-h-screen w-90 transform transition-transform duration-300 ${
           cartOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -74,6 +74,13 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                 {cart.map((item) => {
                   const product = products.find((p) => p.id === item.productId);
                   if (!product) return null;
+                  const imageSources =
+                    product.images && product.images.length
+                      ? product.images
+                      : product.image
+                      ? [product.image]
+                      : [];
+                  const cartImage = imageSources[0] ?? product.image;
                   return (
                     <li
                       key={item.productId}
@@ -81,7 +88,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                     >
                       <div className="flex items-center gap-3">
                         <img
-                          src={product.image}
+                          src={cartImage}
                           alt={product.title}
                           className="h-16 w-16 rounded-2xl object-cover shadow-sm"
                         />

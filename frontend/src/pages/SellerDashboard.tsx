@@ -1,398 +1,573 @@
-import { CheckCircle2, Plus, RefreshCw } from "lucide-react";
-import { useState } from "react";
-import type { FormEvent } from "react";
+﻿import {
+  Bell,
+  ChartLine,
+  LayoutDashboard,
+  Package,
+  Search,
+  ShoppingBag,
+  Users,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import SellerLayout from "../components/SellerLayout";
+import { useScopedOrders } from "../hooks/useScopedOrders";
 import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
-import type { Category, OrderStatus, Brand } from "../types";
+import type { Order, OrderStatus, Product } from "../types";
 
-const categoryOptions: Category[] = [
-  "Tech",
-  "Sound",
-  "Home",
-  "Sport",
-  "Accessories",
-  "Books",
-  "Gifts",
+const statusStyles: Record<OrderStatus, string> = {
+  Pending: "bg-amber-100 text-amber-700",
+  Processing: "bg-sky-100 text-sky-700",
+  Dispatched: "bg-indigo-100 text-indigo-700",
+  Shipped: "bg-purple-100 text-purple-700",
+  Delivered: "bg-emerald-100 text-emerald-700",
+  "Delivery Unsuccessful": "bg-rose-100 text-rose-600",
+  Canceled: "bg-rose-100 text-rose-600",
+};
+
+const gridLines = [0.25, 0.5, 0.75];
+
+const fallbackProducts: Product[] = [
+  {
+    id: "demo-headphones",
+    title: "Demo Headphones",
+    price: 200,
+    storeId: "demo",
+    storeName: "Demo Store",
+    category: "Tech",
+    stock: 10,
+    inStock: true,
+    image: "/assets/products/headphones.png",
+  },
+  {
+    id: "demo-smartwatch",
+    title: "Demo Smartwatch",
+    price: 240,
+    storeId: "demo",
+    storeName: "Demo Store",
+    category: "Tech",
+    stock: 8,
+    inStock: true,
+    image: "/assets/products/smartwatch.png",
+  },
+  {
+    id: "demo-keyboard",
+    title: "Demo Keyboard",
+    price: 99,
+    storeId: "demo",
+    storeName: "Demo Store",
+    category: "Tech",
+    stock: 12,
+    inStock: true,
+    image: "/assets/products/keyboard.png",
+  },
+  {
+    id: "demo-mouse",
+    title: "Demo Mouse",
+    price: 65,
+    storeId: "demo",
+    storeName: "Demo Store",
+    category: "Tech",
+    stock: 20,
+    inStock: true,
+    image: "/assets/products/mouse.png",
+  },
 ];
 
-const statusOptions: OrderStatus[] = [
-  "Pending",
-  "Dispatched",
-  "Delivered",
-  "Delivery Unsuccessful",
-  "Canceled",
+const fallbackOrders: Order[] = [
+  {
+    id: "demo-o1",
+    buyerName: "Avery Lane",
+    buyerEmail: "avery@example.com",
+    storeId: "demo",
+    items: [{ productId: "demo-headphones", qty: 100 }],
+    total: 20000,
+    status: "Delivered",
+    placedAt: "2025-11-01T09:24:00.000Z",
+    expectedDelivery: "2025-11-05T12:00:00.000Z",
+  },
+  {
+    id: "demo-o2",
+    buyerName: "Benny Cole",
+    buyerEmail: "benny@example.com",
+    storeId: "demo",
+    items: [
+      { productId: "demo-smartwatch", qty: 1 },
+      { productId: "demo-mouse", qty: 1 },
+    ],
+    total: 305,
+    status: "Shipped",
+    placedAt: "2025-11-08T14:05:00.000Z",
+    expectedDelivery: "2025-11-14T15:00:00.000Z",
+  },
+  {
+    id: "demo-o3",
+    buyerName: "Lena Brooks",
+    buyerEmail: "lena@example.com",
+    storeId: "demo",
+    items: [{ productId: "demo-keyboard", qty: 3 }],
+    total: 297,
+    status: "Processing",
+    placedAt: "2025-11-12T10:30:00.000Z",
+    expectedDelivery: "2025-11-18T08:00:00.000Z",
+  },
 ];
 
-const brandOptions: Brand[] = [
-  "Tech Hub",
-  "KeyZone",
-  "SoundWave",
-  "DataHub",
-  "ErgoWorks",
-  "HomeLight",
-];
+const chartPeriods = (() => {
+  const today = new Date();
+  return Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(today.getFullYear(), today.getMonth() - (11 - index), 1);
+    return {
+      label: date.toLocaleDateString("en-US", { month: "short" }),
+      monthIndex: date.getMonth(),
+      year: date.getFullYear(),
+    };
+  });
+})();
 
-type ProductFormState = {
-  title: string;
-  price: string;
-  compareAtPrice: string;
-  storeId: string;
-  storeName: Brand;
-  category: Category;
-  stock: string;
-  image: string;
+type EnhancedOrder = Order & {
+  productNames: string;
 };
 
 export default function SellerDashboard() {
-  const products = useStore((s) => s.products);
-  const orders = useStore((s) => s.orders);
-  const addProduct = useStore((s) => s.addProduct);
-  const removeProduct = useStore((s) => s.removeProduct);
-  const updateProductDetails = useStore((s) => s.updateProductDetails);
-  const updateOrderStatus = useStore((s) => s.updateOrderStatus);
+  const products = useStore((state) => state.products);
+  const { scopedOrders } = useScopedOrders();
+  const [searchQuery, setSearchQuery] = useState("");
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const effectiveProducts = products.length ? products : fallbackProducts;
+  const effectiveOrders = scopedOrders.length ? scopedOrders : fallbackOrders;
 
-  const [form, setForm] = useState<ProductFormState>({
-    title: "",
-    price: "0",
-    compareAtPrice: "0",
-    storeId: "tech-hub",
-    storeName: "Tech Hub",
-    category: "Tech" as Category,
-    stock: "10",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=60",
-  });
-
-  const handleFormChange = <K extends keyof ProductFormState>(
-    field: K,
-    value: ProductFormState[K]
-  ) =>
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
+  const enhancedOrders = useMemo(() => {
+    const lookup = Object.fromEntries(effectiveProducts.map((product) => [product.id, product]));
+    return effectiveOrders.map((order) => ({
+      ...order,
+      productNames: order.items
+        .map((item) => lookup[item.productId]?.title ?? item.productId)
+        .join(", "),
     }));
+  }, [effectiveOrders, effectiveProducts]);
 
-  const handleAddProduct = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!form.title.trim()) return;
-    const price = Number(form.price);
-    const compareAtPrice = Number(form.compareAtPrice);
-    const stock = Math.max(0, Number(form.stock));
-    const newProductId = `p-${Date.now()}`;
-
-    addProduct({
-      id: newProductId,
-      title: form.title,
-      price: Number.isNaN(price) ? 0 : price,
-      compareAtPrice: Number.isFinite(compareAtPrice) && compareAtPrice > price ? compareAtPrice : undefined,
-      storeId: form.storeId,
-      storeName: form.storeName,
-      category: form.category,
-      image: form.image,
-      inStock: stock > 0,
-      rating: { value: 0, count: 0 },
-      stock,
+  const dashboardData = useMemo(() => {
+    const map = new Map<string, { product: Product; revenue: number; sales: number }>();
+    effectiveProducts.forEach((product) => {
+      map.set(product.id, { product, revenue: 0, sales: 0 });
     });
 
-    setForm((prev) => ({
-      ...prev,
-      title: "",
-      price: "0",
-      compareAtPrice: "0",
-      stock: "10",
-    }));
-  };
+    let totalRevenue = 0;
+    const customerEmails = new Set<string>();
 
-  const sellerProducts = products;
+    effectiveOrders.forEach((order) => {
+      customerEmails.add(order.buyerEmail.toLowerCase());
+      totalRevenue += order.total;
+      order.items.forEach((item) => {
+        const entry = map.get(item.productId);
+        if (!entry) return;
+        entry.sales += item.qty;
+        entry.revenue += entry.product.price * item.qty;
+      });
+    });
+
+    const monthlySales = chartPeriods.map(({ label, monthIndex, year }) => {
+      const monthlyTotal = scopedOrders.reduce((sum, order) => {
+        const orderDate = new Date(order.placedAt);
+        return orderDate.getFullYear() === year && orderDate.getMonth() === monthIndex
+          ? sum + order.total
+          : sum;
+      }, 0);
+      return { month: label, value: monthlyTotal };
+    });
+
+    return {
+      totalRevenue,
+      totalOrders: scopedOrders.length,
+      uniqueCustomers: customerEmails.size,
+      topProducts: Array.from(map.values())
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 4),
+      monthlySales,
+    };
+  }, [scopedOrders, products]);
+
+  const { totalRevenue, totalOrders, uniqueCustomers, topProducts, monthlySales } =
+    dashboardData;
+  const totalProducts = effectiveProducts.length;
+
+  const customerProfiles = useMemo(() => {
+    const map = new Map<string, { name: string; email: string; orders: number; lifetimeValue: number }>();
+    scopedOrders.forEach((order) => {
+      const key = order.buyerEmail.toLowerCase();
+      const current =
+        map.get(key) ?? {
+          name: order.buyerName,
+          email: order.buyerEmail,
+          orders: 0,
+          lifetimeValue: 0,
+        };
+      current.orders += 1;
+      current.lifetimeValue += order.total;
+      map.set(key, current);
+    });
+    return Array.from(map.values());
+  }, [scopedOrders]);
+
+  const searchResults = useMemo(() => {
+    if (!normalizedQuery) {
+      return { products: [], orders: [], customers: [] };
+    }
+
+    const matchesProduct = (product: Product) =>
+      product.title.toLowerCase().includes(normalizedQuery) ||
+      product.category?.toLowerCase().includes(normalizedQuery) ||
+      product.storeName.toLowerCase().includes(normalizedQuery);
+
+    const matchesOrder = (order: EnhancedOrder) =>
+      order.id.toLowerCase().includes(normalizedQuery) ||
+      order.buyerName.toLowerCase().includes(normalizedQuery) ||
+      order.productNames.toLowerCase().includes(normalizedQuery) ||
+      order.status.toLowerCase().includes(normalizedQuery);
+
+    const matchesCustomer = (customer: (typeof customerProfiles)[number]) =>
+      customer.name.toLowerCase().includes(normalizedQuery) ||
+      customer.email.toLowerCase().includes(normalizedQuery);
+
+    return {
+      products: effectiveProducts.filter(matchesProduct).slice(0, 4),
+      orders: enhancedOrders.filter(matchesOrder).slice(0, 4),
+      customers: customerProfiles.filter(matchesCustomer).slice(0, 4),
+    };
+  }, [normalizedQuery, products, enhancedOrders, customerProfiles]);
+
+  const showSearchResults = normalizedQuery.length > 0;
+  const totalMatches =
+    searchResults.products.length +
+    searchResults.orders.length +
+    searchResults.customers.length;
+  const recentOrders = enhancedOrders.slice(0, 6);
+  const chartWidth = 360;
+  const chartHeight = 180;
+  const chartMax = Math.max(...monthlySales.map((item) => item.value), 1);
+  const polylinePoints = monthlySales
+    .map((point, index) => {
+      const step = monthlySales.length === 1 ? 0 : index / (monthlySales.length - 1);
+      const x = chartWidth * step;
+      const y = chartHeight - (point.value / chartMax) * chartHeight;
+      return `${x},${y}`;
+    })
+    .join(" ");
+  const referenceRevenue = Math.max(topProducts[0]?.revenue ?? 1, 1);
+
+  const formatNumber = (value: number) =>
+    value.toLocaleString("en-US", { maximumFractionDigits: 0 });
+
+  const metricCards = [
+    {
+      label: "Total Revenue",
+      value: money(totalRevenue),
+      change: "+20.1% vs last month",
+      icon: ChartLine,
+      iconClass: "text-[#1d4ed8]",
+    },
+    {
+      label: "Total Orders",
+      value: formatNumber(totalOrders),
+      change: "+12.5% vs last month",
+      icon: ShoppingBag,
+      iconClass: "text-[#0ea5e9]",
+    },
+    {
+      label: "Total Products",
+      value: formatNumber(totalProducts),
+      change: "+8.2% vs last month",
+      icon: Package,
+      iconClass: "text-[#f59e0b]",
+    },
+    {
+      label: "Total Customers",
+      value: formatNumber(uniqueCustomers),
+      change: "+15.3% vs last month",
+      icon: Users,
+      iconClass: "text-[#0ea5e9]",
+    },
+  ];
+
+  const displayQuery = searchQuery.trim();
 
   return (
-    <div className="min-h-screen bg-[#dfeeff]">
-      <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10">
-        <section className="rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.12)]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-500">
-                Product management
-              </p>
-              <p className="text-lg font-bold text-slate-900">
-                Add or update catalogue items
-              </p>
-            </div>
-            <div className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              Live inventory sync
-            </div>
+    <SellerLayout activeLink="Dashboard">
+      <header className="flex items-center gap-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+          <LayoutDashboard className="h-6 w-6 text-slate-500" />
+        </div>
+        <div className="flex flex-1 items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm">
+          <Search className="h-5 w-5 text-slate-400" />
+          <input
+            className="ml-3 flex-1 border-none bg-transparent text-sm text-slate-600 focus:outline-none"
+            placeholder="Search products, orders, customers..."
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+        </div>
+        <div className="ml-auto flex items-center gap-3">
+          <button
+            type="button"
+            className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+          >
+            <Bell className="h-5 w-5 text-slate-500" />
+          </button>
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0f57ad] text-sm font-semibold text-white">
+            JS
           </div>
+        </div>
+      </header>
 
-          <form className="mt-6 grid gap-4 md:grid-cols-3" onSubmit={handleAddProduct}>
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-xs font-semibold text-slate-600">Product title</label>
-              <input
-                type="text"
-                value={form.title}
-                onChange={(event) => handleFormChange("title", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                placeholder="New listing name"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-600">Store name</label>
-              <select
-                value={form.storeName}
-                onChange={(event) =>
-                  handleFormChange("storeName", event.target.value as Brand)
-                }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                {brandOptions.map((brand) => (
-                  <option key={brand} value={brand}>
-                    {brand}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-600">Store ID</label>
-              <input
-                type="text"
-                value={form.storeId}
-                onChange={(event) => handleFormChange("storeId", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-600">Price ($)</label>
-              <input
-                type="number"
-                min={0}
-                value={form.price}
-                onChange={(event) => handleFormChange("price", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-600">Compare-at ($)</label>
-              <input
-                type="number"
-                min={0}
-                value={form.compareAtPrice}
-                onChange={(event) => handleFormChange("compareAtPrice", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-600">Inventory</label>
-              <input
-                type="number"
-                min={0}
-                value={form.stock}
-                onChange={(event) => handleFormChange("stock", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-600">Category</label>
-              <select
-                value={form.category}
-                onChange={(event) =>
-                  handleFormChange("category", event.target.value as Category)
-                }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                {categoryOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2 md:col-span-3">
-              <label className="text-xs font-semibold text-slate-600">Image URL</label>
-              <input
-                type="text"
-                value={form.image}
-                onChange={(event) => handleFormChange("image", event.target.value)}
-                placeholder="https://images.unsplash.com/..."
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div className="md:col-span-3">
-              <button
-                type="submit"
-                className="w-full rounded-full bg-[#0d4bc9] px-4 py-3 text-sm font-semibold text-white shadow hover:bg-[#0b3ba2]"
-              >
-                <Plus className="mr-2 inline-block h-4 w-4" aria-hidden />
-                Add product
-              </button>
-            </div>
-          </form>
-        </section>
+      <section className="mt-8 space-y-2">
+        <h1 className="text-3xl font-semibold text-slate-900">Dashboard Overview</h1>
+        <p className="text-sm text-slate-500">
+          Welcome back, John! Here's what's happening with your store today.
+        </p>
+      </section>
 
-        <section className="space-y-4">
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">
-              Inventory feed
+      {showSearchResults && (
+        <section className="mt-6 rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">
+                Search results
+              </p>
+              <h2 className="text-2xl font-semibold text-slate-900">"{displayQuery}"</h2>
+            </div>
+            <p className="text-sm text-slate-500">
+              {totalMatches} match{totalMatches === 1 ? "" : "es"} found
             </p>
-            <h2 className="text-2xl font-bold text-slate-900">Your product catalog</h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {sellerProducts.map((product) => (
-              <article
-                key={product.id}
-                className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-                      {product.storeName}
-                    </p>
-                    <h3 className="text-xl font-semibold text-slate-900">{product.title}</h3>
-                  </div>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                      product.inStock ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
-                    }`}
-                  >
-                    {product.inStock ? "In stock" : "Out of stock"}
-                  </span>
-                </div>
-                <p className="mt-2 text-sm text-slate-500">{product.category ?? "General"}</p>
-                <div className="mt-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-[#0d4bc9]">{money(product.price)}</p>
-                    <p className="text-xs text-slate-400">Inventory: {product.stock}</p>
-                    {product.discountExpires && (
-                      <p className="text-xs text-slate-500">
-                        Discount ends {new Date(product.discountExpires).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-end gap-2 text-xs font-semibold uppercase text-slate-500">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateProductDetails(product.id, {
-                          stock: product.inStock ? 0 : Math.max(product.stock, 10),
-                          inStock: product.inStock ? false : true,
-                        })
-                      }
-                      className="rounded-full border border-slate-200 px-3 py-1 text-[11px] tracking-[0.5em]"
-                    >
-                      {product.inStock ? "Mark out" : "Restock"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateProductDetails(product.id, {
-                          discounted: true,
-                          discountExpires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                        })
-                      }
-                      className="rounded-full border border-slate-200 px-3 py-1 text-[11px] tracking-[0.5em]"
-                    >
-                      Add 7-day discount
-                    </button>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateProductDetails(product.id, {
-                        price: product.price * 0.95,
-                        compareAtPrice: product.compareAtPrice ?? product.price,
-                      })
-                    }
-                    className="rounded-full border border-blue-500 px-3 py-1 text-blue-600"
-                  >
-                    Deepen price
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeProduct(product.id)}
-                    className="rounded-full border border-slate-200 px-3 py-1 text-slate-700"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.5em] text-slate-500">
-                Order management
+          <div className="mt-6 grid gap-5 lg:grid-cols-3">
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                Products ({searchResults.products.length})
               </p>
-              <h2 className="text-2xl font-bold text-slate-900">Customer orders</h2>
+              <div className="mt-4 space-y-3">
+                {searchResults.products.length === 0 ? (
+                  <p className="text-sm text-slate-400">No products match that query.</p>
+                ) : (
+                  searchResults.products.map((product) => (
+                    <div key={product.id} className="rounded-2xl border border-slate-200 bg-white p-3">
+                      <p className="font-semibold text-slate-900">{product.title}</p>
+                      <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                        {product.category ?? "General"}
+                      </p>
+                      <p className="text-sm text-slate-500">{product.storeName}</p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {money(product.price)}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-600">
-              <RefreshCw className="h-4 w-4" />
-              Live sync
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                Orders ({searchResults.orders.length})
+              </p>
+              <div className="mt-4 space-y-3">
+                {searchResults.orders.length === 0 ? (
+                  <p className="text-sm text-slate-400">No orders match that query.</p>
+                ) : (
+                  searchResults.orders.map((order) => (
+                    <div key={order.id} className="rounded-2xl border border-slate-200 bg-white p-3">
+                      <p className="font-semibold text-slate-900">#{order.id.toUpperCase()}</p>
+                      <p className="text-sm text-slate-500">{order.buyerName}</p>
+                      <p className="text-sm text-slate-500">{order.productNames}</p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <p className="text-sm font-semibold text-slate-900">{money(order.total)}</p>
+                        <span
+                          className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] ${
+                            statusStyles[order.status]
+                          }`}
+                        >
+                          {order.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-          <div className="mt-6 space-y-4">
-            {orders.map((order) => (
-              <article
-                key={order.id}
-                className="rounded-3xl border border-slate-200 bg-[#f7f9ff] p-4 shadow-sm"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">
-                      {order.buyerName}
-                    </p>
-                    <p className="text-lg font-semibold text-slate-900">
-                      Order #{order.id}
-                    </p>
-                  </div>
-                  <span className="text-sm font-semibold text-slate-600">
-                    {new Date(order.placedAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-4 text-sm text-slate-600 sm:grid-cols-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.4em]">Total</p>
-                    <p className="text-lg font-semibold text-slate-900">{money(order.total)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.4em]">Items</p>
-                    <p className="text-base font-semibold text-slate-900">
-                      {order.items.reduce((sum, item) => sum + item.qty, 0)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.4em]">Delivery</p>
-                    <p className="text-base font-semibold text-slate-900">
-                      {new Date(order.expectedDelivery).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-xs uppercase tracking-[0.4em] text-slate-500">
-                      Status
-                    </label>
-                    <select
-                      value={order.status}
-                      onChange={(event) =>
-                        updateOrderStatus(order.id, event.target.value as OrderStatus)
-                      }
-                      className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700"
-                    >
-                      {statusOptions.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </article>
-            ))}
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                Customers ({searchResults.customers.length})
+              </p>
+              <div className="mt-4 space-y-3">
+                {searchResults.customers.length === 0 ? (
+                  <p className="text-sm text-slate-400">No customers match that query.</p>
+                ) : (
+                  searchResults.customers.map((customer) => (
+                    <div key={customer.email} className="rounded-2xl border border-slate-200 bg-white px-3 py-2">
+                      <p className="font-semibold text-slate-900">{customer.name}</p>
+                      <p className="text-sm text-slate-500">{customer.email}</p>
+                      <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                        {customer.orders} orders · {money(customer.lifetimeValue)}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </section>
-      </main>
-    </div>
+      )}
+
+      <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {metricCards.map((metric) => {
+          const Icon = metric.icon;
+          return (
+            <article
+              key={metric.label}
+              className="rounded-3xl bg-white p-5 shadow-[0_25px_40px_rgba(15,23,42,0.08)]"
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{metric.label}</p>
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50">
+                  <Icon className={`h-5 w-5 ${metric.iconClass}`} />
+                </div>
+              </div>
+              <p className="mt-6 text-3xl font-semibold text-slate-900">{metric.value}</p>
+              <p className="text-xs font-semibold text-emerald-600">{metric.change}</p>
+            </article>
+          );
+        })}
+      </section>
+
+      <section className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
+        <article className="rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">Sales overview</p>
+              <h2 className="text-2xl font-semibold text-slate-900">Monthly performance</h2>
+            </div>
+            <div className="rounded-2xl border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              2025
+            </div>
+          </div>
+          <div className="mt-6">
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f9ff] p-4">
+              <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-52 w-full" role="img">
+                {gridLines.map((line) => {
+                  const y = chartHeight - chartHeight * line;
+                  return <line key={line} x1={0} x2={chartWidth} y1={y} y2={y} className="stroke-slate-200" />;
+                })}
+                <polyline
+                  points={polylinePoints}
+                  fill="none"
+                  stroke="#2563eb"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {monthlySales.map((point, index) => {
+                  const step = monthlySales.length === 1 ? 0 : index / (monthlySales.length - 1);
+                  const x = chartWidth * step;
+                  const y = chartHeight - (point.value / chartMax) * chartHeight;
+                  return (
+                    <circle
+                      key={point.month}
+                      cx={x}
+                      cy={y}
+                      r={4}
+                      className="fill-white stroke-[#2563eb]"
+                      strokeWidth={2}
+                    />
+                  );
+                })}
+              </svg>
+            </div>
+            <div className="mt-5 grid grid-cols-12 gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              {monthlySales.map((point) => (
+                <span key={point.month} className="col-span-1 text-center">
+                  {point.month}
+                </span>
+              ))}
+            </div>
+          </div>
+        </article>
+
+        <article className="rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">Top products</p>
+              <h2 className="text-2xl font-semibold text-slate-900">Best sellers</h2>
+            </div>
+          </div>
+          <div className="space-y-5">
+            {topProducts.map((entry) => {
+              const progress = Math.min(Math.round((entry.revenue / referenceRevenue) * 100), 100);
+              return (
+                <div key={entry.product.id}>
+                  <div className="flex items-center justify-between text-sm">
+                    <div>
+                      <p className="font-semibold text-slate-900">{entry.product.title}</p>
+                      <p className="text-xs text-slate-500">{entry.sales} sales</p>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-600">{money(entry.revenue)}</span>
+                  </div>
+                  <div className="mt-2 h-2 rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-sky-400"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </article>
+      </section>
+
+      <section className="mt-6 rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">Recent orders</p>
+            <h2 className="text-2xl font-semibold text-slate-900">Customer orders</h2>
+          </div>
+        </div>
+        <div className="mt-6 overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead>
+              <tr className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                <th className="px-3 py-3">Order ID</th>
+                <th className="px-3 py-3">Customer</th>
+                <th className="px-3 py-3">Product</th>
+                <th className="px-3 py-3">Date</th>
+                <th className="px-3 py-3">Amount</th>
+                <th className="px-3 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="text-slate-700">
+              {recentOrders.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-sm text-slate-400">No orders yet</td>
+                </tr>
+              )}
+              {recentOrders.map((order) => (
+                <tr key={order.id} className="border-t border-slate-100">
+                  <td className="px-3 py-4 font-semibold text-slate-900">#{order.id.toUpperCase()}</td>
+                  <td className="px-3 py-4">{order.buyerName}</td>
+                  <td className="px-3 py-4 text-slate-500">{order.productNames}</td>
+                  <td className="px-3 py-4 text-slate-500">{new Date(order.placedAt).toLocaleDateString()}</td>
+                  <td className="px-3 py-4 font-semibold text-slate-900">{money(order.total)}</td>
+                  <td className="px-3 py-4">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.4em] ${
+                        statusStyles[order.status]
+                      }`}
+                    >
+                      {order.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </SellerLayout>
   );
 }
