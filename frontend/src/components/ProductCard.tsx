@@ -23,6 +23,8 @@ export default function ProductCard({ product, onSelect }: Props) {
   const isClickable = Boolean(onSelect);
   const isAuthenticated = useStore((s) => s.isAuthenticated);
   const navigate = useNavigate();
+  const blockedCursor =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='18'%3E%F0%9F%9A%AB%3C/text%3E%3C/svg%3E\") 12 12, not-allowed";
   const hasDiscount =
     Boolean(product.discounted) &&
     typeof product.compareAtPrice === "number" &&
@@ -137,6 +139,7 @@ export default function ProductCard({ product, onSelect }: Props) {
           type="button"
           onClick={handleAddToCart}
           disabled={!product.inStock}
+          style={!product.inStock ? { cursor: blockedCursor } : undefined}
           className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0d4bc9] px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#0b3ba2] disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           <ShoppingCart className="h-5 w-5" aria-hidden />
