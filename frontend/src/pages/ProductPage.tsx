@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import { useStore } from "../store/useStore";
-import type { Category, Brand } from "../types";
+import type { Category, Brand, FilterState } from "../types";
 
 const iconButtonBase =
   "rounded-full border border-white/30 bg-white/10 p-2 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
@@ -91,12 +91,15 @@ export default function ProductPage() {
         <p className="mb-2 text-base font-semibold text-slate-700">Category</p>
         <div className="space-y-2 text-sm text-slate-800">
           {categories.map((category) => (
-            <label key={category} className="flex items-center gap-2">
+            <label
+              key={category}
+              className="flex items-center gap-2 cursor-pointer"
+            >
               <input
                 type="checkbox"
                 checked={filters.category.includes(category)}
                 onChange={() => setCategory(category)}
-                className="h-4 w-4 rounded border-slate-300"
+                className="h-4 w-4 cursor-pointer rounded border-slate-300"
               />
               <span className="capitalize">{category.toLowerCase()}</span>
             </label>
@@ -108,12 +111,12 @@ export default function ProductPage() {
         <p className="mb-2 text-base font-semibold text-slate-700">Brand</p>
         <div className="space-y-2 text-sm text-slate-800">
           {brandOptions.map((brand) => (
-            <label key={brand} className="flex items-center gap-2">
+            <label key={brand} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={filters.brand.includes(brand)}
                 onChange={() => setBrand(brand)}
-                className="h-4 w-4 rounded border-slate-300"
+                className="h-4 w-4 cursor-pointer rounded border-slate-300"
               />
               {brand}
             </label>
@@ -129,7 +132,7 @@ export default function ProductPage() {
           max={500}
           value={filters.maxPrice}
           onChange={(e) => setMaxPrice(Number(e.target.value))}
-          className="w-full accent-blue-500"
+          className="w-full accent-blue-500 cursor-pointer"
         />
         <div className="mt-3 flex justify-between text-xs font-semibold text-slate-500">
           <span>${filters.minPrice}</span>
@@ -151,11 +154,13 @@ export default function ProductPage() {
 
       <div>
         <p className="mb-2 text-base font-semibold text-slate-700">Sort By</p>
-        <select
-          value={filters.sortBy}
-          onChange={(e) => setSort(e.target.value as any)}
-          className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
-        >
+          <select
+            value={filters.sortBy}
+            onChange={(e) =>
+              setSort(e.target.value as FilterState["sortBy"])
+            }
+            className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
           <option value="popular">Most Popular</option>
           <option value="priceLow">Price: Low to High</option>
           <option value="priceHigh">Price: High to Low</option>
