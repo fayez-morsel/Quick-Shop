@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
 import Rating from "../components/Rating";
@@ -30,6 +31,35 @@ export default function ProductDetailsPage() {
   const [reviewedOrderIds, setReviewedOrderIds] = useState<string[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [reviewCooldowns, setReviewCooldowns] = useState<Record<string, number>>({});
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const productImages = product
+    ? product.images && product.images.length > 0
+      ? product.images
+      : product.image
+      ? [product.image]
+      : []
+    : [];
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [product?.id, productImages.length]);
+  const showCarouselControls = productImages.length > 1;
+  const goToPreviousImage = () => {
+    if (!productImages.length) return;
+    setActiveImageIndex((prev) =>
+      prev === 0 ? productImages.length - 1 : prev - 1
+    );
+  };
+  const goToNextImage = () => {
+    if (!productImages.length) return;
+    setActiveImageIndex((prev) => (prev + 1) % productImages.length);
+  };
+  useEffect(() => {
+    if (productImages.length <= 1) return;
+    const id = setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % productImages.length);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [productImages.length]);
 
   if (!product) {
     return (
@@ -38,8 +68,22 @@ export default function ProductDetailsPage() {
       </div>
     );
   }
+  const currentImage = productImages[activeImageIndex] ?? product.image;
+  const isOutOfStock = !product.inStock || (product.stock ?? 0) <= 0;
+  const maxQuantity = Math.max(product.stock ?? 0, 0);
+  const blockedCursor =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='18'%3E%F0%9F%9A%AB%3C/text%3E%3C/svg%3E\") 12 12, not-allowed";
 
-  const normalizedEmail = userEmail.trim().toLowerCase();
+  useEffect(() => {
+    // Reset quantity when product changes or goes out of stock
+    if (isOutOfStock) {
+      setQuantity(0);
+    } else {
+      setQuantity(1);
+    }
+  }, [product?.id, isOutOfStock]);
+
+  const normalizedEmail = (userEmail ?? "").trim().toLowerCase();
   const eligibleOrders =
     normalizedEmail.length > 0
       ? orders.filter(
@@ -54,6 +98,9 @@ export default function ProductDetailsPage() {
   );
 
   useEffect(() => {
+    if (!product) {
+      return;
+    }
     if (availableOrders.length === 0) {
       setSelectedOrderId(null);
       return;
@@ -64,7 +111,7 @@ export default function ProductDetailsPage() {
     ) {
       setSelectedOrderId(availableOrders[0].id);
     }
-  }, [availableOrders, selectedOrderId]);
+  }, [availableOrders, selectedOrderId, product]);
 
   const handleSubmitReview = () => {
     if (!reviewContent.trim()) {
@@ -111,11 +158,45 @@ export default function ProductDetailsPage() {
       <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10">
         <section className="grid gap-8 rounded-4xl bg-white p-6 shadow-xl md:grid-cols-[1fr_1fr]">
           <div className="h-[60vh] overflow-hidden rounded-3xl bg-slate-50">
-            <img
-              src={product.image}
-              alt={product.title}
-              className="h-full w-full object-cover"
-            />
+            <div className="relative h-full">
+              <img
+                src={currentImage}
+                alt={product.title}
+                className="h-full w-full object-cover transition duration-500"
+              />
+              {showCarouselControls && (
+                <>
+                  <button
+                    type="button"
+                    onClick={goToPreviousImage}
+                    aria-label="Previous image"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/70 p-2 text-slate-700 shadow-sm transition hover:bg-white"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goToNextImage}
+                    aria-label="Next image"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/70 p-2 text-slate-700 shadow-sm transition hover:bg-white"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                  <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+                    {productImages.map((_, index) => (
+                      <span
+                        key={`indicator-${index}`}
+                        className={`h-2 w-8 rounded-full transition ${
+                          index === activeImageIndex
+                            ? "bg-white"
+                            : "bg-white/40"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           <div className="flex flex-col gap-4">
             <div className="space-y-2">
@@ -137,6 +218,11 @@ export default function ProductDetailsPage() {
               {product.discounted && (
                 <p className="text-sm text-emerald-600">
                   Discounted Price Available
+                </p>
+              )}
+              {isOutOfStock && (
+                <p className="text-sm font-semibold text-rose-600">
+                  Currently out of stock
                 </p>
               )}
             </div>
@@ -165,16 +251,20 @@ export default function ProductDetailsPage() {
             <div className="flex items-center gap-4">
               <button
                 type="button"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="h-10 w-10 rounded-full border border-slate-300 text-xl font-semibold"
+                onClick={() => setQuantity((q) => Math.max(isOutOfStock ? 0 : 1, q - 1))}
+                disabled={isOutOfStock}
+                style={isOutOfStock ? { cursor: blockedCursor } : undefined}
+                className="h-10 w-10 rounded-full border border-slate-300 text-xl font-semibold disabled:cursor-not-allowed disabled:opacity-50"
               >
                 -
               </button>
               <span className="text-xl font-semibold">{quantity}</span>
               <button
                 type="button"
-                onClick={() => setQuantity((q) => q + 1)}
-                className="h-10 w-10 rounded-full border border-slate-300 text-xl font-semibold"
+                onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
+                disabled={isOutOfStock || quantity >= maxQuantity}
+                style={isOutOfStock ? { cursor: blockedCursor } : undefined}
+                className="h-10 w-10 rounded-full border border-slate-300 text-xl font-semibold disabled:cursor-not-allowed disabled:opacity-50"
               >
                 +
               </button>
@@ -183,12 +273,13 @@ export default function ProductDetailsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  addToCart(product.id);
-                  navigate("/product");
+                  addToCart(product.id, quantity || 1);
                 }}
-                className="rounded-full bg-[#0d4bc9] px-6 py-3 text-sm font-semibold text-white"
+                disabled={isOutOfStock}
+                style={isOutOfStock ? { cursor: blockedCursor } : undefined}
+                className="cursor-pointer rounded-full bg-[#0d4bc9] px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
               >
-                Add to cart
+                {isOutOfStock ? "Out of stock" : "Add to cart"}
               </button>
               <button
                 type="button"

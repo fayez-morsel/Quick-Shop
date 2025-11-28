@@ -8,6 +8,9 @@ import { addAccount, getAccountByEmailAndRole } from "../utils/auth";
 
 const emailPattern = /^\S+@\S+\.\S+$/;
 
+const normalizeStoreId = (value: string) =>
+  value.trim().toLowerCase().replace(/\s+/g, "-");
+
 export default function RegisterPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,8 +25,10 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirm: "",
+    storeId: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const setSellerStoreId = useStore((s) => s.setSellerStoreId);
 
   const handleChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -60,6 +65,10 @@ export default function RegisterPage() {
       validationErrors.email = `You already have a ${role} account with this email.`;
     }
 
+    if (role === "seller" && !form.storeId.trim()) {
+      validationErrors.storeId = "Store ID is required for sellers.";
+    }
+
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
       return;
@@ -67,14 +76,18 @@ export default function RegisterPage() {
 
     const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
     setErrors({});
+    const storeIdValue =
+      role === "seller" ? normalizeStoreId(form.storeId) : undefined;
     addAccount({
       name: fullName || trimmedEmail.split("@")[0],
       email: trimmedEmail,
       password,
       role,
+      storeId: storeIdValue,
     });
     setUserInfo({ name: fullName, email: trimmedEmail });
     login(role);
+    setSellerStoreId(role === "seller" ? storeIdValue : "");
     navigate(role === "seller" ? "/seller" : "/");
   };
 
@@ -142,6 +155,21 @@ export default function RegisterPage() {
                 {errors.email || "\u00A0"}
               </p>
             </div>
+            {role === "seller" && (
+              <div className="md:col-span-2">
+                <label className="text-sm font-semibold text-slate-600">Store ID</label>
+                <input
+                  value={form.storeId}
+                  onChange={(event) => handleChange("storeId", event.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  placeholder="tech-hub"
+                  aria-invalid={Boolean(errors.storeId)}
+                />
+                <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
+                  {errors.storeId || "\u00A0"}
+                </p>
+              </div>
+            )}
             <div className="md:col-span-2">
               <label className="text-sm font-semibold text-slate-600">
                 Password

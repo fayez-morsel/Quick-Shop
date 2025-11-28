@@ -1,34 +1,39 @@
+import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
+const getInitialTheme = () => {
+  if (typeof window === "undefined") return false;
+  const saved = window.localStorage.getItem("theme");
+  if (saved) return saved === "dark";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+};
+
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(
-    () => (document.documentElement.getAttribute("data-theme") ?? "light") === "dark"
-  );
+  const [isDark, setIsDark] = useState<boolean>(getInitialTheme);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-    localStorage.setItem("theme", dark ? "dark" : "light");
-  }, [dark]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved) {
-      document.documentElement.setAttribute("data-theme", saved);
-      setDark(saved === "dark");
-    }
-  }, []);
+    if (typeof document === "undefined") return;
+    document.documentElement.classList.toggle("dark", isDark);
+    window.localStorage.setItem("theme", isDark ? "dark" : "light");
+  }, [isDark]);
 
   return (
     <button
-      onClick={() => setDark((d) => !d)}
-      className={`px-3 py-1.5 rounded-md border text-sm transition-all duration-300
-        ${
-          dark
-            ? "bg-linear-to-r from-(--color-primary) to-indigo-600 text-white border-(--color-primary) hover:opacity-90"
-            : "bg-(--bg-card) text-(--text-main) border-(--border-color) hover:bg-(--color-primary)/10"
-        }`}
+      type="button"
+      onClick={() => setIsDark((prev) => !prev)}
+      className="hidden rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-white/60 sm:inline-flex sm:items-center sm:gap-1.5 md:text-sm"
     >
-      {dark ? "☀️ Light" : "🌙 Dark"}
+      {isDark ? (
+        <>
+          <Sun className="h-4 w-4" aria-hidden />
+          Light
+        </>
+      ) : (
+        <>
+          <Moon className="h-4 w-4" aria-hidden />
+          Dark
+        </>
+      )}
     </button>
   );
 }
