@@ -1,6 +1,7 @@
-import { Eye, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import SellerSidebar from "../components/SellerSidebar";
+import SellerLayout from "../components/SellerLayout";
+import { useScopedOrders } from "../hooks/useScopedOrders";
 import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
 import type { OrderStatus, Product } from "../types";
@@ -36,6 +37,16 @@ const statusFilterOptions: StatusCardKey[] = [
   "Canceled",
 ];
 
+const statusOptions: OrderStatus[] = [
+  "Pending",
+  "Processing",
+  "Dispatched",
+  "Shipped",
+  "Delivered",
+  "Delivery Unsuccessful",
+  "Canceled",
+];
+
 const formatOrderId = (id: string) => {
   const numeric = id.replace(/\D/g, "");
   if (!numeric) return `#ORD-${id.toUpperCase()}`;
@@ -43,17 +54,18 @@ const formatOrderId = (id: string) => {
 };
 
 export default function SellerOrdersPage() {
-  const orders = useStore((state) => state.orders);
   const products = useStore((state) => state.products);
+  const { scopedOrders: sellerOrders } = useScopedOrders();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusCardKey>("all");
+  const updateOrderStatus = useStore((state) => state.updateOrderStatus);
 
   const productLookup = useMemo<Record<string, Product>>(() => {
     return Object.fromEntries(products.map((product) => [product.id, product]));
   }, [products]);
 
   const orderRows = useMemo(() => {
-    return orders.map((order) => {
+    return sellerOrders.map((order) => {
       const productName =
         productLookup[order.items[0]?.productId ?? ""]?.title ?? "Product";
       const quantity = order.items.reduce((sum, item) => sum + item.qty, 0);
@@ -63,7 +75,7 @@ export default function SellerOrdersPage() {
         productName,
       };
     });
-  }, [orders, productLookup]);
+  }, [sellerOrders, productLookup]);
 
   const statusCounts = useMemo<Record<OrderStatus, number>>(() => {
     const initial: Record<OrderStatus, number> = {
@@ -75,11 +87,11 @@ export default function SellerOrdersPage() {
       "Delivery Unsuccessful": 0,
       Canceled: 0,
     };
-    orders.forEach((order) => {
+    sellerOrders.forEach((order) => {
       initial[order.status] = (initial[order.status] ?? 0) + 1;
     });
     return initial;
-  }, [orders]);
+  }, [sellerOrders]);
 
   const filteredOrders = orderRows.filter((order) => {
     const normalized = search.trim().toLowerCase();
@@ -95,10 +107,8 @@ export default function SellerOrdersPage() {
   });
 
   return (
-    <div className="flex min-h-screen bg-white text-slate-900">
-      <SellerSidebar activeLink="Orders" />
-      <main className="flex-1 px-6 py-8 pl-12 lg:pl-16 ml-72">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8">
+    <SellerLayout activeLink="Orders">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8">
           <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-3xl font-semibold text-slate-900">Orders</h1>
@@ -107,17 +117,14 @@ export default function SellerOrdersPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-3xl bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-[0_10px_20px_rgba(15,23,42,0.15)] transition hover:shadow-[0_25px_45px_rgba(15,23,42,0.2)]"
-              >
+              <div className="pointer-events-none inline-flex items-center gap-2 rounded-3xl bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-[0_10px_20px_rgba(15,23,42,0.15)]">
                 <Search className="h-4 w-4 text-slate-400" />
                 Search orders...
-              </button>
+              </div>
             </div>
           </header>
 
-          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(220px,1fr))] lg:grid-cols-5">
             {statusOverview.map((card) => (
               <article
                 key={card.label}
@@ -126,14 +133,14 @@ export default function SellerOrdersPage() {
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{card.label}</p>
                 <p className="mt-4 text-3xl font-semibold text-slate-900">
                   {card.key === "all"
-                    ? orders.length
+                    ? sellerOrders.length
                     : statusCounts[card.key] ?? 0}
                 </p>
               </article>
             ))}
           </section>
 
-          <section className="rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+          <section className="rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
             <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">
@@ -169,7 +176,7 @@ export default function SellerOrdersPage() {
                 </select>
               </div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="seller-orders-table overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="text-xs uppercase tracking-[0.3em] text-slate-500">
@@ -180,7 +187,6 @@ export default function SellerOrdersPage() {
                     <th className="px-3 py-3">Date</th>
                     <th className="px-3 py-3">Amount</th>
                     <th className="px-3 py-3">Status</th>
-                    <th className="px-3 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-slate-700">
@@ -211,29 +217,81 @@ export default function SellerOrdersPage() {
                         {money(order.total)}
                       </td>
                       <td className="px-3 py-4">
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.4em] ${statusBadgeStyles[order.status]}`}
+                        <select
+                          value={order.status}
+                          onChange={(event) =>
+                            updateOrderStatus(order.id, event.target.value as OrderStatus)
+                          }
+                          className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         >
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-3 py-4">
-                        <button
-                          type="button"
-                          aria-label="View order"
-                          className="rounded-full border border-slate-200 p-2 text-slate-600 transition hover:border-slate-300"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
+                          {statusOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            <div className="seller-orders-cards mt-6 grid gap-4">
+              {filteredOrders.map((order) => (
+                <article
+                  key={order.id}
+                  className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-mono text-xs font-semibold text-slate-600">
+                      {formatOrderId(order.id)}
+                    </p>
+                    <span
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.4em] ${statusBadgeStyles[order.status]}`}
+                    >
+                      {order.status}
+                    </span>
+                  </div>
+                  <div className="mt-3 space-y-1 text-sm text-slate-700">
+                    <p>
+                      <span className="font-semibold text-slate-900">
+                        Customer:
+                      </span>{" "}
+                      {order.buyerName}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-slate-900">
+                        Store:
+                      </span>{" "}
+                      {order.storeId}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-slate-900">
+                        Items:
+                      </span>{" "}
+                      {order.productName}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-slate-900">
+                        Quantity:
+                      </span>{" "}
+                      {order.quantity}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-slate-900">
+                        Amount:
+                      </span>{" "}
+                      {money(order.total)}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Placed on {new Date(order.placedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
           </section>
-        </div>
-      </main>
-    </div>
+      </div>
+    </SellerLayout>
   );
 }
