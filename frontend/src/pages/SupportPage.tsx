@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
 import { useStore } from "../store/useStore";
 
@@ -13,7 +12,6 @@ const issueTypes = [
 ];
 
 export default function SupportPage() {
-  const navigate = useNavigate();
   const userName = useStore((s) => s.userName);
   const userEmail = useStore((s) => s.userEmail);
   const setUserInfo = useStore((s) => s.setUserInfo);
@@ -27,16 +25,68 @@ export default function SupportPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [cooldownError, setCooldownError] = useState("");
   const [lastSubmittedAt, setLastSubmittedAt] = useState(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
 
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  const cooldownMs = 5 * 60_000;
+  const formatCooldown = (remaining: number) => {
+    const seconds = Math.ceil(remaining / 1000);
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins) {
+      return `${mins}m ${secs}s`;
+    }
+    return `${secs}s`;
+  };
+
+  const cooldownActive = cooldownRemaining > 0;
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+    const stored = Number(localStorage.getItem("supportLastSubmittedAt") ?? 0);
+    if (stored) {
+      setLastSubmittedAt(stored);
+    }
+    return undefined;
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (lastSubmittedAt) {
+      localStorage.setItem("supportLastSubmittedAt", String(lastSubmittedAt));
+    }
+  }, [lastSubmittedAt]);
+
+  useEffect(() => {
+    if (!lastSubmittedAt) {
+      setCooldownRemaining(0);
+      return;
+    }
+
+    const update = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, cooldownMs - (now - lastSubmittedAt));
+      setCooldownRemaining(remaining);
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [lastSubmittedAt]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const name = formData.name.trim();
     const email = formData.email.trim();
     const description = formData.description.trim();
+    const now = Date.now();
     const validationErrors: Record<string, string> = {};
 
     if (!name) {
@@ -51,11 +101,11 @@ export default function SupportPage() {
       validationErrors.description = "Tell us a bit more about the issue.";
     }
 
-    const now = Date.now();
-    const cooldownMs = 5 * 60_000;
-    if (now - lastSubmittedAt < cooldownMs) {
+    if (cooldownActive) {
       setCooldownError(
-        "You can submit one ticket every five minutes. Please wait before submitting again."
+        `You can submit one ticket every five minutes. Please wait ${formatCooldown(
+          cooldownRemaining
+        )} before submitting again.`
       );
       return;
     }
@@ -74,9 +124,6 @@ export default function SupportPage() {
     }
     setSubmitted(true);
     setLastSubmittedAt(now);
-    setTimeout(() => {
-      navigate("/");
-    }, 1400);
   };
 
   return (
@@ -174,10 +221,16 @@ export default function SupportPage() {
 
             <button
               type="submit"
-              className="w-full rounded-full bg-[#0d4bc9] px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#0b3ba2]"
+              disabled={cooldownActive}
+              className="w-full rounded-full bg-[#0d4bc9] px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#0b3ba2] disabled:cursor-not-allowed disabled:bg-[#0b3ba2] disabled:opacity-60"
             >
               Submit ticket
             </button>
+            {cooldownActive && (
+              <p className="mt-3 text-xs font-semibold text-slate-500">
+                Next submission available in {formatCooldown(cooldownRemaining)}.
+              </p>
+            )}
             {cooldownError && (
               <p className="mt-3 text-xs font-semibold text-rose-500">{cooldownError}</p>
             )}
