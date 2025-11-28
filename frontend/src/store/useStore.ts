@@ -12,6 +12,8 @@ const initialName =
   typeof window !== "undefined" ? localStorage.getItem("userName") ?? "" : "";
 const initialEmail =
   typeof window !== "undefined" ? localStorage.getItem("userEmail") ?? "" : "";
+const initialStoreId =
+  typeof window !== "undefined" ? localStorage.getItem("userStoreId") ?? "" : "";
 import type {
   Product,
   CartItem,
@@ -36,6 +38,7 @@ type State = {
   userRole: UserRole;
   userName: string;
   userEmail: string;
+  userStoreId: string;
   confirmedOrderIds: string[];
   orders: Order[];
 };
@@ -52,7 +55,7 @@ type Actions = {
   toggleFavorite: (id: string) => void;
 
   // cart
-  addToCart: (id: string) => void;
+  addToCart: (id: string, qty?: number) => void;
   removeFromCart: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   clearCart: () => void;
@@ -73,10 +76,12 @@ type Actions = {
     buyerEmail: string
   ) => string | null;
   markOrderConfirmed: (orderId: string) => void;
+  setSellerStoreId: (storeId?: string) => void;
 };
-export const useStore = create<State & Actions>((set, _get) => ({
+export const useStore = create<State & Actions>((set) => ({
   // --- initial data ---
-  products: [
+  products: (() => {
+    const seed: Product[] = [
     {
       id: "p1",
       title: "Headphones",
@@ -301,53 +306,82 @@ export const useStore = create<State & Actions>((set, _get) => ({
       inStock: true,
       rating: { value: 4.5, count: 184 },
     },
-  ],
+  ];
 
+  return seed.map((product) => ({
+    ...product,
+    images: product.images ?? [product.image],
+  }));
+})(),
   orders: [
     {
       id: "o1",
-      buyerName: "Maya Benson",
-      buyerEmail: "maya.b@example.com",
+      buyerName: "John Smith",
+      buyerEmail: "john.smith@example.com",
       storeId: "tech-hub",
-      items: [
-        { productId: "p1", qty: 1 },
-        { productId: "p12", qty: 2 },
-      ],
-      total: 358,
-      status: "Pending",
-      placedAt: "2025-10-25T10:12:00.000Z",
-      expectedDelivery: "2025-11-01T00:00:00.000Z",
+      items: [{ productId: "p1", qty: 1 }],
+      total: 129.99,
+      status: "Delivered",
+      placedAt: "2025-11-15T09:20:00.000Z",
+      expectedDelivery: "2025-11-20T00:00:00.000Z",
     },
     {
       id: "o2",
-      buyerName: "Ravi Patel",
-      buyerEmail: "ravi.p@example.com",
-      storeId: "soundwave",
-      items: [
-        { productId: "p6", qty: 1 },
-        { productId: "p7", qty: 1 },
-      ],
-      total: 168,
-      status: "Dispatched",
-      placedAt: "2025-10-22T17:40:00.000Z",
-      expectedDelivery: "2025-10-29T00:00:00.000Z",
+      buyerName: "Sarah Johnson",
+      buyerEmail: "sarah.johnson@example.com",
+      storeId: "tech-hub",
+      items: [{ productId: "p2", qty: 1 }],
+      total: 299.99,
+      status: "Pending",
+      placedAt: "2025-11-16T11:45:00.000Z",
+      expectedDelivery: "2025-11-22T00:00:00.000Z",
     },
     {
       id: "o3",
-      buyerName: "Lina Harper",
-      buyerEmail: "lina.harper@example.net",
+      buyerName: "Mike Wilson",
+      buyerEmail: "mike.wilson@example.com",
+      storeId: "keyzone",
+      items: [{ productId: "p3", qty: 2 }],
+      total: 178,
+      status: "Shipped",
+      placedAt: "2025-11-17T14:10:00.000Z",
+      expectedDelivery: "2025-11-24T00:00:00.000Z",
+    },
+    {
+      id: "o4",
+      buyerName: "Emily Davis",
+      buyerEmail: "emily.davis@example.com",
+      storeId: "soundwave",
+      items: [{ productId: "p4", qty: 1 }],
+      total: 59,
+      status: "Processing",
+      placedAt: "2025-11-17T16:00:00.000Z",
+      expectedDelivery: "2025-11-24T00:00:00.000Z",
+    },
+    {
+      id: "o5",
+      buyerName: "Chris Brown",
+      buyerEmail: "chris.brown@example.com",
       storeId: "datahub",
-      items: [
-        { productId: "p8", qty: 1 },
-        { productId: "p15", qty: 1 },
-      ],
-      total: 188,
+      items: [{ productId: "p5", qty: 1 }],
+      total: 329,
       status: "Delivered",
-      placedAt: "2025-10-08T13:25:00.000Z",
-      expectedDelivery: "2025-10-14T00:00:00.000Z",
+      placedAt: "2025-11-18T08:35:00.000Z",
+      expectedDelivery: "2025-11-24T00:00:00.000Z",
+    },
+    {
+      id: "o6",
+      buyerName: "Ava Martinez",
+      buyerEmail: "ava.martinez@example.com",
+      storeId: "tech-hub",
+      items: [{ productId: "p6", qty: 1 }],
+      total: 69,
+      status: "Pending",
+      placedAt: "2025-11-19T10:20:00.000Z",
+      expectedDelivery: "2025-11-25T00:00:00.000Z",
     },
   ],
-  confirmedOrderIds: ["o1", "o2", "o3"],
+  confirmedOrderIds: ["o1", "o3", "o5"],
 
   filters: {
     query: "",
@@ -366,6 +400,7 @@ export const useStore = create<State & Actions>((set, _get) => ({
   userRole: initialRole,
   userName: initialName,
   userEmail: initialEmail,
+  userStoreId: initialStoreId,
 
   // Action
   //filters
@@ -405,7 +440,7 @@ export const useStore = create<State & Actions>((set, _get) => ({
     }), 
 
   clearFilters: () =>
-    set((_s) => ({
+    set(() => ({
       filters: {
         query: "",
         store: "all",
@@ -419,15 +454,17 @@ export const useStore = create<State & Actions>((set, _get) => ({
     })),
 
   // Cart
-  addToCart: (id) =>
+  addToCart: (id, qty) =>
     set((s) => {
+      const incrementRaw = Number.isFinite(qty) ? Math.floor(qty as number) : 1;
+      const increment = Math.max(1, incrementRaw);
       const exists = s.cart.find((c) => c.productId === id);
       return {
         cart: exists
           ? s.cart.map((c) =>
-              c.productId === id ? { ...c, qty: c.qty + 1 } : c
+              c.productId === id ? { ...c, qty: c.qty + increment } : c
             )
-          : [...s.cart, { productId: id, qty: 1 }],
+          : [...s.cart, { productId: id, qty: increment }],
       };
     }),
   removeFromCart: (id) =>
@@ -447,16 +484,24 @@ export const useStore = create<State & Actions>((set, _get) => ({
     })),
   toggleCart: () => set((s) => ({ ui: { cartOpen: !s.ui.cartOpen } })),
   addProduct: (product) =>
-    set((s) => ({
-      products: [
-        ...s.products,
-        {
-          ...product,
-          inStock: product.stock > 0,
-          discounted: Boolean(product.discounted),
-        },
-      ],
-    })),
+    set((s) => {
+      const normalizedImages = (
+        product.images && product.images.length ? product.images : [product.image]
+      ).filter(Boolean);
+      const primaryImage = normalizedImages[0] ?? product.image;
+      return {
+        products: [
+          ...s.products,
+          {
+            ...product,
+            images: normalizedImages.length ? normalizedImages : primaryImage ? [primaryImage] : [],
+            image: primaryImage ?? "",
+            inStock: product.stock > 0,
+            discounted: Boolean(product.discounted),
+          },
+        ],
+      };
+    }),
   removeProduct: (id) =>
     set((s) => ({
       products: s.products.filter((product) => product.id !== id),
@@ -465,11 +510,25 @@ export const useStore = create<State & Actions>((set, _get) => ({
     set((s) => ({
       products: s.products.map((product) => {
         if (product.id !== id) return product;
-        const { stock, inStock: explicitInStock, ...rest } = updates;
+        const { stock, inStock: explicitInStock, images, ...rest } = updates;
         const nextStock = typeof stock === "number" ? stock : product.stock;
+        const normalizedImages = (
+          images && images.length
+            ? images
+            : product.images?.length
+            ? product.images
+            : product.image
+            ? [product.image]
+            : []
+        ).filter(Boolean);
+        const primaryImage = normalizedImages[0] ?? product.image ?? "";
         return {
           ...product,
           ...rest,
+          images: normalizedImages.length
+            ? normalizedImages
+            : product.images ?? (primaryImage ? [primaryImage] : []),
+          image: primaryImage,
           stock: nextStock,
           inStock:
             explicitInStock ??
@@ -498,8 +557,15 @@ export const useStore = create<State & Actions>((set, _get) => ({
         localStorage.setItem("userRole", "buyer");
         localStorage.removeItem("userName");
         localStorage.removeItem("userEmail");
+        localStorage.removeItem("userStoreId");
       }
-      return { isAuthenticated: false, userRole: "buyer", userName: "", userEmail: "" };
+      return {
+        isAuthenticated: false,
+        userRole: "buyer",
+        userName: "",
+        userEmail: "",
+        userStoreId: "",
+      };
     }),
   setRole: (role) =>
     set(() => {
@@ -562,6 +628,12 @@ export const useStore = create<State & Actions>((set, _get) => ({
         ? s.confirmedOrderIds
         : [...s.confirmedOrderIds, orderId],
     })),
+  setSellerStoreId: (storeId = "") => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("userStoreId", storeId);
+    }
+    set({ userStoreId: storeId });
+  },
 }));
 
 export const useFilters = () => useStore((s) => s.filters);
