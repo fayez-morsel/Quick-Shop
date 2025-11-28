@@ -1,13 +1,15 @@
-﻿import {
-  Bell,
-  ChartLine,
-  LayoutDashboard,
-  Package,
-  Search,
-  ShoppingBag,
-  Users,
-} from "lucide-react";
+import { ChartLine, Package, Search, ShoppingBag, Users } from "lucide-react";
 import { useMemo, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import SellerLayout from "../components/SellerLayout";
 import { useScopedOrders } from "../hooks/useScopedOrders";
 import { useStore } from "../store/useStore";
@@ -24,7 +26,11 @@ const statusStyles: Record<OrderStatus, string> = {
   Canceled: "bg-rose-100 text-rose-600",
 };
 
-const gridLines = [0.25, 0.5, 0.75];
+const fallbackMonthlySales = [
+  18200, 19540, 21120, 19880, 22310, 23760, 25100, 24090, 22840, 21260, 19510, 18970,
+];
+
+const fallbackLineTrend = [10, 12, 14, 13, 15, 17, 19, 18, 17, 16, 14, 13];
 
 const fallbackProducts: Product[] = [
   {
@@ -70,6 +76,29 @@ const fallbackProducts: Product[] = [
     stock: 20,
     inStock: true,
     image: "/assets/products/mouse.png",
+  },
+];
+
+const bestSellerFallbacks = [
+  {
+    product: fallbackProducts[0],
+    sales: 182,
+    revenue: 36400,
+  },
+  {
+    product: fallbackProducts[1],
+    sales: 127,
+    revenue: 30480,
+  },
+  {
+    product: fallbackProducts[2],
+    sales: 98,
+    revenue: 9702,
+  },
+  {
+    product: fallbackProducts[3],
+    sales: 75,
+    revenue: 4875,
   },
 ];
 
@@ -136,15 +165,21 @@ export default function SellerDashboard() {
   const effectiveProducts = products.length ? products : fallbackProducts;
   const effectiveOrders = scopedOrders.length ? scopedOrders : fallbackOrders;
 
-  const enhancedOrders = useMemo(() => {
-    const lookup = Object.fromEntries(effectiveProducts.map((product) => [product.id, product]));
-    return effectiveOrders.map((order) => ({
-      ...order,
-      productNames: order.items
-        .map((item) => lookup[item.productId]?.title ?? item.productId)
-        .join(", "),
-    }));
-  }, [effectiveOrders, effectiveProducts]);
+  const productLookup = useMemo(
+    () => Object.fromEntries(effectiveProducts.map((product) => [product.id, product])),
+    [effectiveProducts]
+  );
+
+  const enhancedOrders = useMemo(
+    () =>
+      effectiveOrders.map((order) => ({
+        ...order,
+        productNames: order.items
+          .map((item) => productLookup[item.productId]?.title ?? item.productId)
+          .join(", "),
+      })),
+    [effectiveOrders, productLookup]
+  );
 
   const dashboardData = useMemo(() => {
     const map = new Map<string, { product: Product; revenue: number; sales: number }>();
@@ -166,34 +201,48 @@ export default function SellerDashboard() {
       });
     });
 
-    const monthlySales = chartPeriods.map(({ label, monthIndex, year }) => {
-      const monthlyTotal = scopedOrders.reduce((sum, order) => {
+    const monthlyPerformance = chartPeriods.map(({ label, monthIndex, year }, index) => {
+      const monthlyTotal = effectiveOrders.reduce((sum, order) => {
         const orderDate = new Date(order.placedAt);
         return orderDate.getFullYear() === year && orderDate.getMonth() === monthIndex
           ? sum + order.total
           : sum;
       }, 0);
-      return { month: label, value: monthlyTotal };
+      const monthlyOrders = effectiveOrders.reduce((count, order) => {
+        const orderDate = new Date(order.placedAt);
+        return orderDate.getFullYear() === year && orderDate.getMonth() === monthIndex
+          ? count + 1
+          : count;
+      }, 0);
+      const fallbackValue = fallbackMonthlySales[index % fallbackMonthlySales.length];
+      const fallbackTrend = fallbackLineTrend[index % fallbackLineTrend.length];
+      return {
+        month: label,
+        bar: Math.max(monthlyTotal, fallbackValue),
+        line: Math.max(monthlyOrders, fallbackTrend),
+      };
     });
+
+    const sortedTopProducts = Array.from(map.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 4);
+    const hasRevenue = sortedTopProducts.some((entry) => entry.revenue > 0);
 
     return {
       totalRevenue,
-      totalOrders: scopedOrders.length,
+      totalOrders: effectiveOrders.length,
       uniqueCustomers: customerEmails.size,
-      topProducts: Array.from(map.values())
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 4),
-      monthlySales,
+      topProducts: hasRevenue ? sortedTopProducts : bestSellerFallbacks,
+      monthlyPerformance,
     };
-  }, [scopedOrders, products]);
+  }, [effectiveOrders, effectiveProducts]);
 
-  const { totalRevenue, totalOrders, uniqueCustomers, topProducts, monthlySales } =
-    dashboardData;
+  const { totalRevenue, totalOrders, uniqueCustomers, topProducts, monthlyPerformance } = dashboardData;
   const totalProducts = effectiveProducts.length;
 
   const customerProfiles = useMemo(() => {
     const map = new Map<string, { name: string; email: string; orders: number; lifetimeValue: number }>();
-    scopedOrders.forEach((order) => {
+    effectiveOrders.forEach((order) => {
       const key = order.buyerEmail.toLowerCase();
       const current =
         map.get(key) ?? {
@@ -207,7 +256,7 @@ export default function SellerDashboard() {
       map.set(key, current);
     });
     return Array.from(map.values());
-  }, [scopedOrders]);
+  }, [effectiveOrders]);
 
   const searchResults = useMemo(() => {
     if (!normalizedQuery) {
@@ -242,17 +291,6 @@ export default function SellerDashboard() {
     searchResults.orders.length +
     searchResults.customers.length;
   const recentOrders = enhancedOrders.slice(0, 6);
-  const chartWidth = 360;
-  const chartHeight = 180;
-  const chartMax = Math.max(...monthlySales.map((item) => item.value), 1);
-  const polylinePoints = monthlySales
-    .map((point, index) => {
-      const step = monthlySales.length === 1 ? 0 : index / (monthlySales.length - 1);
-      const x = chartWidth * step;
-      const y = chartHeight - (point.value / chartMax) * chartHeight;
-      return `${x},${y}`;
-    })
-    .join(" ");
   const referenceRevenue = Math.max(topProducts[0]?.revenue ?? 1, 1);
 
   const formatNumber = (value: number) =>
@@ -293,11 +331,8 @@ export default function SellerDashboard() {
 
   return (
     <SellerLayout activeLink="Dashboard">
-      <header className="flex items-center gap-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-          <LayoutDashboard className="h-6 w-6 text-slate-500" />
-        </div>
-        <div className="flex flex-1 items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm">
+      <header>
+        <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm">
           <Search className="h-5 w-5 text-slate-400" />
           <input
             className="ml-3 flex-1 border-none bg-transparent text-sm text-slate-600 focus:outline-none"
@@ -305,17 +340,6 @@ export default function SellerDashboard() {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
           />
-        </div>
-        <div className="ml-auto flex items-center gap-3">
-          <button
-            type="button"
-            className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-          >
-            <Bell className="h-5 w-5 text-slate-500" />
-          </button>
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0f57ad] text-sm font-semibold text-white">
-            JS
-          </div>
         </div>
       </header>
 
@@ -327,7 +351,7 @@ export default function SellerDashboard() {
       </section>
 
       {showSearchResults && (
-        <section className="mt-6 rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+        <section className="mt-6 rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">
@@ -437,7 +461,7 @@ export default function SellerDashboard() {
       </section>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
-        <article className="rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+        <article className="rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">Sales overview</p>
@@ -449,47 +473,80 @@ export default function SellerDashboard() {
           </div>
           <div className="mt-6">
             <div className="overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f9ff] p-4">
-              <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-52 w-full" role="img">
-                {gridLines.map((line) => {
-                  const y = chartHeight - chartHeight * line;
-                  return <line key={line} x1={0} x2={chartWidth} y1={y} y2={y} className="stroke-slate-200" />;
-                })}
-                <polyline
-                  points={polylinePoints}
-                  fill="none"
-                  stroke="#2563eb"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                {monthlySales.map((point, index) => {
-                  const step = monthlySales.length === 1 ? 0 : index / (monthlySales.length - 1);
-                  const x = chartWidth * step;
-                  const y = chartHeight - (point.value / chartMax) * chartHeight;
-                  return (
-                    <circle
-                      key={point.month}
-                      cx={x}
-                      cy={y}
-                      r={4}
-                      className="fill-white stroke-[#2563eb]"
-                      strokeWidth={2}
-                    />
-                  );
-                })}
-              </svg>
-            </div>
-            <div className="mt-5 grid grid-cols-12 gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-              {monthlySales.map((point) => (
-                <span key={point.month} className="col-span-1 text-center">
-                  {point.month}
-                </span>
-              ))}
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart
+                  data={monthlyPerformance}
+                  margin={{ top: 10, right: 12, left: 4, bottom: 0 }}
+                  barCategoryGap={18}
+                >
+                  <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#4fa3f5" />
+                      <stop offset="100%" stopColor="#1b75d0" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    axisLine={false}
+                    tickLine={false}
+                    tickMargin={10}
+                    tick={{ fill: "#475569", fontSize: 12, fontWeight: 600 }}
+                  />
+                  <YAxis
+                    yAxisId="left"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#475569", fontSize: 12, fontWeight: 600 }}
+                    tickFormatter={(value: number) =>
+                      value >= 1000 ? `${Math.round(value / 1000)}k` : `${value}`
+                    }
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#475569", fontSize: 12, fontWeight: 600 }}
+                    tickFormatter={(value: number) => `${value}`}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "rgba(79, 163, 245, 0.08)" }}
+                    contentStyle={{
+                      borderRadius: 12,
+                      border: "1px solid #e2e8f0",
+                      boxShadow: "0 18px 35px rgba(15,23,42,0.12)",
+                      padding: "10px 12px",
+                    }}
+                    formatter={(value: number, name: string) => [
+                      value.toLocaleString("en-US"),
+                      name === "bar" ? "Revenue" : "Orders",
+                    ]}
+                  />
+                  <Bar
+                    yAxisId="left"
+                    dataKey="bar"
+                    radius={[12, 12, 8, 8]}
+                    fill="url(#barGradient)"
+                    maxBarSize={32}
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="line"
+                    stroke="#0f172a"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    dot={{ r: 4, strokeWidth: 2, stroke: "#f7f9ff", fill: "#0f172a" }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </article>
 
-        <article className="rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+        <article className="rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">Top products</p>
@@ -510,7 +567,7 @@ export default function SellerDashboard() {
                   </div>
                   <div className="mt-2 h-2 rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-sky-400"
+                      className="h-full rounded-full bg-linear-to-r from-blue-600 to-sky-400"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -521,14 +578,42 @@ export default function SellerDashboard() {
         </article>
       </section>
 
-      <section className="mt-6 rounded-[32px] bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
+      <section className="mt-6 rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">Recent orders</p>
             <h2 className="text-2xl font-semibold text-slate-900">Customer orders</h2>
           </div>
         </div>
-        <div className="mt-6 overflow-x-auto">
+        <div className="mt-6 space-y-3 recent-orders-mobile">
+          {recentOrders.length === 0 && (
+            <p className="text-sm text-slate-400">No orders yet</p>
+          )}
+          {recentOrders.map((order) => (
+            <div
+              key={order.id}
+              className="cursor-pointer rounded-2xl border border-slate-100 p-4 shadow-sm transition hover:border-slate-200"
+            >
+              <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-slate-500">
+                <span>#{order.id.toUpperCase()}</span>
+                <span>{new Date(order.placedAt).toLocaleDateString()}</span>
+              </div>
+              <div className="mt-2 text-sm font-semibold text-slate-900">{order.buyerName}</div>
+              <p className="text-sm text-slate-500">{order.productNames}</p>
+              <div className="mt-2 flex items-center justify-between text-sm">
+                <span className="text-slate-900 font-semibold">{money(order.total)}</span>
+                <span
+                  className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] ${
+                    statusStyles[order.status]
+                  }`}
+                >
+                  {order.status}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 overflow-x-auto recent-orders-desktop">
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="text-xs uppercase tracking-[0.3em] text-slate-500">
@@ -543,11 +628,13 @@ export default function SellerDashboard() {
             <tbody className="text-slate-700">
               {recentOrders.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-sm text-slate-400">No orders yet</td>
+                  <td colSpan={6} className="py-6 text-center text-sm text-slate-400">
+                    No orders yet
+                  </td>
                 </tr>
               )}
               {recentOrders.map((order) => (
-                <tr key={order.id} className="border-t border-slate-100">
+                <tr key={order.id} className="border-t border-slate-100 cursor-pointer">
                   <td className="px-3 py-4 font-semibold text-slate-900">#{order.id.toUpperCase()}</td>
                   <td className="px-3 py-4">{order.buyerName}</td>
                   <td className="px-3 py-4 text-slate-500">{order.productNames}</td>
