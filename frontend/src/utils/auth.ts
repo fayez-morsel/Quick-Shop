@@ -9,6 +9,7 @@ export type StoredAccount = {
   email: string;
   password: string;
   role: UserRole;
+  storeId?: string;
 };
 
 const isValidRole = (value: string): value is UserRole =>
@@ -26,7 +27,8 @@ const safeParseAccounts = (value: string) => {
           typeof item.password === "string" &&
           typeof item.role === "string" &&
           isValidRole(item.role) &&
-          typeof item.name === "string"
+          typeof item.name === "string" &&
+          (typeof item.storeId === "undefined" || typeof item.storeId === "string")
       );
     }
   } catch (error) {
