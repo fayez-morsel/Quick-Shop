@@ -10,6 +10,7 @@ export type Product = {
   discounted?: boolean;
   tagline?: string;
   image: string;
+  images?: string[];
   inStock: boolean;
   rating?: {
     value: number;
@@ -44,7 +45,9 @@ export type UIState = {
 
 export type OrderStatus =
   | "Pending"
+  | "Processing"
   | "Dispatched"
+  | "Shipped"
   | "Delivered"
   | "Delivery Unsuccessful"
   | "Canceled";
@@ -83,4 +86,5 @@ export type Brand =
   | "SoundWave"
   | "DataHub"
   | "ErgoWorks"
-  | "HomeLight";
+  | "HomeLight"
+  | "Demo Store";
