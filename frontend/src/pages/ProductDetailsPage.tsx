@@ -17,6 +17,7 @@ export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const product = useStore((s) => s.products.find((p) => p.id === id));
+  const productId = product?.id ?? "";
   const addToCart = useStore((s) => s.addToCart);
   const userName = useStore((s) => s.userName);
   const userEmail = useStore((s) => s.userEmail);
@@ -41,7 +42,7 @@ export default function ProductDetailsPage() {
     : [];
   useEffect(() => {
     setActiveImageIndex(0);
-  }, [product?.id, productImages.length]);
+  }, [productId, productImages.length]);
   const showCarouselControls = productImages.length > 1;
   const goToPreviousImage = () => {
     if (!productImages.length) return;
@@ -57,20 +58,13 @@ export default function ProductDetailsPage() {
     if (productImages.length <= 1) return;
     const id = setInterval(() => {
       setActiveImageIndex((prev) => (prev + 1) % productImages.length);
-    }, 1000);
+    }, 3000);
     return () => clearInterval(id);
   }, [productImages.length]);
 
-  if (!product) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#eaf4ff] text-slate-900">
-        <p className="text-xl font-semibold">Product not found.</p>
-      </div>
-    );
-  }
-  const currentImage = productImages[activeImageIndex] ?? product.image;
-  const isOutOfStock = !product.inStock || (product.stock ?? 0) <= 0;
-  const maxQuantity = Math.max(product.stock ?? 0, 0);
+  const currentImage = productImages[activeImageIndex] ?? product?.image ?? "";
+  const isOutOfStock = !product?.inStock || (product?.stock ?? 0) <= 0;
+  const maxQuantity = Math.max(product?.stock ?? 0, 0);
   const blockedCursor =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='18'%3E%F0%9F%9A%AB%3C/text%3E%3C/svg%3E\") 12 12, not-allowed";
 
@@ -81,7 +75,7 @@ export default function ProductDetailsPage() {
     } else {
       setQuantity(1);
     }
-  }, [product?.id, isOutOfStock]);
+  }, [productId, isOutOfStock]);
 
   const normalizedEmail = (userEmail ?? "").trim().toLowerCase();
   const eligibleOrders =
@@ -90,15 +84,23 @@ export default function ProductDetailsPage() {
           (order) =>
             confirmedOrderIds.includes(order.id) &&
             order.buyerEmail.toLowerCase() === normalizedEmail &&
-            order.items.some((item) => item.productId === product.id)
+            order.items.some((item) => item.productId === productId)
         )
       : [];
   const availableOrders = eligibleOrders.filter(
     (order) => !reviewedOrderIds.includes(order.id)
   );
+  const reviewFormLocked = availableOrders.length === 0;
+  const reviewLockMessage =
+    eligibleOrders.length > 0
+      ? "You already reviewed every eligible order that included this product."
+      : userEmail
+      ? "Purchase this product before leaving a review."
+      : "Sign in to review products you've bought.";
 
   useEffect(() => {
-    if (!product) {
+    if (!productId) {
+      setSelectedOrderId(null);
       return;
     }
     if (availableOrders.length === 0) {
@@ -109,11 +111,29 @@ export default function ProductDetailsPage() {
       !selectedOrderId ||
       !availableOrders.some((order) => order.id === selectedOrderId)
     ) {
-      setSelectedOrderId(availableOrders[0].id);
+      setSelectedOrderId(availableOrders[0]?.id ?? null);
     }
-  }, [availableOrders, selectedOrderId, product]);
+  }, [availableOrders, selectedOrderId, productId]);
+
+  useEffect(() => {
+    if (!reviewFormLocked) {
+      setReviewError("");
+    }
+  }, [reviewFormLocked]);
+
+  if (!product) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#eaf4ff] text-slate-900">
+        <p className="text-xl font-semibold">Product not found.</p>
+      </div>
+    );
+  }
 
   const handleSubmitReview = () => {
+    if (reviewFormLocked) {
+      setReviewError(reviewLockMessage);
+      return;
+    }
     if (!reviewContent.trim()) {
       setReviewError("Please share your experience before submitting.");
       return;
@@ -301,74 +321,82 @@ export default function ProductDetailsPage() {
             Signed in as {userName || "guest"} ({userEmail || "private"})
           </p>
           <div className="mt-4 space-y-3 rounded-3xl bg-[#f0f5ff] p-4">
-            {availableOrders.length > 0 ? (
-              <div>
-                <label className="block text-xs font-semibold text-slate-600">
-                  Order
-                </label>
-                <select
-                  value={selectedOrderId ?? ""}
-                  onChange={(event) =>
-                    setSelectedOrderId(
-                      event.target.value ? event.target.value : null
-                    )
-                  }
-                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-                >
-                  {availableOrders.map((order) => (
-                    <option key={order.id} value={order.id}>
-                      {order.id} • {new Date(order.placedAt).toLocaleDateString()}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-slate-500">
-                  One review per completed order is allowed for this product.
+            {reviewFormLocked ? (
+              <div className="space-y-3 rounded-2xl border border-dashed border-slate-300 bg-white p-4">
+                <p className="text-sm font-semibold text-slate-900">
+                  Reviews unlock after checkout.
                 </p>
+                <p className="text-xs text-slate-600">{reviewLockMessage}</p>
+                <button
+                  type="button"
+                  onClick={handleSubmitReview}
+                  className="inline-flex items-center justify-center rounded-full bg-slate-800 px-5 py-2 text-xs font-semibold text-white"
+                >
+                  Submit review
+                </button>
               </div>
             ) : (
-              <p className="text-xs font-semibold text-rose-500">
-                {eligibleOrders.length > 0
-                  ? "You already reviewed every eligible order that included this product."
-                  : userEmail
-                  ? "Purchase this product before leaving a review."
-                  : "Sign in to review products you've bought."}
-              </p>
+              <>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600">
+                    Order
+                  </label>
+                  <select
+                    value={selectedOrderId ?? ""}
+                    onChange={(event) =>
+                      setSelectedOrderId(
+                        event.target.value ? event.target.value : null
+                      )
+                    }
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                  >
+                    {availableOrders.map((order) => (
+                      <option key={order.id} value={order.id}>
+                        {order.id} - {new Date(order.placedAt).toLocaleDateString()}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-slate-500">
+                    One review per completed order is allowed for this product.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600">
+                    Rating
+                  </label>
+                  <select
+                    value={reviewRating}
+                    onChange={(e) => setReviewRating(Number(e.target.value))}
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                  >
+                    {[5, 4, 3, 2, 1].map((rating) => (
+                      <option key={rating} value={rating}>
+                        {rating} stars
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600">
+                    Your review
+                  </label>
+                  <textarea
+                    value={reviewContent}
+                    onChange={(e) => setReviewContent(e.target.value)}
+                    className="mt-1 h-24 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                    placeholder="Share your thoughts..."
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSubmitReview}
+                  disabled={!selectedOrderId}
+                  className="inline-flex items-center justify-center rounded-full bg-[#0d4bc9] px-6 py-2 text-sm font-semibold text-white disabled:bg-slate-300"
+                >
+                  Submit Review
+                </button>
+              </>
             )}
-            <div>
-              <label className="block text-xs font-semibold text-slate-600">
-                Rating
-              </label>
-              <select
-                value={reviewRating}
-                onChange={(e) => setReviewRating(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-              >
-                {[5, 4, 3, 2, 1].map((rating) => (
-                  <option key={rating} value={rating}>
-                    {rating} stars
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600">
-                Your review
-              </label>
-              <textarea
-                value={reviewContent}
-                onChange={(e) => setReviewContent(e.target.value)}
-                className="mt-1 h-24 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm"
-                placeholder="Share your thoughts..."
-              />
-            </div>
-            <button
-              type="button"
-              onClick={handleSubmitReview}
-              disabled={!selectedOrderId}
-              className="inline-flex items-center justify-center rounded-full bg-[#0d4bc9] px-6 py-2 text-sm font-semibold text-white disabled:bg-slate-300"
-            >
-              Submit Review
-            </button>
             {reviewError && (
               <p className="text-xs text-rose-500">{reviewError}</p>
             )}
@@ -396,3 +424,5 @@ export default function ProductDetailsPage() {
     </div>
   );
 }
+
+

@@ -105,7 +105,7 @@ export default function HomePage() {
   return (
     <div className="bg-[#dfeeff] pb-10">
       {/* Hero banner*/}
-      <section className="w-full bg-linear-to-r from-[#0d6ef6] via-[#0b4fd3] to-[#0b39a2] px-6 py-16 text-white shadow-lg">
+      <section className="w-full bg-linear-to-r from-[#1E88E5] to-[#0D47A1] px-6 py-16 text-white shadow-lg">
         <div className="mx-auto max-w-5xl">
           <h1
             className="mt-4 font-bold leading-snug"

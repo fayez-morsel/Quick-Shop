@@ -34,6 +34,7 @@ function AppContent() {
   const userName = useStore((s) => s.userName);
   const userEmail = useStore((s) => s.userEmail);
   const markOrderConfirmed = useStore((s) => s.markOrderConfirmed);
+  const clearCart = useStore((s) => s.clearCart);
 
   const handleCheckoutComplete = (orderId?: string) => {
     if (!orderId) {
@@ -77,7 +78,10 @@ function AppContent() {
         customerName={userName}
         customerEmail={userEmail}
         orderId={pendingOrderId ?? undefined}
-        onVerified={(orderId) => markOrderConfirmed(orderId)}
+        onVerified={(orderId) => {
+          markOrderConfirmed(orderId);
+          clearCart();
+        }}
       />
     </div>
   );

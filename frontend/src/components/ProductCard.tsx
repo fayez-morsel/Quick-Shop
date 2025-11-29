@@ -1,6 +1,6 @@
 import { Heart, ShoppingCart } from "lucide-react";
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import type { Product } from "../types";
 import { useStore } from "../store/useStore";
@@ -41,7 +41,19 @@ export default function ProductCard({ product, onSelect }: Props) {
       : product.image
       ? [product.image]
       : [];
-  const mainImage = imageSources[0] || product.image;
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [product.id, imageSources.length]);
+
+  useEffect(() => {
+    if (imageSources.length <= 1) return;
+    const id = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % imageSources.length);
+    }, 3000);
+    return () => window.clearInterval(id);
+  }, [imageSources.length]);
 
   const [isPressingFavorite, setIsPressingFavorite] = useState(false);
 
@@ -88,11 +100,37 @@ export default function ProductCard({ product, onSelect }: Props) {
         className="relative w-full overflow-hidden rounded-t-4xl"
         style={{ aspectRatio: "3 / 2" }}
       >
-        <img
-          src={mainImage}
-          alt={product.title}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-        />
+        {imageSources.length > 0 ? (
+          <>
+            <img
+              src={imageSources[activeIndex] ?? imageSources[0]}
+              alt={product.title}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
+            {imageSources.length > 1 && (
+              <div className="absolute inset-x-0 bottom-3 flex justify-center gap-2">
+                {imageSources.map((_, idx) => (
+                  <button
+                    key={`dot-${idx}`}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveIndex(idx);
+                    }}
+                    className={`h-2 w-2 rounded-full transition ${
+                      idx === activeIndex ? "bg-white" : "bg-white/60"
+                    }`}
+                    aria-label={`Show image ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="grid h-full place-items-center bg-slate-100 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+            No image
+          </div>
+        )}
         <button
           type="button"
           onClick={handleToggleFavorite}
@@ -140,7 +178,7 @@ export default function ProductCard({ product, onSelect }: Props) {
           onClick={handleAddToCart}
           disabled={!product.inStock}
           style={!product.inStock ? { cursor: blockedCursor } : undefined}
-          className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0d4bc9] px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#0b3ba2] disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0d47a1] px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#0b3ba2] disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           <ShoppingCart className="h-5 w-5" aria-hidden />
           {product.inStock ? "Add to Cart" : "Out of Stock"}

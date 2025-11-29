@@ -169,7 +169,7 @@ export const useStore = create<State & Actions>((set) => ({
       stock: 34,
       category: "Tech",
       image:
-        "https://plus.unsplash.com/premium_photo-1729708654598-f0e68d8bd0bf?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Ymx1dG9vdGglMjBzcGVha2VyfGVufDB8fDB8fHww&auto=format&fit=crop&q=60&w=600",
+        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=60",
       inStock: true,
       rating: { value: 4.5, count: 224 },
     },

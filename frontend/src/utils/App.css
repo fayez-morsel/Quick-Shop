@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+.recent-orders-mobile {
+  display: block;
+}
+
+.recent-orders-desktop {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .recent-orders-mobile {
+    display: none;
+  }
+
+  .recent-orders-desktop {
+    display: block;
+  }
+}
+
+.seller-product-cards {
+  display: grid;
+  gap: 1rem;
+}
+
+.seller-product-table {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .seller-product-cards {
+    display: none;
+  }
+  .seller-product-table {
+    display: block;
+  }
+}
+
+.seller-orders-cards {
+  display: grid;
+  gap: 1rem;
+}
+
+.seller-orders-table {
+  display: none;
+}
+
+@media (min-width: 1000px) {
+  .seller-orders-cards {
+    display: none;
+  }
+
+  .seller-orders-table {
+    display: block;
+  }
+}
+
+button {
+  cursor: pointer;
+}
+
