@@ -26,8 +26,10 @@ export default function ProductPage() {
   const setDiscounted = useStore((s) => s.setDiscounted);
   const setQuery = useStore((s) => s.setQuery);
   const clearFilters = useStore((s) => s.clearFilters);
+  const favorites = useStore((s) => s.favorites);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1100);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
 
   const setMaxPrice = (v: number) =>
     useStore.setState((s) => ({
@@ -70,6 +72,10 @@ export default function ProductPage() {
       list = list.filter((p) => p.discounted);
     }
 
+    if (favoritesOnly) {
+      list = list.filter((p) => favorites.includes(p.id));
+    }
+
     if (filters.sortBy === "priceLow") {
       list.sort((a, b) => a.price - b.price);
     } else if (filters.sortBy === "priceHigh") {
@@ -77,12 +83,14 @@ export default function ProductPage() {
     }
 
     return list;
-  }, [products, filters]);
+  }, [products, filters, favorites, favoritesOnly]);
 
   useEffect(() => {
-    const handle = () => setIsDesktop(window.innerWidth >= 1100);
-    window.addEventListener("resize", handle);
-    return () => window.removeEventListener("resize", handle);
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1100);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   const FiltersPanel = (
@@ -153,6 +161,18 @@ export default function ProductPage() {
       </div>
 
       <div>
+        <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+          <input
+            type="checkbox"
+            checked={favoritesOnly}
+            onChange={(e) => setFavoritesOnly(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          Favorites only
+        </label>
+      </div>
+
+      <div>
         <p className="mb-2 text-base font-semibold text-slate-700">Sort By</p>
           <select
             value={filters.sortBy}
@@ -180,23 +200,14 @@ export default function ProductPage() {
   );
 
   return (
-    <div className="min-h-screen bg-white px-4 py-6">
+    <div className="min-h-screen bg-white px-4 pb-6 pt-0">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="sticky top-16 z-30 -mx-4 flex flex-col gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:rounded-none sm:px-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">All Products</h1>
             <p className="text-sm text-slate-500">{filtered.length} items found</p>
           </div>
           <div className="flex items-center gap-3">
-            {!isDesktop && (
-              <button
-                type="button"
-                onClick={() => setMenuOpen(true)}
-                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
-              >
-                Filters
-              </button>
-            )}
             <input
               type="text"
               value={filters.query}
@@ -204,6 +215,15 @@ export default function ProductPage() {
               placeholder="Search products..."
               className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 sm:w-[250px]"
             />
+            {!isDesktop && (
+              <button
+                type="button"
+                onClick={() => setMenuOpen(true)}
+                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition shadow-sm"
+              >
+                Filters
+              </button>
+            )}
           </div>
         </div>
 

@@ -283,7 +283,7 @@ export default function SellerDashboard() {
       orders: enhancedOrders.filter(matchesOrder).slice(0, 4),
       customers: customerProfiles.filter(matchesCustomer).slice(0, 4),
     };
-  }, [normalizedQuery, products, enhancedOrders, customerProfiles]);
+  }, [normalizedQuery, effectiveProducts, enhancedOrders, customerProfiles]);
 
   const showSearchResults = normalizedQuery.length > 0;
   const totalMatches =

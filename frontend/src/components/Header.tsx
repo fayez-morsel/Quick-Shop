@@ -4,7 +4,7 @@ import { useStore } from "../store/useStore";
 import { useState } from "react";
 
 const iconButtonBase =
-  "cursor-pointer rounded-full border border-white/30 bg-white/10 p-2 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
+  "cursor-pointer h-10 w-10 inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
 const blurButtonBase =
   "cursor-pointer rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-[#0b47c7] transition duration-200 ease-in-out backdrop-blur hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
 
@@ -14,10 +14,19 @@ export default function Header() {
   const cartCount = useStore((s) => s.cart.reduce((sum, item) => sum + item.qty, 0));
   const isAuthenticated = useStore((s) => s.isAuthenticated);
   const userRole = useStore((s) => s.userRole);
+  const userName = useStore((s) => s.userName);
   const logout = useStore((s) => s.logout);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const isSellerView = userRole === "seller" && location.pathname === "/seller";
+
+  const initials = (() => {
+    const trimmed = (userName || "").trim();
+    if (!trimmed) return "";
+    const parts = trimmed.split(/\s+/).filter(Boolean);
+    const letters = parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "");
+    return letters.join("");
+  })();
 
   const handleLogout = () => {
     logout();
@@ -37,7 +46,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-[#0b47c7] px-4 py-3 text-white shadow-md shadow-blue-900/30">
+      <header className="sticky top-0 z-40 w-full bg-[#0D47A1] px-4 py-3 text-white shadow-md shadow-blue-900/30">
         <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <button
@@ -63,7 +72,7 @@ export default function Header() {
               </div>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => toggleCart()}
@@ -78,6 +87,14 @@ export default function Header() {
               )}
             </button>
             <MenuButton />
+            {isAuthenticated && initials && (
+              <span
+                className="grid h-10 w-10 place-items-center rounded-full bg-[#fcd34d] text-sm font-bold uppercase text-[#0b47c7] shadow-md shadow-blue-900/30"
+                aria-label={`Signed in as ${userName}`}
+              >
+                {initials}
+              </span>
+            )}
           </div>
         </div>
       </header>

@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { type ChangeEvent, useEffect, useState } from "react";
 
 type Props = {
@@ -64,7 +65,15 @@ export default function OrderConfirmation({
 
       {/* Popup */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 text-center space-y-4">
+        <div className="relative bg-white rounded-lg shadow-lg max-w-sm w-full p-6 text-center space-y-4">
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={handleClose}
+            className="absolute right-3 top-3 rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
           {!verified ? (
             <>
               <div className="mx-auto h-12 w-12 rounded-full bg-blue-50 text-blue-600 grid place-items-center">

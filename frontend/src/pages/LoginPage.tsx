@@ -86,8 +86,11 @@ export default function LoginPage() {
 
           <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label className="text-sm font-semibold text-slate-600">Email</label>
+              <label className="text-sm font-semibold text-slate-600" htmlFor="login-email">
+                Email
+              </label>
               <input
+                id="login-email"
                 type="email"
                 value={form.email}
                 onChange={(event) => handleChange("email", event.target.value)}
@@ -100,13 +103,16 @@ export default function LoginPage() {
               </p>
             </div>
             <div>
-              <label className="text-sm font-semibold text-slate-600">Password</label>
+              <label className="text-sm font-semibold text-slate-600" htmlFor="login-password">
+                Password
+              </label>
               <input
+                id="login-password"
                 type="password"
                 value={form.password}
                 onChange={(event) => handleChange("password", event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                placeholder="••••••••"
+                placeholder="Password"
                 aria-invalid={Boolean(errors.password)}
               />
               <p className="mt-1 min-h-5 text-xs font-medium text-rose-500">

@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { money } from "../utils/format";
 import { useScopedOrders } from "../hooks/useScopedOrders";
@@ -21,34 +21,28 @@ const formatOrderId = (id: string) => {
   return numeric ? `#ORD-${numeric.padStart(4, "0")}` : `#${id.toUpperCase()}`;
 };
 
-const formatDate = (value: string) => new Date(value).toLocaleDateString();
+const formatDateTime = (value: string) =>
+  new Date(value).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export default function OrderHistoryPage() {
   const { scopedOrders } = useScopedOrders();
   const isAuthenticated = useStore((s) => s.isAuthenticated);
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const products = useStore((s) => s.products);
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
-
-  const orderSummary = useMemo(() => {
-    const totalSpent = scopedOrders.reduce(
-      (sum, order) => sum + order.total,
-      0
-    );
-    const uniqueStores = new Set(scopedOrders.map((order) => order.storeId))
-      .size;
-    const avgOrder = scopedOrders.length ? totalSpent / scopedOrders.length : 0;
-    return {
-      totalSpent,
-      uniqueStores,
-      avgOrder,
-    };
-  }, [scopedOrders]);
 
   const filteredOrders = useMemo(() => {
     const normalized = search.trim().toLowerCase();
@@ -67,125 +61,134 @@ export default function OrderHistoryPage() {
         );
       });
   }, [scopedOrders, search]);
-
-  const metrics = [
-    { label: "Total Orders", value: scopedOrders.length.toString() },
-    {
-      label: "Total Spent",
-      value: money(orderSummary.totalSpent),
-    },
-    {
-      label: "Avg. Order Value",
-      value: money(orderSummary.avgOrder),
-    },
-    { label: "Stores Shopped", value: orderSummary.uniqueStores.toString() },
-  ];
+  useEffect(() => {
+    if (expandedOrderId && !filteredOrders.find((o) => o.id === expandedOrderId)) {
+      setExpandedOrderId(null);
+    }
+  }, [expandedOrderId, filteredOrders]);
 
   return (
-    <div className="flex flex-1 flex-col gap-8 px-4 py-8 sm:px-6 lg:px-10">
-      <section className="space-y-3">
-        <div className="flex flex-col gap-2">
-          <p className="text-xs uppercase tracking-[0.4em] text-slate-400">
-            Order history
-          </p>
-          <h1 className="text-3xl font-semibold text-slate-900">My orders</h1>
-          <p className="text-sm text-slate-500">
-            Track every purchase, delivery status, and spend without leaving the
-            dashboard.
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm shadow-sm md:flex-row md:items-center">
-          <Search className="h-4 w-4 text-slate-500" />
-          <input
-            type="text"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search order id, store, email..."
-            className="w-full border-none bg-transparent text-sm text-slate-600 focus:outline-none md:px-2"
-          />
-        </div>
-      </section>
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {metrics.map((metric) => (
-          <article
-            key={metric.label}
-            className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_25px_40px_rgba(15,23,42,0.08)]"
-          >
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-              {metric.label}
+    <div className="min-h-screen bg-white px-4 py-8 sm:px-6 lg:px-10">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1 text-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
+              Order history
             </p>
-            <p className="mt-4 text-3xl font-semibold text-slate-900">
-              {metric.value}
-            </p>
-          </article>
-        ))}
-      </section>
-      <section className="rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">
-              Orders
-            </p>
-            <p className="text-xs text-slate-500">
-              Sorted by the most recent purchase
-            </p>
+            <h1 className="text-3xl font-semibold text-slate-900">My orders</h1>
           </div>
-          <p className="text-xs text-slate-500">
-            Showing {filteredOrders.length} orders
-          </p>
-        </div>
-        <div className="mt-6 overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead>
-              <tr className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                <th className="px-3 py-3">Order ID</th>
-                <th className="px-3 py-3">Date</th>
-                <th className="px-3 py-3">Store</th>
-                <th className="px-3 py-3">Items</th>
-                <th className="px-3 py-3">Amount</th>
-                <th className="px-3 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-700">
-              {filteredOrders.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="py-6 text-center text-sm text-slate-400"
+          <div className="flex flex-col gap-3 rounded-full border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm md:flex-row md:items-center">
+            <Search className="h-4 w-4 text-slate-500" />
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search order id, store, email..."
+              className="w-full border-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none md:px-2"
+            />
+          </div>
+        </section>
+
+        <div className="space-y-4">
+          {filteredOrders.length === 0 ? (
+            <p className="text-center text-sm font-semibold text-slate-500">
+              No orders match this search term.
+            </p>
+          ) : (
+            filteredOrders.map((order) => {
+              const isOpen = expandedOrderId === order.id;
+              const expandedMaxHeight = Math.max(200, order.items.length * 140);
+              return (
+                <article
+                  key={order.id}
+                  className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)] transition duration-300 ease-in-out"
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedOrderId(isOpen ? null : order.id)
+                    }
+                    aria-expanded={isOpen}
+                    className="flex w-full items-center gap-4 px-5 py-4 text-left"
                   >
-                    No orders match this search term
-                  </td>
-                </tr>
-              ) : (
-                filteredOrders.map((order) => (
-                  <tr key={order.id} className="border-t border-slate-100">
-                    <td className="px-3 py-4 font-mono text-xs font-semibold text-slate-600">
-                      {formatOrderId(order.id)}
-                    </td>
-                    <td className="px-3 py-4 text-slate-500">
-                      {formatDate(order.placedAt)}
-                    </td>
-                    <td className="px-3 py-4 font-semibold text-slate-900">
-                      {order.storeId}
-                    </td>
-                    <td className="px-3 py-4">{order.items.length} item(s)</td>
-                    <td className="px-3 py-4 font-semibold text-slate-900">
+                    <div className="flex flex-1 flex-col">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+                        {formatOrderId(order.id)}
+                      </p>
+                      <p className="text-lg font-semibold text-slate-900">
+                        {formatDateTime(order.placedAt)}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] ${statusStyles[order.status]}`}
+                    >
+                      {order.status}
+                    </span>
+                    <span className="text-base font-semibold text-sky-700">
                       {money(order.total)}
-                    </td>
-                    <td className="px-3 py-4">
-                      <span
-                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] ${statusStyles[order.status]}`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                    </span>
+                    {isOpen ? (
+                      <ChevronUp className="h-5 w-5 text-slate-500" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-slate-500" />
+                    )}
+                  </button>
+
+                  <div
+                    className={`space-y-3 border-t border-slate-200 bg-slate-50 px-5 transition-all duration-300 ease-in-out ${
+                      isOpen ? "opacity-100 py-4" : "opacity-0 py-0"
+                    }`}
+                    style={{
+                      maxHeight: isOpen ? `${expandedMaxHeight}px` : "0px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {order.items.map((item) => {
+                      const product = products.find(
+                        (p) => p.id === item.productId
+                      );
+                      const image =
+                        product?.images?.[0] || product?.image || "";
+                      return (
+                        <div
+                          key={`${order.id}-${item.productId}`}
+                          className="flex items-center gap-3 rounded-2xl bg-white px-3 py-2 shadow-sm"
+                        >
+                          {image ? (
+                            <img
+                              src={image}
+                              alt={product?.title ?? item.productId}
+                              className="h-14 w-14 rounded-xl object-cover"
+                            />
+                          ) : (
+                            <div className="grid h-14 w-14 place-items-center rounded-xl bg-slate-100 text-xs font-semibold text-slate-500">
+                              IMG
+                            </div>
+                          )}
+                          <div className="flex flex-1 flex-col">
+                            <p className="text-sm font-semibold text-slate-900">
+                              {product?.title ?? item.productId}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {product?.category ?? "Item"} - Qty: {item.qty}
+                            </p>
+                          </div>
+                          <div className="text-right text-sm font-semibold text-slate-800">
+                            {product ? money(product.price * item.qty) : "--"}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </article>
+              );
+            })
+          )}
         </div>
-      </section>
+      </div>
     </div>
   );
 }
+
+
+

@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-const authenticate = async (page: import("@playwright/test").Page) => {
+const authenticate = async (page: Page) => {
   await page.addInitScript(() => {
     localStorage.setItem("isAuthenticated", "true");
     localStorage.setItem("userRole", "buyer");
@@ -9,12 +9,24 @@ const authenticate = async (page: import("@playwright/test").Page) => {
   });
 };
 
-const seedAccount = async (page: import("@playwright/test").Page, account: { name: string; email: string; password: string; role: "buyer" | "seller"; storeId?: string }) => {
+
+const seedAccount = async (
+  page: Page,
+  account: { name: string; email: string; password: string; role: "buyer" | "seller"; storeId?: string }
+) => {
   await page.addInitScript((acc) => {
     localStorage.clear();
     localStorage.setItem(
       "qs-user-accounts",
-      JSON.stringify([{ name: acc.name, email: acc.email.toLowerCase(), password: acc.password, role: acc.role, storeId: acc.storeId }])
+      JSON.stringify([
+        {
+          name: acc.name,
+          email: acc.email.toLowerCase(),
+          password: acc.password,
+          role: acc.role,
+          storeId: acc.storeId,
+        },
+      ])
     );
   }, account);
 };
@@ -32,10 +44,19 @@ test("product catalog shows product cards", async ({ page }) => {
 });
 
 test("can open a product detail from catalog", async ({ page }) => {
-  await page.goto("/product");
-  await page.locator("article").first().click();
+  await page.goto("/product", { waitUntil: "domcontentloaded" });
+  const firstCard = page.locator('article:has(button:has-text("Add to Cart"))').first();
+  await expect(firstCard).toBeVisible();
+
+  const productName = (await firstCard.getByRole("heading", { level: 3 }).textContent())?.trim();
+  await firstCard.click();
+
   await expect(page).toHaveURL(/\/product\/p[0-9]+/);
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  if (productName) {
+    await expect(page.getByRole("heading", { level: 1, name: new RegExp(productName, "i") })).toBeVisible();
+  } else {
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  }
 });
 
 test("out-of-stock product shows disabled add button", async ({ page }) => {
@@ -70,7 +91,7 @@ test("login with existing buyer account", async ({ page }) => {
   await seedAccount(page, account);
   await page.goto("/login");
   await page.getByPlaceholder("john@example.com").fill(account.email);
-  await page.getByPlaceholder("••••••••").fill(account.password);
+  await page.getByLabel("Password").fill(account.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL("/");
   await expect.poll(() => page.evaluate(() => localStorage.getItem("isAuthenticated"))).toBe("true");
@@ -84,8 +105,8 @@ test("register new buyer account", async ({ page }) => {
   await page.getByPlaceholder("John").fill("Reg");
   await page.getByPlaceholder("Doe").fill("Tester");
   await page.getByPlaceholder("you@example.com").fill(uniqueEmail);
-  await page.getByPlaceholder("••••••••").first().fill("secret123");
-  await page.getByPlaceholder("••••••••").nth(1).fill("secret123");
+  await page.getByPlaceholder("Password").first().fill("secret123");
+  await page.getByPlaceholder("Confirm password").fill("secret123");
   const submit = page.getByRole("button", { name: /create buyer account/i });
   await submit.scrollIntoViewIfNeeded();
   await submit.click();
@@ -100,7 +121,7 @@ test("seller login redirects to dashboard", async ({ page }) => {
   await page.goto("/login", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Seller" }).click();
   await page.getByPlaceholder("john@example.com").fill(account.email);
-  await page.getByPlaceholder("••••••••").fill(account.password);
+  await page.getByLabel("Password").fill(account.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/seller$/);
   await expect.poll(() => page.evaluate(() => localStorage.getItem("userRole"))).toBe("seller");
@@ -115,8 +136,8 @@ test("seller registration creates account and enters seller hub", async ({ page 
   await page.getByPlaceholder("Doe").fill("Er");
   await page.getByPlaceholder("you@example.com").fill(uniqueEmail);
   await page.getByPlaceholder("tech-hub").fill("My Test Store");
-  await page.getByPlaceholder("••••••••").first().fill("secret123");
-  await page.getByPlaceholder("••••••••").nth(1).fill("secret123");
+  await page.getByPlaceholder("Password").first().fill("secret123");
+  await page.getByPlaceholder("Confirm password").fill("secret123");
   await page.getByRole("button", { name: /create seller account/i }).click();
   await expect(page).toHaveURL(/\/seller$/);
   await expect.poll(() => page.evaluate(() => localStorage.getItem("userRole"))).toBe("seller");
@@ -129,7 +150,7 @@ test("seller can add a new product", async ({ page }) => {
   await page.goto("/login");
   await page.getByRole("button", { name: "Seller" }).click();
   await page.getByPlaceholder("john@example.com").fill(account.email);
-  await page.getByPlaceholder("••••••••").fill(account.password);
+  await page.getByLabel("Password").fill(account.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/seller$/);
 
@@ -142,7 +163,7 @@ test("seller can add a new product", async ({ page }) => {
   await page.getByPlaceholder("https://example.com/product.jpg").fill("https://via.placeholder.com/300");
   await page.getByRole("button", { name: /create product/i }).click();
   await expect(page.getByText("Create new inventory item")).toBeHidden({ timeout: 10_000 });
-  await page.waitForTimeout(500); 
+  await page.waitForTimeout(500);
   const tableRow = page.locator("tbody tr").filter({ hasText: "E2E Test Product" });
   await expect(tableRow).toBeVisible({ timeout: 15_000 });
 });

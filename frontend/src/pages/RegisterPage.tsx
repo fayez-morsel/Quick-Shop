@@ -110,14 +110,13 @@ export default function RegisterPage() {
             onSubmit={handleSubmit}
           >
             <div>
-              <label className="text-sm font-semibold text-slate-600">
+              <label className="text-sm font-semibold text-slate-600" htmlFor="register-first-name">
                 First Name
               </label>
               <input
+                id="register-first-name"
                 value={form.firstName}
-                onChange={(event) =>
-                  handleChange("firstName", event.target.value)
-                }
+                onChange={(event) => handleChange("firstName", event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 placeholder="John"
                 aria-invalid={Boolean(errors.firstName)}
@@ -127,10 +126,11 @@ export default function RegisterPage() {
               </p>
             </div>
             <div>
-              <label className="text-sm font-semibold text-slate-600">
+              <label className="text-sm font-semibold text-slate-600" htmlFor="register-last-name">
                 Last Name
               </label>
               <input
+                id="register-last-name"
                 value={form.lastName}
                 onChange={(event) => handleChange("lastName", event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -142,8 +142,11 @@ export default function RegisterPage() {
               </p>
             </div>
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-slate-600">Email</label>
+              <label className="text-sm font-semibold text-slate-600" htmlFor="register-email">
+                Email
+              </label>
               <input
+                id="register-email"
                 type="email"
                 value={form.email}
                 onChange={(event) => handleChange("email", event.target.value)}
@@ -157,8 +160,11 @@ export default function RegisterPage() {
             </div>
             {role === "seller" && (
               <div className="md:col-span-2">
-                <label className="text-sm font-semibold text-slate-600">Store ID</label>
+                <label className="text-sm font-semibold text-slate-600" htmlFor="register-store-id">
+                  Store ID
+                </label>
                 <input
+                  id="register-store-id"
                   value={form.storeId}
                   onChange={(event) => handleChange("storeId", event.target.value)}
                   className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -171,15 +177,16 @@ export default function RegisterPage() {
               </div>
             )}
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-slate-600">
+              <label className="text-sm font-semibold text-slate-600" htmlFor="register-password">
                 Password
               </label>
               <input
+                id="register-password"
                 type="password"
                 value={form.password}
                 onChange={(event) => handleChange("password", event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                placeholder="••••••••"
+                placeholder="Password"
                 aria-invalid={Boolean(errors.password)}
               />
               <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
@@ -187,15 +194,16 @@ export default function RegisterPage() {
               </p>
             </div>
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-slate-600">
+              <label className="text-sm font-semibold text-slate-600" htmlFor="register-confirm-password">
                 Confirm Password
               </label>
               <input
+                id="register-confirm-password"
                 type="password"
                 value={form.confirm}
                 onChange={(event) => handleChange("confirm", event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                placeholder="••••••••"
+                placeholder="Confirm password"
                 aria-invalid={Boolean(errors.confirm)}
               />
               <p className="mt-1 min-h-5 text-xs font-semibold text-rose-500">
@@ -246,3 +254,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

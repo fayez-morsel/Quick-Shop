@@ -1,4 +1,3 @@
-import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import SellerLayout from "../components/SellerLayout";
 import { useScopedOrders } from "../hooks/useScopedOrders";
@@ -56,7 +55,6 @@ const formatOrderId = (id: string) => {
 export default function SellerOrdersPage() {
   const products = useStore((state) => state.products);
   const { scopedOrders: sellerOrders } = useScopedOrders();
-  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusCardKey>("all");
   const updateOrderStatus = useStore((state) => state.updateOrderStatus);
 
@@ -94,35 +92,22 @@ export default function SellerOrdersPage() {
   }, [sellerOrders]);
 
   const filteredOrders = orderRows.filter((order) => {
-    const normalized = search.trim().toLowerCase();
-    const matchesSearch =
-      !normalized ||
-      order.id.toLowerCase().includes(normalized) ||
-      order.buyerName.toLowerCase().includes(normalized) ||
-      order.buyerEmail.toLowerCase().includes(normalized) ||
-      order.productName.toLowerCase().includes(normalized);
     const matchesStatus =
       statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    return matchesStatus;
   });
 
   return (
     <SellerLayout activeLink="Orders">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
-          <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-semibold text-slate-900">Orders</h1>
-              <p className="text-sm text-slate-500">
-                Manage and track all your orders
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="pointer-events-none inline-flex items-center gap-2 rounded-3xl bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-[0_10px_20px_rgba(15,23,42,0.15)]">
-                <Search className="h-4 w-4 text-slate-400" />
-                Search orders...
-              </div>
-            </div>
-          </header>
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-slate-900">Orders</h1>
+            <p className="text-sm text-slate-500">
+              Manage and track all your orders
+            </p>
+          </div>
+        </header>
 
           <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(220px,1fr))] lg:grid-cols-5">
             {statusOverview.map((card) => (
@@ -148,16 +133,6 @@ export default function SellerOrdersPage() {
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm">
-                  <Search className="h-4 w-4 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search orders..."
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    className="w-full border-none bg-transparent text-sm text-slate-600 focus:outline-none"
-                  />
-                </div>
                 <select
                   value={statusFilter}
                   onChange={(event) =>
@@ -193,7 +168,7 @@ export default function SellerOrdersPage() {
                   {filteredOrders.length === 0 && (
                     <tr>
                       <td colSpan={8} className="py-6 text-center text-sm text-slate-400">
-                        No orders match this search
+                        No orders available
                       </td>
                     </tr>
                   )}

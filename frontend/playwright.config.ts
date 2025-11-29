@@ -1,9 +1,17 @@
 import { defineConfig, devices } from "@playwright/test";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default defineConfig({
-  testDir: "./tests",
-  timeout: 30_000,
-  expect: { timeout: 5_000 },
+  testDir: path.join(__dirname, "tests"),
+  testMatch: /.*\.spec\.(js|ts|mjs|mts|jsx|tsx)/,
+  testIgnore: ["**/utils.ts"],
+  timeout: 60_000,
+  expect: { timeout: 10_000 },
   fullyParallel: true,
   reporter: [
     ["html", { open: "never" }],

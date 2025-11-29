@@ -111,6 +111,7 @@ export default function SellerProductsPage() {
   const handleEditProduct = (productId: string) => {
     const target = products.find((product) => product.id === productId);
     if (!target) return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setFormMode("edit");
     setEditingProductId(target.id);
     setFormState({

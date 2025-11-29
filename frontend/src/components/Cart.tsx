@@ -11,8 +11,8 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
   const cart = useStore((s) => s.cart);
   const products = useStore((s) => s.products);
   const toggleCart = useStore((s) => s.toggleCart);
-  const clearCart = useStore((s) => s.clearCart);
   const placeOrder = useStore((s) => s.placeOrder);
+  const clearCart = useStore((s) => s.clearCart);
   const userName = useStore((s) => s.userName);
   const userEmail = useStore((s) => s.userEmail);
   const cartOpen = useStore((s) => s.ui.cartOpen);
@@ -34,7 +34,6 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
     }
     toggleCart();
     const orderId = placeOrder(cart, userName, userEmail);
-    clearCart();
     if (orderId) {
       onCheckoutComplete?.(orderId);
     }
