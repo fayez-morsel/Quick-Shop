@@ -9,6 +9,7 @@ const authenticate = async (page: Page) => {
   });
 };
 
+
 const seedAccount = async (
   page: Page,
   account: { name: string; email: string; password: string; role: "buyer" | "seller"; storeId?: string }
