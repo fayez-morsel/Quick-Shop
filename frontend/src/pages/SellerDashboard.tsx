@@ -332,7 +332,7 @@ export default function SellerDashboard() {
   return (
     <SellerLayout activeLink="Dashboard">
       <header>
-        <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm">
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center">
           <Search className="h-5 w-5 text-slate-400" />
           <input
             className="ml-3 flex-1 border-none bg-transparent text-sm text-slate-600 focus:outline-none"
@@ -352,7 +352,7 @@ export default function SellerDashboard() {
 
       {showSearchResults && (
         <section className="mt-6 rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">
                 Search results
@@ -460,7 +460,7 @@ export default function SellerDashboard() {
         })}
       </section>
 
-      <section className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
+      <section className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
         <article className="rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
           <div className="flex items-center justify-between">
             <div>
@@ -471,13 +471,13 @@ export default function SellerDashboard() {
               2025
             </div>
           </div>
-          <div className="mt-6">
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f9ff] p-4">
-              <ResponsiveContainer width="100%" height={280}>
+          <div className="mt-6 overflow-x-auto -mx-4 sm:mx-0">
+            <div className="w-full min-w-[320px] sm:min-w-[520px] overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f9ff] px-3 py-4 sm:p-4">
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart
                   data={monthlyPerformance}
-                  margin={{ top: 10, right: 12, left: 4, bottom: 0 }}
-                  barCategoryGap={18}
+                  margin={{ top: 10, right: 16, left: 8, bottom: 0 }}
+                  barCategoryGap={20}
                 >
                   <defs>
                     <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
@@ -528,7 +528,7 @@ export default function SellerDashboard() {
                     dataKey="bar"
                     radius={[12, 12, 8, 8]}
                     fill="url(#barGradient)"
-                    maxBarSize={32}
+                    maxBarSize={36}
                   />
                   <Line
                     yAxisId="right"
@@ -553,27 +553,29 @@ export default function SellerDashboard() {
               <h2 className="text-2xl font-semibold text-slate-900">Best sellers</h2>
             </div>
           </div>
-          <div className="space-y-5">
-            {topProducts.map((entry) => {
-              const progress = Math.min(Math.round((entry.revenue / referenceRevenue) * 100), 100);
-              return (
-                <div key={entry.product.id}>
-                  <div className="flex items-center justify-between text-sm">
-                    <div>
-                      <p className="font-semibold text-slate-900">{entry.product.title}</p>
-                      <p className="text-xs text-slate-500">{entry.sales} sales</p>
+          <div className="mt-4 overflow-x-auto -mx-4 sm:mx-0">
+            <div className="w-full min-w-[320px] sm:min-w-[420px] space-y-5 px-3 sm:px-0">
+              {topProducts.map((entry) => {
+                const progress = Math.min(Math.round((entry.revenue / referenceRevenue) * 100), 100);
+                return (
+                  <div key={entry.product.id}>
+                    <div className="flex items-center justify-between text-sm">
+                      <div>
+                        <p className="font-semibold text-slate-900">{entry.product.title}</p>
+                        <p className="text-xs text-slate-500">{entry.sales} sales</p>
+                      </div>
+                      <span className="text-sm font-semibold text-slate-600">{money(entry.revenue)}</span>
                     </div>
-                    <span className="text-sm font-semibold text-slate-600">{money(entry.revenue)}</span>
+                    <div className="mt-2 h-2 rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full bg-linear-to-r from-blue-600 to-sky-400"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="mt-2 h-2 rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-linear-to-r from-blue-600 to-sky-400"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </article>
       </section>
@@ -585,7 +587,7 @@ export default function SellerDashboard() {
             <h2 className="text-2xl font-semibold text-slate-900">Customer orders</h2>
           </div>
         </div>
-        <div className="mt-6 space-y-3 recent-orders-mobile">
+        <div className="mt-6 space-y-3 recent-orders-mobile lg:hidden">
           {recentOrders.length === 0 && (
             <p className="text-sm text-slate-400">No orders yet</p>
           )}
@@ -613,7 +615,7 @@ export default function SellerDashboard() {
             </div>
           ))}
         </div>
-        <div className="mt-6 overflow-x-auto recent-orders-desktop">
+        <div className="mt-6 hidden overflow-x-auto recent-orders-desktop lg:block">
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="text-xs uppercase tracking-[0.3em] text-slate-500">
