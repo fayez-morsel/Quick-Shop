@@ -69,7 +69,7 @@ export default function OrderHistoryPage() {
 
   return (
     <div className="min-h-screen bg-white px-4 py-8 sm:px-6 lg:px-10">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <section className="flex flex-col gap-3">
           <div className="flex flex-col gap-1 text-slate-900">
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
@@ -84,6 +84,7 @@ export default function OrderHistoryPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search order id, store, email..."
+              autoComplete="off"
               className="w-full border-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none md:px-2"
             />
           </div>
@@ -109,76 +110,92 @@ export default function OrderHistoryPage() {
                       setExpandedOrderId(isOpen ? null : order.id)
                     }
                     aria-expanded={isOpen}
-                    className="flex w-full items-center gap-4 px-5 py-4 text-left"
+                    className="grid w-full items-center gap-3 px-5 py-4 text-left sm:grid-cols-[1fr_auto] md:grid-cols-[1fr_auto_auto_auto]"
                   >
-                    <div className="flex flex-1 flex-col">
+                    <div className="flex flex-1 flex-col gap-1 md:flex-row md:items-center md:gap-3">
                       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
                         {formatOrderId(order.id)}
                       </p>
                       <p className="text-lg font-semibold text-slate-900">
                         {formatDateTime(order.placedAt)}
                       </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 md:hidden">
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.3em] ${statusStyles[order.status]}`}
+                        >
+                          {order.status}
+                        </span>
+                        <span className="rounded-full bg-sky-50 px-2 py-1 text-[0.75rem] font-semibold text-sky-700 shadow-inner">
+                          {money(order.total)}
+                        </span>
+                      </div>
                     </div>
-                    <span
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] ${statusStyles[order.status]}`}
-                    >
-                      {order.status}
-                    </span>
-                    <span className="text-base font-semibold text-sky-700">
+                    <div className="hidden items-center justify-end md:flex">
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.3em] ${statusStyles[order.status]}`}
+                      >
+                        {order.status}
+                      </span>
+                    </div>
+                    <div className="hidden items-center justify-end text-base font-semibold text-sky-700 md:flex">
                       {money(order.total)}
-                    </span>
+                    </div>
                     {isOpen ? (
-                      <ChevronUp className="h-5 w-5 text-slate-500" />
+                      <ChevronUp className="h-5 w-5 justify-self-end text-slate-500" />
                     ) : (
-                      <ChevronDown className="h-5 w-5 text-slate-500" />
+                      <ChevronDown className="h-5 w-5 justify-self-end text-slate-500" />
                     )}
                   </button>
 
                   <div
                     className={`space-y-3 border-t border-slate-200 bg-slate-50 px-5 transition-all duration-300 ease-in-out ${
-                      isOpen ? "opacity-100 py-4" : "opacity-0 py-0"
+                      isOpen
+                        ? "opacity-100 py-4 sm:px-6"
+                        : "opacity-0 py-0 sm:px-6"
                     }`}
                     style={{
                       maxHeight: isOpen ? `${expandedMaxHeight}px` : "0px",
                       overflow: "hidden",
                     }}
                   >
-                    {order.items.map((item) => {
-                      const product = products.find(
-                        (p) => p.id === item.productId
-                      );
-                      const image =
-                        product?.images?.[0] || product?.image || "";
-                      return (
-                        <div
-                          key={`${order.id}-${item.productId}`}
-                          className="flex items-center gap-3 rounded-2xl bg-white px-3 py-2 shadow-sm"
-                        >
-                          {image ? (
-                            <img
-                              src={image}
-                              alt={product?.title ?? item.productId}
-                              className="h-14 w-14 rounded-xl object-cover"
-                            />
-                          ) : (
-                            <div className="grid h-14 w-14 place-items-center rounded-xl bg-slate-100 text-xs font-semibold text-slate-500">
-                              IMG
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {order.items.map((item) => {
+                        const product = products.find(
+                          (p) => p.id === item.productId
+                        );
+                        const image =
+                          product?.images?.[0] || product?.image || "";
+                        return (
+                          <div
+                            key={`${order.id}-${item.productId}`}
+                            className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-white px-3 py-3 shadow-sm md:grid-cols-[72px_minmax(0,1fr)_auto]"
+                          >
+                            {image ? (
+                              <img
+                                src={image}
+                                alt={product?.title ?? item.productId}
+                                className="h-16 w-16 rounded-xl object-cover md:h-14 md:w-14"
+                              />
+                            ) : (
+                              <div className="grid h-14 w-14 place-items-center rounded-xl bg-slate-100 text-xs font-semibold text-slate-500">
+                                IMG
+                              </div>
+                            )}
+                            <div className="flex flex-col gap-1">
+                              <p className="text-sm font-semibold text-slate-900">
+                                {product?.title ?? item.productId}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {product?.category ?? "Item"} · Qty: {item.qty}
+                              </p>
                             </div>
-                          )}
-                          <div className="flex flex-1 flex-col">
-                            <p className="text-sm font-semibold text-slate-900">
-                              {product?.title ?? item.productId}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {product?.category ?? "Item"} - Qty: {item.qty}
-                            </p>
+                            <div className="flex items-center justify-end text-sm font-semibold text-slate-800 md:flex-col md:items-end md:gap-1">
+                              <span>{product ? money(product.price * item.qty) : "--"}</span>
+                            </div>
                           </div>
-                          <div className="text-right text-sm font-semibold text-slate-800">
-                            {product ? money(product.price * item.qty) : "--"}
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </article>
               );
