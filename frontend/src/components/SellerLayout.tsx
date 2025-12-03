@@ -65,7 +65,7 @@ export default function SellerLayout({
       >
         <div className="mx-auto flex max-w-6xl flex-col gap-8">
           {showHeader && (
-            <header className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white px-6 py-4 shadow-[0_20px_45px_rgba(15,23,42,0.08)]">
+            <header className="sticky top-0 z-30 flex items-center justify-between rounded-3xl border border-slate-200 bg-white/95 px-6 py-4 shadow-[0_20px_45px_rgba(15,23,42,0.08)] backdrop-blur">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
