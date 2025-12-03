@@ -151,7 +151,7 @@ export default function SellerOrdersPage() {
                 </select>
               </div>
             </div>
-            <div className="seller-orders-table overflow-x-auto">
+            <div className="seller-orders-table hidden overflow-x-auto lg:block">
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="text-xs uppercase tracking-[0.3em] text-slate-500">
@@ -211,7 +211,7 @@ export default function SellerOrdersPage() {
                 </tbody>
               </table>
             </div>
-            <div className="seller-orders-cards mt-6 grid gap-4">
+            <div className="seller-orders-cards mt-6 grid gap-4 lg:hidden">
               {filteredOrders.map((order) => (
                 <article
                   key={order.id}
@@ -228,39 +228,29 @@ export default function SellerOrdersPage() {
                     </span>
                   </div>
                   <div className="mt-3 space-y-1 text-sm text-slate-700">
-                    <p>
-                      <span className="font-semibold text-slate-900">
-                        Customer:
-                      </span>{" "}
-                      {order.buyerName}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-slate-900">
-                        Store:
-                      </span>{" "}
-                      {order.storeId}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-slate-900">
-                        Items:
-                      </span>{" "}
-                      {order.productName}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-slate-900">
-                        Quantity:
-                      </span>{" "}
-                      {order.quantity}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-slate-900">
-                        Amount:
-                      </span>{" "}
-                      {money(order.total)}
-                    </p>
+                    <p className="font-semibold text-slate-900">{order.buyerName}</p>
+                    <p className="text-xs text-slate-500">{order.buyerEmail}</p>
+                    <p className="text-slate-600">Item: {order.productName}</p>
+                    <p className="text-slate-600">Qty: {order.quantity}</p>
+                    <p className="font-semibold text-slate-900">{money(order.total)}</p>
                     <p className="text-xs text-slate-500">
                       Placed on {new Date(order.placedAt).toLocaleDateString()}
                     </p>
+                  </div>
+                  <div className="mt-3">
+                    <select
+                      value={order.status}
+                      onChange={(event) =>
+                        updateOrderStatus(order.id, event.target.value as OrderStatus)
+                      }
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    >
+                      {statusOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </article>
               ))}
