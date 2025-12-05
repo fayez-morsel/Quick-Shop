@@ -33,7 +33,7 @@ jobs:
       - name: Run Playwright tests
         env:
           CI: true
-        run: npx playwright test
+        run: npm run test:e2e -- --reporter=list
 
 
      
