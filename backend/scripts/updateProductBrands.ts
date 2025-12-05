@@ -18,7 +18,7 @@ const pickBrand = (seed: string): (typeof BRANDS)[number] => {
   for (let i = 0; i < seed.length; i++) {
     hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
   }
-  return BRANDS[hash % BRANDS.length];
+  return BRANDS[hash % BRANDS.length] ?? "Store";
 };
 
 async function run() {

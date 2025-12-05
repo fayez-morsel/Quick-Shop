@@ -7,7 +7,7 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "rootDir": "src",
+    "rootDir": ".",
     "outDir": "dist",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -45,5 +45,5 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
   },
-  "include": ["src"],
+  "include": ["src", "scripts"],
 }
