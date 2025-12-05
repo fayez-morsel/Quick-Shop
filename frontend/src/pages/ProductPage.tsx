@@ -41,17 +41,24 @@ export default function ProductPage() {
     [products]
   );
 
-  const brandOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          products
-            .map((p) => (p.brand ?? p.storeName ?? "").toString())
-            .filter((b) => b.trim().length > 0)
-        )
-      ) as Brand[],
-    [products]
-  );
+  const legacyBrands: Brand[] = [
+    "Tech Hub",
+    "KeyZone",
+    "SoundWave",
+    "DataHub",
+    "ErgoWorks",
+    "HomeLight",
+  ];
+
+  const looksLikeObjectId = (value: unknown) =>
+    typeof value === "string" && /^[a-f\d]{24}$/i.test(value);
+
+  const brandOptions = useMemo(() => {
+    const dynamic = products
+      .map((p) => (p.brand ?? p.storeName ?? "").toString())
+      .filter((b) => b.trim().length > 0 && !looksLikeObjectId(b));
+    return Array.from(new Set([...legacyBrands, ...dynamic])) as Brand[];
+  }, [products]);
 
   const filtered = useMemo(() => {
     let list = [...products];
