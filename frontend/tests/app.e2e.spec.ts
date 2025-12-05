@@ -1,9 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test('test', async ({ page }) => {
-  await page.goto('http://localhost:5173/');
-  await page.getByRole('button', { name: 'Open menu' }).click();
-  await page.getByRole('button', { name: 'Products', exact: true }).click();
-  await page.getByRole('checkbox', { name: 'accessories' }).check();
-  await page.getByRole('checkbox', { name: 'accessories' }).uncheck();
+test("home page renders core UI", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /quickshop/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /view cart/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /add to cart/i }).first()).toBeVisible();
 });
