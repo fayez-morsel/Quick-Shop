@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import SellerLayout from "../components/SellerLayout";
 import { useScopedOrders } from "../hooks/useScopedOrders";
 import { useStore } from "../store/useStore";
@@ -57,16 +57,28 @@ export default function SellerOrdersPage() {
   const { scopedOrders: sellerOrders } = useScopedOrders();
   const [statusFilter, setStatusFilter] = useState<StatusCardKey>("all");
   const updateOrderStatus = useStore((state) => state.updateOrderStatus);
+  const fetchSellerOrders = useStore((s) => s.fetchSellerOrders);
+  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const userRole = useStore((s) => s.userRole);
 
   const productLookup = useMemo<Record<string, Product>>(() => {
     return Object.fromEntries(products.map((product) => [product.id, product]));
   }, [products]);
 
+  useEffect(() => {
+    if (isAuthenticated && userRole === "seller") {
+      fetchSellerOrders();
+    }
+  }, [fetchSellerOrders, isAuthenticated, userRole]);
+
   const orderRows = useMemo(() => {
     return sellerOrders.map((order) => {
       const productName =
         productLookup[order.items[0]?.productId ?? ""]?.title ?? "Product";
-      const quantity = order.items.reduce((sum, item) => sum + item.qty, 0);
+      const quantity = order.items.reduce(
+        (sum, item) => sum + (item.qty ?? item.quantity ?? 0),
+        0
+      );
       return {
         ...order,
         quantity,
@@ -212,9 +224,9 @@ export default function SellerOrdersPage() {
               </table>
             </div>
             <div className="seller-orders-cards mt-6 grid gap-4 lg:hidden">
-              {filteredOrders.map((order) => (
-                <article
-                  key={order.id}
+                  {filteredOrders.map((order, idx) => (
+                    <article
+                  key={`${order.id}-${order.status}-${idx}`}
                   className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm"
                 >
                   <div className="flex items-center justify-between">
