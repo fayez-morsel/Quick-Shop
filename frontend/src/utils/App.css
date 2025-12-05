@@ -8,7 +8,7 @@
   display: none;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 800px) {
   .recent-orders-mobile {
     display: none;
   }
