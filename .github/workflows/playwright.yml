@@ -33,7 +33,7 @@ jobs:
         env:
           CI: true
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-        run: cd frontend && npx playwright test
+        run: npx playwright test
 
       - name: Upload Playwright report
         if: always()
