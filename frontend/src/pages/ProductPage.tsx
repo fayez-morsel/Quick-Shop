@@ -8,15 +8,6 @@ import type { Category, Brand, FilterState } from "../types";
 const iconButtonBase =
   "rounded-full border border-white/30 bg-white/10 p-2 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
 
-const brandOptions: Brand[] = [
-  "Tech Hub",
-  "KeyZone",
-  "SoundWave",
-  "DataHub",
-  "ErgoWorks",
-  "HomeLight",
-];
-
 export default function ProductPage() {
   const products = useStore((s) => s.products);
   const filters = useStore((s) => s.filters);
@@ -41,8 +32,24 @@ export default function ProductPage() {
   const categories = useMemo(
     () =>
       Array.from(
-        new Set(products.map((p) => p.category).filter(Boolean))
+        new Set(
+          products
+            .map((p) => p.category)
+            .filter((c): c is Category => Boolean(c))
+        )
       ) as Category[],
+    [products]
+  );
+
+  const brandOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          products
+            .map((p) => (p.brand ?? p.storeName ?? "").toString())
+            .filter((b) => b.trim().length > 0)
+        )
+      ) as Brand[],
     [products]
   );
 
@@ -61,7 +68,9 @@ export default function ProductPage() {
     }
 
     if (filters.brand.length) {
-      list = list.filter((p) => filters.brand.includes(p.storeName));
+      list = list.filter((p) =>
+        filters.brand.includes((p.brand ?? p.storeName) as Brand)
+      );
     }
 
     list = list.filter(
