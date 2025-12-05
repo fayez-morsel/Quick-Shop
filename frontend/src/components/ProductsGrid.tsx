@@ -15,11 +15,11 @@ export default function ProductsGrid() {
       list = list.filter(
         (p) =>
           p.title.toLowerCase().includes(q) ||
-          p.storeName.toLowerCase().includes(q)
+          (p.storeName ?? "").toLowerCase().includes(q)
       );
     }
 
-    if (store !== "all") list = list.filter((p) => p.storeId === store);
+    if (store !== "all") list = list.filter((p) => (p.store ?? "") === store || (p as any).storeId === store);
     list = list.filter((p) => p.price >= minPrice && p.price <= maxPrice);
     if (discountedOnly) list = list.filter((p) => p.discounted);
 

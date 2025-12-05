@@ -114,7 +114,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-10 border-t border-white/20 pt-4 text-center text-sm text-white/60">
-          {"\u00A9"} {new Date().getFullYear()} ShopUp. All rights reserved.
+          {"\u00A9"} {new Date().getFullYear()} QuickShop. All rights reserved.
         </div>
       </div>
     </footer>
