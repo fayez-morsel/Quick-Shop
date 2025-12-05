@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
 import Rating from "../components/Rating";
+import { apiAddReview, apiGetReviews } from "../api/reviews";
 
 type Review = {
+  id: string;
   rating: number;
-  content: string;
+  content?: string;
   authorName: string;
-  authorEmail: string;
-  orderId: string;
+  authorEmail?: string;
+  createdAt?: string;
+  orderId?: string;
 };
 
 export default function ProductDetailsPage() {
@@ -21,18 +24,20 @@ export default function ProductDetailsPage() {
   const addToCart = useStore((s) => s.addToCart);
   const userName = useStore((s) => s.userName);
   const userEmail = useStore((s) => s.userEmail);
-  const confirmedOrderIds = useStore((s) => s.confirmedOrderIds);
   const orders = useStore((s) => s.orders);
+  const fetchBuyerOrders = useStore((s) => s.fetchBuyerOrders);
+  const fetchProducts = useStore((s) => s.fetchProducts);
+  const isAuthenticated = useStore((s) => s.isAuthenticated);
 
   const [quantity, setQuantity] = useState(1);
   const [reviewList, setReviewList] = useState<Review[]>([]);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewContent, setReviewContent] = useState("");
   const [reviewError, setReviewError] = useState("");
-  const [reviewedOrderIds, setReviewedOrderIds] = useState<string[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [reviewCooldowns, setReviewCooldowns] = useState<Record<string, number>>({});
+  const [reviewedOrderIds, setReviewedOrderIds] = useState<string[]>([]);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const productImages = product
     ? product.images && product.images.length > 0
       ? product.images
@@ -82,44 +87,92 @@ export default function ProductDetailsPage() {
     normalizedEmail.length > 0
       ? orders.filter(
           (order) =>
-            confirmedOrderIds.includes(order.id) &&
-            order.buyerEmail.toLowerCase() === normalizedEmail &&
+            order.status === "Delivered" &&
+            ((order.buyerEmail ?? userEmail ?? "") as string)
+              .toLowerCase() === normalizedEmail &&
             order.items.some((item) => item.productId === productId)
         )
       : [];
   const availableOrders = eligibleOrders.filter(
     (order) => !reviewedOrderIds.includes(order.id)
   );
-  const reviewFormLocked = availableOrders.length === 0;
-  const reviewLockMessage =
-    eligibleOrders.length > 0
-      ? "You already reviewed every eligible order that included this product."
-      : userEmail
-      ? "Purchase this product before leaving a review."
-      : "Sign in to review products you've bought.";
 
-  useEffect(() => {
-    if (!productId) {
-      setSelectedOrderId(null);
-      return;
-    }
-    if (availableOrders.length === 0) {
-      setSelectedOrderId(null);
-      return;
-    }
-    if (
-      !selectedOrderId ||
-      !availableOrders.some((order) => order.id === selectedOrderId)
-    ) {
-      setSelectedOrderId(availableOrders[0]?.id ?? null);
-    }
-  }, [availableOrders, selectedOrderId, productId]);
+  const reviewFormLocked = availableOrders.length === 0;
+  const reviewLockMessage = !normalizedEmail
+    ? "Sign in and purchase this product to leave a review."
+    : eligibleOrders.length === 0
+    ? "You can review after the order is delivered."
+    : "You already reviewed all delivered orders for this product.";
 
   useEffect(() => {
     if (!reviewFormLocked) {
       setReviewError("");
     }
   }, [reviewFormLocked]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      void fetchBuyerOrders();
+    }
+  }, [fetchBuyerOrders, isAuthenticated]);
+
+  const loadReviews = useCallback(async () => {
+    if (!productId) return;
+    setReviewsLoading(true);
+    try {
+      const res = await apiGetReviews(productId);
+      const normalized =
+        (res.data ?? []).map((rev: any) => ({
+          id: rev._id ?? `${rev.user?._id ?? ""}-${rev.createdAt}`,
+          rating: rev.rating ?? 0,
+          content: rev.comment ?? "",
+          authorName: rev.user?.name ?? "Verified buyer",
+          authorEmail: rev.user?.email ?? "hidden",
+          orderId:
+            rev.order?._id ??
+            (typeof rev.order === "string" ? rev.order : undefined),
+          createdAt: rev.createdAt,
+        })) ?? [];
+      setReviewList(normalized);
+      const reviewedForUser =
+        normalizedEmail.length > 0
+          ? normalized
+              .filter(
+                (rev: Review) =>
+                  (rev.authorEmail ?? "").toLowerCase() === normalizedEmail &&
+                  rev.orderId
+              )
+              .map((rev: Review) => rev.orderId as string)
+          : [];
+      setReviewedOrderIds(reviewedForUser);
+      setReviewError("");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.error ??
+        "Unable to load reviews right now.";
+      setReviewError(message);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [productId]);
+
+  useEffect(() => {
+    void loadReviews();
+  }, [loadReviews]);
+
+  useEffect(() => {
+    if (reviewFormLocked) {
+      setSelectedOrderId(null);
+      return;
+    }
+    if (
+      selectedOrderId &&
+      availableOrders.some((order) => order.id === selectedOrderId)
+    ) {
+      return;
+    }
+    setSelectedOrderId(availableOrders[0]?.id ?? null);
+  }, [availableOrders, reviewFormLocked, selectedOrderId]);
 
   if (!product) {
     return (
@@ -139,38 +192,34 @@ export default function ProductDetailsPage() {
       return;
     }
     if (!selectedOrderId) {
-      setReviewError(
-        "Select an order containing this product to submit your review."
-      );
+      setReviewError("Select an order to submit your review.");
       return;
     }
     if (reviewedOrderIds.includes(selectedOrderId)) {
-      setReviewError("You've already reviewed that order.");
+      setReviewError("You've already reviewed this order for this product.");
       return;
     }
-    const now = Date.now();
-    const lastSubmitted = reviewCooldowns[selectedOrderId] ?? 0;
-    const cooldownMs = 5 * 60_000;
-    if (now - lastSubmitted < cooldownMs) {
-      setReviewError("You can submit one review per order every 5 minutes.");
-      return;
-    }
-    const authorName = userName || "Quick Shopper";
-    const authorEmail = userEmail || "feedback@shopup.com";
-    setReviewList((prev) => [
-      ...prev,
-      {
-        rating: reviewRating,
-        content: reviewContent.trim(),
-        authorName,
-        authorEmail,
-        orderId: selectedOrderId,
-      },
-    ]);
-    setReviewedOrderIds((prev) => [...prev, selectedOrderId]);
-    setReviewContent("");
     setReviewError("");
-    setReviewCooldowns((prev) => ({ ...prev, [selectedOrderId]: now }));
+
+    void (async () => {
+      try {
+        await apiAddReview(
+          productId,
+          selectedOrderId,
+          reviewRating,
+          reviewContent.trim()
+        );
+        setReviewContent("");
+        setReviewedOrderIds((prev) => [...prev, selectedOrderId]);
+        await loadReviews();
+        await fetchProducts();
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.error ??
+          "We couldn't submit your review. Please try again.";
+        setReviewError(message);
+      }
+    })();
   };
 
   return (
@@ -324,7 +373,7 @@ export default function ProductDetailsPage() {
             {reviewFormLocked ? (
               <div className="space-y-3 rounded-2xl border border-dashed border-slate-300 bg-white p-4">
                 <p className="text-sm font-semibold text-slate-900">
-                  Reviews unlock after checkout.
+                  Reviews unlock after delivery.
                 </p>
                 <p className="text-xs text-slate-600">{reviewLockMessage}</p>
                 <button
@@ -339,7 +388,7 @@ export default function ProductDetailsPage() {
               <>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600">
-                    Order
+                    Delivered order
                   </label>
                   <select
                     value={selectedOrderId ?? ""}
@@ -352,12 +401,13 @@ export default function ProductDetailsPage() {
                   >
                     {availableOrders.map((order) => (
                       <option key={order.id} value={order.id}>
-                        {order.id} - {new Date(order.placedAt).toLocaleDateString()}
+                        {order.id} -{" "}
+                        {new Date(order.placedAt).toLocaleDateString()}
                       </option>
                     ))}
                   </select>
                   <p className="mt-1 text-xs text-slate-500">
-                    One review per completed order is allowed for this product.
+                    One review per delivered order for this product.
                   </p>
                 </div>
                 <div>
@@ -390,8 +440,8 @@ export default function ProductDetailsPage() {
                 <button
                   type="button"
                   onClick={handleSubmitReview}
-                  disabled={!selectedOrderId}
                   className="inline-flex items-center justify-center rounded-full bg-[#0d4bc9] px-6 py-2 text-sm font-semibold text-white disabled:bg-slate-300"
+                  disabled={!selectedOrderId}
                 >
                   Submit Review
                 </button>
@@ -401,17 +451,24 @@ export default function ProductDetailsPage() {
               <p className="text-xs text-rose-500">{reviewError}</p>
             )}
           </div>
-          {reviewList.length > 0 && (
+          {reviewsLoading && (
+            <p className="text-sm text-slate-500">Loading reviews...</p>
+          )}
+          {!reviewsLoading && reviewList.length > 0 && (
             <div className="mt-6 space-y-4">
               {reviewList.map((rev, index) => (
                 <div
-                  key={index}
+                  key={rev.id || index}
                   className="rounded-2xl border border-slate-200 p-4"
                 >
                   <div className="mb-2 flex items-center gap-2">
                     <Rating value={rev.rating} count={0} />
                     <span className="text-xs text-slate-500">
-                      {rev.authorName} - {rev.authorEmail}
+                      {rev.authorName}
+                      {rev.authorEmail ? ` - ${rev.authorEmail}` : ""}
+                      {rev.createdAt
+                        ? ` • ${new Date(rev.createdAt).toLocaleDateString()}`
+                        : ""}
                     </span>
                   </div>
                   <p className="text-sm text-slate-700">{rev.content}</p>

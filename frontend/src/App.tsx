@@ -33,8 +33,21 @@ function AppContent() {
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const userName = useStore((s) => s.userName);
   const userEmail = useStore((s) => s.userEmail);
-  const markOrderConfirmed = useStore((s) => s.markOrderConfirmed);
+  const autoDeliverAfterConfirm = useStore((s) => s.autoDeliverAfterConfirm);
   const clearCart = useStore((s) => s.clearCart);
+  const fetchProducts = useStore((s) => s.fetchProducts);
+  const initializeAuth = useStore((s) => s.initializeAuth);
+  const loadCart = useStore((s) => s.loadCart);
+  const loadFavorites = useStore((s) => s.loadFavorites);
+  const fetchBuyerOrders = useStore((s) => s.fetchBuyerOrders);
+
+  useEffect(() => {
+    initializeAuth();
+    fetchProducts();
+    loadCart();
+    loadFavorites();
+    fetchBuyerOrders();
+  }, [fetchBuyerOrders, fetchProducts, initializeAuth, loadCart, loadFavorites]);
 
   const handleCheckoutComplete = (orderId?: string) => {
     if (!orderId) {
@@ -79,7 +92,7 @@ function AppContent() {
         customerEmail={userEmail}
         orderId={pendingOrderId ?? undefined}
         onVerified={(orderId) => {
-          markOrderConfirmed(orderId);
+          autoDeliverAfterConfirm(orderId);
           clearCart();
         }}
       />

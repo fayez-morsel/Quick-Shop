@@ -15,11 +15,11 @@ export default function ProductsGrid() {
       list = list.filter(
         (p) =>
           p.title.toLowerCase().includes(q) ||
-          p.storeName.toLowerCase().includes(q)
+          (p.storeName ?? "").toLowerCase().includes(q)
       );
     }
 
-    if (store !== "all") list = list.filter((p) => p.storeId === store);
+    if (store !== "all") list = list.filter((p) => (p.store ?? "") === store || (p as any).storeId === store);
     list = list.filter((p) => p.price >= minPrice && p.price <= maxPrice);
     if (discountedOnly) list = list.filter((p) => p.discounted);
 
@@ -37,7 +37,10 @@ export default function ProductsGrid() {
     );
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div
+      className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+      data-testid="product-list"
+    >
       {filtered.map((p) => (
         <ProductCard key={p.id} product={p} />
       ))}

@@ -1,4 +1,39 @@
 import { create } from "zustand";
+import {
+  apiLogin,
+  apiRegister
+} from "../api/auth";
+import {
+  apiGetProducts,
+  apiCreateProduct
+} from "../api/products";
+import {
+  apiGetCart,
+  apiAddToCart,
+  apiUpdateCart,
+  apiRemoveCartItem
+} from "../api/cart";
+import {
+  apiGetFavorites,
+  apiToggleFavorite
+} from "../api/favorites";
+import {
+  apiGetBuyerOrders,
+  apiGetSellerOrders,
+  apiPlaceOrder,
+  apiUpdateOrderStatus
+} from "../api/orders";
+import type {
+  Product,
+  CartItem,
+  FilterState,
+  UIState,
+  Category,
+  Brand,
+  Order,
+  OrderStatus,
+  UserRole,
+} from "../types";
 
 const initialAuth =
   typeof window !== "undefined"
@@ -13,26 +48,19 @@ const initialName =
 const initialEmail =
   typeof window !== "undefined" ? localStorage.getItem("userEmail") ?? "" : "";
 const initialStoreId =
-  typeof window !== "undefined" ? localStorage.getItem("userStoreId") ?? "" : "";
-import type {
-  Product,
-  CartItem,
-  FilterState,
-  UIState,
-  Category,
-  Brand,
-  Order,
-  OrderStatus,
-  UserRole,
-} from "../types";
-
-//types for state and action
+  typeof window !== "undefined"
+    ? localStorage.getItem("userStoreId") ?? ""
+    : "";
 
 type State = {
   products: Product[];
+  productsLoading: boolean;
+  productsError?: string | null;
   filters: FilterState;
   cart: CartItem[];
+  cartLoading: boolean;
   favorites: string[];
+  favoritesLoading: boolean;
   ui: UIState;
   isAuthenticated: boolean;
   userRole: UserRole;
@@ -41,6 +69,7 @@ type State = {
   userStoreId: string;
   confirmedOrderIds: string[];
   orders: Order[];
+  ordersLoading: boolean;
 };
 
 type Actions = {
@@ -48,341 +77,112 @@ type Actions = {
   setQuery: (q: string) => void;
   setSort: (sort: "popular" | "priceLow" | "priceHigh") => void;
   setDiscounted: (v: boolean) => void;
-  setCategory: (category: Category | "all" | Category[]) => void; 
-  setBrand: (brand: Brand | "all" | Brand[]) => void; 
+  setCategory: (category: Category | "all" | Category[]) => void;
+  setBrand: (brand: Brand | "all" | Brand[]) => void;
   clearFilters: () => void;
 
-  toggleFavorite: (id: string) => void;
+  // favorites
+  loadFavorites: () => Promise<void>;
+  toggleFavorite: (id: string) => Promise<void>;
 
   // cart
-  addToCart: (id: string, qty?: number) => void;
-  removeFromCart: (id: string) => void;
-  setQty: (id: string, qty: number) => void;
-  clearCart: () => void;
+  loadCart: () => Promise<void>;
+  addToCart: (id: string, qty?: number) => Promise<void>;
+  removeFromCart: (id: string) => Promise<void>;
+  setQty: (id: string, qty: number) => Promise<void>;
+  clearCart: () => Promise<void>;
 
-  //ui
-  toggleCart: () => void;
-  addProduct: (product: Product) => void;
+  // products
+  fetchProducts: () => Promise<void>;
+  addProduct: (product: Product) => Promise<void>;
   removeProduct: (id: string) => void;
   updateProductDetails: (id: string, updates: Partial<Product>) => void;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
-  login: (role: UserRole) => void;
+
+  // orders
+  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  fetchBuyerOrders: () => Promise<void>;
+  fetchSellerOrders: () => Promise<void>;
+  placeOrder: (items?: CartItem[]) => Promise<string | null>;
+  autoDeliverAfterConfirm: (orderId: string) => void;
+
+  // auth
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   setRole: (role: UserRole) => void;
   setUserInfo: (info: { name: string; email: string }) => void;
-  placeOrder: (
-    cart: CartItem[],
-    buyerName: string,
-    buyerEmail: string
-  ) => string | null;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    role: UserRole
+  ) => Promise<void>;
+  initializeAuth: () => void;
+
   markOrderConfirmed: (orderId: string) => void;
   setSellerStoreId: (storeId?: string) => void;
+  toggleCart: () => void;
 };
-export const useStore = create<State & Actions>((set) => ({
-  // --- initial data ---
-  products: (() => {
-    const seed: Product[] = [
-    {
-      id: "p1",
-      title: "Headphones",
-      price: 120,
-      compareAtPrice: 150,
-      storeId: "tech-hub",
-      storeName: "Tech Hub",
-      category: "Tech",
-      stock: 24,
-      discounted: true,
-      discountExpires: "2025-12-15",
-      image:
-        "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800",
-      inStock: true,
-      rating: { value: 4.7, count: 284 },
-    },
-    {
-      id: "p2",
-      title: "Smartwatch",
-      price: 199,
-      compareAtPrice: 249,
-      storeId: "tech-hub",
-      storeName: "Tech Hub",
-      stock: 40,
-      discounted: true,
-      discountExpires: "2025-12-20",
-      image:
-        "https://images.unsplash.com/photo-1660844817855-3ecc7ef21f12?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c21hcnR3YXRjaHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&q=60&w=600",
-      inStock: true,
-      rating: { value: 4.4, count: 198 },
-    },
-    {
-      id: "p3",
-      title: "Keyboard",
-      price: 89,
-      compareAtPrice: 109,
-      storeId: "keyzone",
-      storeName: "KeyZone",
-      category: "Tech",
-      stock: 32,
-      discounted: true,
-      discountExpires: "2025-12-10",
-      image:
-        "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800",
-      inStock: true,
-      rating: { value: 4.6, count: 152 },
-    },
-    {
-      id: "p4",
-      title: "Mouse Pro",
-      price: 59,
-      compareAtPrice: 79,
-      storeId: "keyzone",
-      storeName: "KeyZone",
-      stock: 18,
-      discounted: true,
-      discountExpires: "2025-12-05",
-      image:
-        "https://images.unsplash.com/photo-1632160872021-7e65d76ad849?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Z2FtaW5nJTIwbW91c2UlMjBwcm98ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&q=60&w=600",
-      inStock: true,
-      rating: { value: 4.3, count: 310 },
-    },
-    {
-      id: "p5",
-      title: "Monitor 27”",
-      price: 329,
-      compareAtPrice: 399,
-      storeId: "tech-hub",
-      storeName: "Tech Hub",
-      stock: 12,
-      discounted: true,
-      discountExpires: "2025-12-08",
-      image:
-        "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800",
-      inStock: true,
-      rating: { value: 4.8, count: 147 },
-    },
-    {
-      id: "p6",
-      title: "Speaker",
-      price: 69,
-      compareAtPrice: 89,
-      storeId: "soundwave",
-      storeName: "SoundWave",
-      stock: 34,
-      category: "Tech",
-      image:
-        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=60",
-      inStock: true,
-      rating: { value: 4.5, count: 224 },
-    },
-    {
-      id: "p7",
-      title: "Earbuds",
-      price: 99,
-      compareAtPrice: 129,
-      storeId: "soundwave",
-      storeName: "SoundWave",
-      stock: 0,
-      image:
-        "https://images.unsplash.com/photo-1662348316397-7afeb1045fd7?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fE5vaXNlJTIwQ2FuY2VsbGluZyUyMEVhcmJ1ZHN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&q=60&w=600",
-      inStock: false,
-      rating: { value: 4.2, count: 89 },
-    },
-    {
-      id: "p8",
-      title: "SSD 1TB",
-      price: 159,
-      compareAtPrice: 189,
-      storeId: "datahub",
-      storeName: "DataHub",
-      stock: 21,
-      image:
-        "https://media.istockphoto.com/id/1367788153/photo/small-external-portable-ssd-lies-in-the-pocket-of-your-bag-backpack-or-jacket-next-to-the-usb.webp?a=1&b=1&s=612x612&w=0&k=20&c=UKSigrfhDexi6T08zJZnf_yWazq4whE41Lls5QHmItI=",
-      inStock: true,
-      rating: { value: 4.9, count: 376 },
-    },
-    {
-      id: "p9",
-      title: "Stand",
-      price: 39,
-      compareAtPrice: 49,
-      storeId: "ergoworks",
-      storeName: "ErgoWorks",
-      stock: 15,
-      category: "Home",
-      image:
-        "https://images.unsplash.com/photo-1623177578400-52c7f7113539?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8TGFwdG9wJTIwU3RhbmQlMjBBZGp1c3RhYmxlfGVufDB8fDB8fHww&auto=format&fit=crop&q=60&w=600",
-      inStock: true,
-      rating: { value: 4.4, count: 128 },
-    },
-    {
-      id: "p10",
-      title: "Bulb",
-      price: 49,
-      compareAtPrice: 69,
-      storeId: "homelight",
-      storeName: "HomeLight",
-      stock: 28,
-      image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=800",
-      inStock: true,
-      rating: { value: 4.3, count: 92 },
-    },
-    {
-      id: "p11",
-      title: "Charger",
-      price: 29,
-      compareAtPrice: 39,
-      storeId: "tech-hub",
-      storeName: "Tech Hub",
-      stock: 22,
-      image:
-        "https://images.unsplash.com/photo-1589401806207-2381455bce76?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8V2lyZWxlc3MlMjBDaGFyZ2VyJTIwUGFkfGVufDB8fDB8fHww&auto=format&fit=crop&q=60&w=600",
-      inStock: true,
-      rating: { value: 4.1, count: 75 },
-    },
-    {
-      id: "p12",
-      title: "USB-C",
-      price: 119,
-      compareAtPrice: 149,
-      storeId: "datahub",
-      storeName: "DataHub",
-      stock: 31,
-      image:
-        "https://images.unsplash.com/photo-1603791440384-56cd371ee9a7?w=800",
-      inStock: true,
-      rating: { value: 4.7, count: 203 },
-    },
-    {
-      id: "p13",
-      title: "Trailblazer",
-      price: 149,
-      compareAtPrice: 179,
-      storeId: "keyzone",
-      storeName: "KeyZone",
-      stock: 27,
-      category: "Sport",
-      image:
-        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=60",
-      inStock: true,
-      rating: { value: 4.6, count: 210 },
-    },
-    {
-      id: "p14",
-      title: "Watch",
-      price: 189,
-      compareAtPrice: 229,
-      storeId: "tech-hub",
-      storeName: "Tech Hub",
-      stock: 14,
-      category: "Accessories",
-     image:
-        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=60",
-      inStock: true,
-      rating: { value: 4.7, count: 316 },
-    },
-    {
-      id: "p15",
-      title: "Boundless",
-      price: 29,
-      storeId: "datahub",
-      storeName: "DataHub",
-      stock: 26,
-      category: "Books",
-      image:
-        "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=60",
-      inStock: true,
-      rating: { value: 4.9, count: 412 },
-    },
-    {
-      id: "p16",
-      title: "Gift Box",
-      price: 79,
-      compareAtPrice: 99,
-      storeId: "homelight",
-      storeName: "HomeLight",
-      stock: 20,
-      category: "Gifts",
-      image:
-        "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=800&q=60",
-      inStock: true,
-      rating: { value: 4.5, count: 184 },
-    },
-  ];
 
-  return seed.map((product) => ({
+const looksLikeObjectId = (value: unknown) =>
+  typeof value === "string" && /^[a-f\d]{24}$/i.test(value);
+
+const fallbackBrands = [
+  "Tech Hub",
+  "KeyZone",
+  "SoundWave",
+  "DataHub",
+  "ErgoWorks",
+  "HomeLight",
+  "Store",
+] as const;
+
+const pickDeterministicBrand = (input: string): string => {
+  if (!input) return fallbackBrands[0];
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return fallbackBrands[hash % fallbackBrands.length];
+};
+
+const normalizeProduct = (product: any): Product => {
+  const rawStoreName = product.storeName ?? product.store?.name ?? product.store ?? "";
+  const storeName = looksLikeObjectId(rawStoreName) ? product.store?.name ?? "Store" : rawStoreName;
+  const rawBrand = product.brand ?? storeName;
+  const brandBase = looksLikeObjectId(rawBrand) || !rawBrand ? storeName : rawBrand;
+  const brand = brandBase && brandBase.trim().length ? brandBase : pickDeterministicBrand(product._id ?? product.id ?? storeName);
+  const compareAt = typeof product.compareAtPrice === "number" ? product.compareAtPrice : undefined;
+  const discounted =
+    typeof compareAt === "number" && typeof product.price === "number"
+      ? compareAt > product.price
+      : Boolean(product.discounted);
+
+  const normalized: Product = {
     ...product,
-    images: product.images ?? [product.image],
-  }));
-})(),
-  orders: [
-    {
-      id: "o1",
-      buyerName: "John Smith",
-      buyerEmail: "john.smith@example.com",
-      storeId: "tech-hub",
-      items: [{ productId: "p1", qty: 1 }],
-      total: 129.99,
-      status: "Delivered",
-      placedAt: "2025-11-15T09:20:00.000Z",
-      expectedDelivery: "2025-11-20T00:00:00.000Z",
-    },
-    {
-      id: "o2",
-      buyerName: "Sarah Johnson",
-      buyerEmail: "sarah.johnson@example.com",
-      storeId: "tech-hub",
-      items: [{ productId: "p2", qty: 1 }],
-      total: 299.99,
-      status: "Pending",
-      placedAt: "2025-11-16T11:45:00.000Z",
-      expectedDelivery: "2025-11-22T00:00:00.000Z",
-    },
-    {
-      id: "o3",
-      buyerName: "Mike Wilson",
-      buyerEmail: "mike.wilson@example.com",
-      storeId: "keyzone",
-      items: [{ productId: "p3", qty: 2 }],
-      total: 178,
-      status: "Shipped",
-      placedAt: "2025-11-17T14:10:00.000Z",
-      expectedDelivery: "2025-11-24T00:00:00.000Z",
-    },
-    {
-      id: "o4",
-      buyerName: "Emily Davis",
-      buyerEmail: "emily.davis@example.com",
-      storeId: "soundwave",
-      items: [{ productId: "p4", qty: 1 }],
-      total: 59,
-      status: "Processing",
-      placedAt: "2025-11-17T16:00:00.000Z",
-      expectedDelivery: "2025-11-24T00:00:00.000Z",
-    },
-    {
-      id: "o5",
-      buyerName: "Chris Brown",
-      buyerEmail: "chris.brown@example.com",
-      storeId: "datahub",
-      items: [{ productId: "p5", qty: 1 }],
-      total: 329,
-      status: "Delivered",
-      placedAt: "2025-11-18T08:35:00.000Z",
-      expectedDelivery: "2025-11-24T00:00:00.000Z",
-    },
-    {
-      id: "o6",
-      buyerName: "Ava Martinez",
-      buyerEmail: "ava.martinez@example.com",
-      storeId: "tech-hub",
-      items: [{ productId: "p6", qty: 1 }],
-      total: 69,
-      status: "Pending",
-      placedAt: "2025-11-19T10:20:00.000Z",
-      expectedDelivery: "2025-11-25T00:00:00.000Z",
-    },
-  ],
-  confirmedOrderIds: ["o1", "o3", "o5"],
+    _id: product._id ?? product.id ?? "",
+    id: product._id ?? product.id ?? "",
+    image: product.image ?? product.images?.[0] ?? "",
+    inStock:
+      typeof product.inStock === "boolean"
+        ? product.inStock
+        : product.stock > 0 || product.stock === undefined,
+    stock: product.stock ?? 0,
+    storeName,
+    brand,
+    storeId: product.storeId ?? product.store ?? "",
+    discounted,
+  };
+  return normalized;
+};
 
+export const useStore = create<State & Actions>((set, get) => ({
+  // --- initial data ---
+  products: [],
+  productsLoading: false,
+  productsError: null,
+  orders: [],
+  ordersLoading: false,
+  confirmedOrderIds: [],
   filters: {
     query: "",
     store: "all",
@@ -394,7 +194,9 @@ export const useStore = create<State & Actions>((set) => ({
     sortBy: "popular",
   },
   cart: [],
+  cartLoading: false,
   favorites: [],
+  favoritesLoading: false,
   ui: { cartOpen: false },
   isAuthenticated: initialAuth,
   userRole: initialRole,
@@ -437,7 +239,7 @@ export const useStore = create<State & Actions>((set) => ({
           : [...s.filters.brand, brand];
       }
       return { filters: { ...s.filters, brand: updated } };
-    }), 
+    }),
 
   clearFilters: () =>
     set(() => ({
@@ -453,65 +255,37 @@ export const useStore = create<State & Actions>((set) => ({
       },
     })),
 
-  // Cart
-  addToCart: (id, qty) =>
-    set((s) => {
-      const incrementRaw = Number.isFinite(qty) ? Math.floor(qty as number) : 1;
-      const increment = Math.max(1, incrementRaw);
-      const exists = s.cart.find((c) => c.productId === id);
-      return {
-        cart: exists
-          ? s.cart.map((c) =>
-              c.productId === id ? { ...c, qty: c.qty + increment } : c
-            )
-          : [...s.cart, { productId: id, qty: increment }],
-      };
-    }),
-  removeFromCart: (id) =>
-    set((s) => ({ cart: s.cart.filter((c) => c.productId !== id) })),
-  setQty: (id, qty) =>
-    set((s) => ({
-      cart: s.cart.map((c) =>
-        c.productId === id ? { ...c, qty: Math.max(1, qty) } : c
-      ),
-    })),
-  clearCart: () => set({ cart: [] }),
-  toggleFavorite: (id) =>
-    set((s) => ({
-      favorites: s.favorites.includes(id)
-        ? s.favorites.filter((fav) => fav !== id)
-        : [...s.favorites, id],
-    })),
-  toggleCart: () => set((s) => ({ ui: { cartOpen: !s.ui.cartOpen } })),
-  addProduct: (product) =>
-    set((s) => {
-      const normalizedImages = (
-        product.images && product.images.length ? product.images : [product.image]
-      ).filter(Boolean);
-      const primaryImage = normalizedImages[0] ?? product.image;
-      return {
-        products: [
-          ...s.products,
-          {
-            ...product,
-            images: normalizedImages.length ? normalizedImages : primaryImage ? [primaryImage] : [],
-            image: primaryImage ?? "",
-            inStock: product.stock > 0,
-            discounted: Boolean(product.discounted),
-          },
-        ],
-      };
-    }),
+  // Products
+  fetchProducts: async () => {
+    set({ productsLoading: true, productsError: null });
+    try {
+      const res = await apiGetProducts();
+      const normalized = (res.data ?? []).map(normalizeProduct);
+      set({ products: normalized, productsLoading: false });
+    } catch (err) {
+      set({ productsLoading: false, productsError: "Failed to load products" });
+    }
+  },
+  addProduct: async (product) => {
+    try {
+      const res = await apiCreateProduct(product);
+      const created = normalizeProduct(res.data);
+      set((s) => ({ products: [...s.products, created] }));
+    } catch {
+      // swallow
+    }
+  },
   removeProduct: (id) =>
     set((s) => ({
-      products: s.products.filter((product) => product.id !== id),
+      products: s.products.filter((product) => product._id !== id),
     })),
   updateProductDetails: (id, updates) =>
     set((s) => ({
       products: s.products.map((product) => {
-        if (product.id !== id) return product;
+        if (product._id !== id) return product;
         const { stock, inStock: explicitInStock, images, ...rest } = updates;
-        const nextStock = typeof stock === "number" ? stock : product.stock;
+        const nextStock =
+          typeof stock === "number" ? stock : product.stock ?? 0;
         const normalizedImages = (
           images && images.length
             ? images
@@ -536,37 +310,248 @@ export const useStore = create<State & Actions>((set) => ({
         };
       }),
     })),
-  updateOrderStatus: (orderId, status) =>
-    set((s) => ({
-      orders: s.orders.map((order) =>
-        order.id === orderId ? { ...order, status } : order
-      ),
-    })),
-  login: (role) =>
-    set(() => {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("userRole", role);
-      }
-      return { isAuthenticated: true, userRole: role };
-    }),
-  logout: () =>
-    set(() => {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("isAuthenticated");
-        localStorage.setItem("userRole", "buyer");
-        localStorage.removeItem("userName");
-        localStorage.removeItem("userEmail");
-        localStorage.removeItem("userStoreId");
-      }
-      return {
-        isAuthenticated: false,
-        userRole: "buyer",
-        userName: "",
-        userEmail: "",
-        userStoreId: "",
-      };
-    }),
+
+  // Cart
+  loadCart: async () => {
+    if (!get().isAuthenticated) return;
+    set({ cartLoading: true });
+    try {
+      const res = await apiGetCart();
+      const items = res.data?.items ?? res.data ?? [];
+      const normalized: CartItem[] = items.map((item: any) => {
+        const product = normalizeProduct(item.product ?? item);
+        const quantity = item.quantity ?? item.qty ?? 1;
+        return {
+          product,
+          productId: product._id,
+          quantity,
+          qty: quantity,
+          _id: item._id,
+        };
+      });
+      set({ cart: normalized, cartLoading: false });
+    } catch {
+      set({ cartLoading: false });
+    }
+  },
+  addToCart: async (id, qty = 1) => {
+    await apiAddToCart(id, qty);
+    await get().loadCart();
+  },
+  removeFromCart: async (id) => {
+    await apiRemoveCartItem(id);
+    await get().loadCart();
+  },
+  setQty: async (id, qty) => {
+    const nextQty = Math.max(1, qty);
+    await apiUpdateCart(id, nextQty);
+    await get().loadCart();
+  },
+  clearCart: async () => {
+    const { cart } = get();
+    for (const item of cart) {
+      const productId =
+        typeof item.product === "string" ? item.product : item.product._id;
+      await apiRemoveCartItem(productId);
+    }
+    set({ cart: [] });
+  },
+
+  // Favorites
+  loadFavorites: async () => {
+    if (!get().isAuthenticated) return;
+    set({ favoritesLoading: true });
+    try {
+      const res = await apiGetFavorites();
+      const ids =
+        res.data?.map(
+          (fav: any) =>
+            (typeof fav.product === "string"
+              ? fav.product
+              : fav.product?._id) as string
+        ) ?? [];
+      set({ favorites: ids, favoritesLoading: false });
+    } catch {
+      set({ favoritesLoading: false });
+    }
+  },
+  toggleFavorite: async (id) => {
+    if (!get().isAuthenticated) return;
+    try {
+      const res = await apiToggleFavorite(id);
+      const ids =
+        res.data?.map(
+          (fav: any) =>
+            (typeof fav.product === "string"
+              ? fav.product
+              : fav.product?._id) as string
+        ) ?? [];
+      set({ favorites: ids });
+    } catch {
+      // no-op
+    }
+  },
+
+  // Orders
+  fetchBuyerOrders: async () => {
+    if (!get().isAuthenticated) return;
+    set({ ordersLoading: true });
+    try {
+      const res = await apiGetBuyerOrders();
+      const orders = (res.data ?? []).map((o: any) => ({
+        ...o,
+        _id: o._id ?? o.id ?? "",
+        id: o._id ?? o.id ?? "",
+        storeId: (o.store ?? o.storeId ?? "") as string,
+        buyerEmail:
+          o.buyerEmail ??
+          o?.buyer?.email ??
+          get().userEmail ??
+          "",
+        buyerName: o.buyerName ?? o?.buyer?.name ?? "",
+        items: (o.items ?? []).map((item: any) => ({
+          ...item,
+          product:
+            typeof item.product === "object"
+              ? normalizeProduct(item.product)
+              : item.product,
+          productId:
+            typeof item.product === "string"
+              ? item.product
+              : item.product?._id ?? item.product?.id ?? "",
+          qty: item.quantity ?? item.qty ?? 1,
+          quantity: item.quantity ?? item.qty ?? 1,
+        })),
+      }));
+      set({ orders, ordersLoading: false });
+    } catch {
+      set({ ordersLoading: false });
+    }
+  },
+  fetchSellerOrders: async () => {
+    if (!get().isAuthenticated) return;
+    set({ ordersLoading: true });
+    try {
+      const res = await apiGetSellerOrders();
+      const orders = (res.data ?? []).map((o: any) => ({
+        ...o,
+        _id: o._id ?? o.id ?? "",
+        id: o._id ?? o.id ?? "",
+        storeId: (o.store ?? o.storeId ?? "") as string,
+        buyerEmail:
+          o.buyerEmail ??
+          o?.buyer?.email ??
+          "",
+        buyerName: o.buyerName ?? o?.buyer?.name ?? "",
+        items: (o.items ?? []).map((item: any) => ({
+          ...item,
+          product:
+            typeof item.product === "object"
+              ? normalizeProduct(item.product)
+              : item.product,
+          productId:
+            typeof item.product === "string"
+              ? item.product
+              : item.product?._id ?? item.product?.id ?? "",
+          qty: item.quantity ?? item.qty ?? 1,
+          quantity: item.quantity ?? item.qty ?? 1,
+        })),
+      }));
+      set({ orders, ordersLoading: false });
+    } catch {
+      set({ ordersLoading: false });
+    }
+  },
+  autoDeliverAfterConfirm: (orderId: string) => {
+    // mark as confirmed locally and auto-set delivered after 5 minutes
+    get().markOrderConfirmed(orderId);
+    const token = typeof window !== "undefined" ? localStorage.getItem("qs-token") : null;
+    if (!get().isAuthenticated || !token) return;
+    setTimeout(() => {
+      void get().updateOrderStatus(orderId, "Delivered");
+    }, 5 * 60 * 1000);
+  },
+  placeOrder: async (items) => {
+    const cartItems = items ?? get().cart;
+    if (!cartItems.length) return null;
+    const payload = cartItems.map((item) => ({
+      productId:
+        typeof item.product === "string"
+          ? item.product
+          : (item.product as Product)._id,
+      quantity: item.quantity ?? 1,
+    }));
+    const res = await apiPlaceOrder(payload);
+    await get().loadCart();
+    await get().fetchBuyerOrders();
+    return res.data?._id ?? null;
+  },
+  updateOrderStatus: async (orderId, status) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("qs-token") : null;
+    if (!get().isAuthenticated || !token) {
+      return;
+    }
+    await apiUpdateOrderStatus(orderId, status);
+    // Refresh both seller and buyer views so status updates propagate to reviews eligibility
+    await Promise.allSettled([get().fetchSellerOrders(), get().fetchBuyerOrders()]);
+  },
+
+  // Auth
+  login: async (email: string, password: string) => {
+    const res = await apiLogin(email, password);
+
+    const { token, user } = res.data;
+
+    // Save JWT
+    localStorage.setItem("qs-token", token);
+    localStorage.setItem("isAuthenticated", "true");
+
+    // Save user data
+    localStorage.setItem("userName", user.name);
+    localStorage.setItem("userEmail", user.email);
+    localStorage.setItem("userRole", user.role);
+    if (user.storeId) {
+      localStorage.setItem("userStoreId", user.storeId);
+    } else {
+      localStorage.removeItem("userStoreId");
+    }
+
+    // Update Zustand state
+    set({
+      isAuthenticated: true,
+      userRole: user.role,
+      userName: user.name,
+      userEmail: user.email,
+      userStoreId: user.storeId || "",
+    });
+
+    await get().loadCart();
+    await get().loadFavorites();
+  },
+  logout: () => {
+    // Remove everything from localStorage
+    localStorage.removeItem("qs-token");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userStoreId");
+    localStorage.removeItem("isAuthenticated");
+
+    // Reset Zustand
+    set({
+      isAuthenticated: false,
+      userRole: "buyer",
+      userName: "",
+      userEmail: "",
+      userStoreId: "",
+      cart: [],
+      favorites: [],
+      orders: [],
+    });
+  },
+  register: async (name, email, password, role) => {
+    await apiRegister({ name, email, password, role });
+  },
   setRole: (role) =>
     set(() => {
       if (typeof window !== "undefined") {
@@ -574,66 +559,46 @@ export const useStore = create<State & Actions>((set) => ({
       }
       return { userRole: role };
     }),
-  setUserInfo: ({ name, email }) =>
-    set(() => {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("userName", name);
-        localStorage.setItem("userEmail", email);
-      }
-      return { userName: name, userEmail: email };
-    }),
-  placeOrder: (cart, buyerName, buyerEmail) => {
-    if (!cart.length) {
-      return null;
-    }
-    let newOrderId: string | null = null;
-    set((s) => {
-      const productLookup = Object.fromEntries(
-        s.products.map((product) => [product.id, product])
-      );
-      const validItems = cart.filter((item) => productLookup[item.productId]);
-      if (!validItems.length) {
-        return {};
-      }
-      const total = validItems.reduce((sum, item) => {
-        const product = productLookup[item.productId];
-        return sum + (product ? product.price * item.qty : 0);
-      }, 0);
-      const firstProduct = productLookup[validItems[0].productId];
-      const orderId = `o${Date.now()}`;
-      const order: Order = {
-        id: orderId,
-        buyerName: buyerName || "Quick Shopper",
-        buyerEmail: buyerEmail || "guest@shopup.com",
-        storeId: firstProduct?.storeId ?? "quick-shop",
-        items: validItems.map((item) => ({
-          productId: item.productId,
-          qty: item.qty,
-        })),
-        total,
-        status: "Pending",
-        placedAt: new Date().toISOString(),
-        expectedDelivery: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000
-        ).toISOString(),
-      };
-      newOrderId = orderId;
-      return { orders: [...s.orders, order] };
+  setUserInfo: ({ name, email }) => {
+    localStorage.setItem("userName", name);
+    localStorage.setItem("userEmail", email);
+
+    return set({
+      userName: name,
+      userEmail: email,
     });
-    return newOrderId;
   },
-  markOrderConfirmed: (orderId) =>
+  initializeAuth: () => {
+    const token = localStorage.getItem("qs-token");
+    if (!token) return;
+
+    set({
+      isAuthenticated: true,
+      userRole: (localStorage.getItem("userRole") as UserRole) || "buyer",
+      userName: localStorage.getItem("userName") || "",
+      userEmail: localStorage.getItem("userEmail") || "",
+      userStoreId: localStorage.getItem("userStoreId") || "",
+    });
+  },
+
+  markOrderConfirmed: (orderId) => {
     set((s) => ({
       confirmedOrderIds: s.confirmedOrderIds.includes(orderId)
         ? s.confirmedOrderIds
         : [...s.confirmedOrderIds, orderId],
-    })),
+    }));
+    if (get().isAuthenticated) {
+      void get().fetchBuyerOrders();
+      void get().fetchSellerOrders();
+    }
+  },
   setSellerStoreId: (storeId = "") => {
     if (typeof window !== "undefined") {
       localStorage.setItem("userStoreId", storeId);
     }
     set({ userStoreId: storeId });
   },
+  toggleCart: () => set((s) => ({ ui: { cartOpen: !s.ui.cartOpen } })),
 }));
 
 export const useFilters = () => useStore((s) => s.filters);

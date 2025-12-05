@@ -13,8 +13,6 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
   const toggleCart = useStore((s) => s.toggleCart);
   const placeOrder = useStore((s) => s.placeOrder);
   const clearCart = useStore((s) => s.clearCart);
-  const userName = useStore((s) => s.userName);
-  const userEmail = useStore((s) => s.userEmail);
   const cartOpen = useStore((s) => s.ui.cartOpen);
   const setQty = useStore((s) => s.setQty);
   const removeFromCart = useStore((s) => s.removeFromCart);
@@ -22,18 +20,18 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
   const navigate = useNavigate();
 
   const total = cart.reduce((sum, item) => {
-    const product = products.find((p) => p.id === item.productId);
-    return sum + (product ? product.price * item.qty : 0);
+    const product = item.product ?? products.find((p) => p._id === item.productId);
+    return sum + (product ? product.price * (item.quantity ?? item.qty ?? 1) : 0);
   }, 0);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!cart.length) return;
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
     toggleCart();
-    const orderId = placeOrder(cart, userName, userEmail);
+    const orderId = await placeOrder();
     if (orderId) {
       onCheckoutComplete?.(orderId);
     }
@@ -71,7 +69,8 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
             ) : (
               <ul className="space-y-4">
                 {cart.map((item) => {
-                  const product = products.find((p) => p.id === item.productId);
+                  const product =
+                    item.product ?? products.find((p) => p._id === item.productId);
                   if (!product) return null;
                   const imageSources =
                     product.images && product.images.length
@@ -80,9 +79,11 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                       ? [product.image]
                       : [];
                   const cartImage = imageSources[0] ?? product.image;
+                  const qty = item.quantity ?? item.qty ?? 1;
+                  const productId = product._id;
                   return (
                     <li
-                      key={item.productId}
+                      key={productId}
                       className="rounded-2xl border border-slate-100 p-3 text-sm"
                     >
                       <div className="flex items-center gap-3">
@@ -101,7 +102,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                         </div>
                         <button
                           type="button"
-                          onClick={() => removeFromCart(item.productId)}
+                          onClick={() => removeFromCart(productId)}
                           className="cursor-pointer text-rose-500 transition duration-200 ease-in-out hover:text-rose-600"
                           aria-label={`Remove ${product.title} from cart`}
                         >
@@ -113,24 +114,24 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                         <div className="flex items-center rounded-full border border-slate-200">
                           <button
                             type="button"
-                            onClick={() => setQty(item.productId, item.qty - 1)}
+                            onClick={() => setQty(productId, qty - 1)}
                             className="cursor-pointer transition duration-200 ease-in-out px-3 py-1 text-lg"
                           >
                             -
                           </button>
                           <span className="px-3 text-sm font-semibold">
-                            {item.qty}
+                            {qty}
                           </span>
                           <button
                             type="button"
-                            onClick={() => setQty(item.productId, item.qty + 1)}
+                            onClick={() => setQty(productId, qty + 1)}
                             className="cursor-pointer transition duration-200 ease-in-out px-3 py-1 text-lg"
                           >
                             +
                           </button>
                         </div>
                         <span className="text-sm font-semibold text-slate-900">
-                          {money(product.price * item.qty)}
+                          {money(product.price * qty)}
                         </span>
                       </div>
                     </li>

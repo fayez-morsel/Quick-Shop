@@ -4,7 +4,6 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useStore } from "../store/useStore";
 import type { UserRole } from "../types";
-import { addAccount, getAccountByEmailAndRole } from "../utils/auth";
 
 const emailPattern = /^\S+@\S+\.\S+$/;
 
@@ -15,7 +14,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const login = useStore((s) => s.login);
-  const setUserInfo = useStore((s) => s.setUserInfo);
+  const register = useStore((s) => s.register);
   const [role, setRole] = useState<UserRole>(
     ((location.state as { role?: UserRole })?.role ?? "buyer") as UserRole
   );
@@ -34,7 +33,7 @@ export default function RegisterPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const validationErrors: Record<string, string> = {};
 
@@ -61,10 +60,6 @@ export default function RegisterPage() {
     const trimmedEmail = form.email.trim().toLowerCase();
     const password = form.password.trim();
 
-    if (!validationErrors.email && getAccountByEmailAndRole(trimmedEmail, role)) {
-      validationErrors.email = `You already have a ${role} account with this email.`;
-    }
-
     if (role === "seller" && !form.storeId.trim()) {
       validationErrors.storeId = "Store ID is required for sellers.";
     }
@@ -78,17 +73,14 @@ export default function RegisterPage() {
     setErrors({});
     const storeIdValue =
       role === "seller" ? normalizeStoreId(form.storeId) : undefined;
-    addAccount({
-      name: fullName || trimmedEmail.split("@")[0],
-      email: trimmedEmail,
-      password,
-      role,
-      storeId: storeIdValue,
-    });
-    setUserInfo({ name: fullName, email: trimmedEmail });
-    login(role);
-    setSellerStoreId(role === "seller" ? storeIdValue : "");
-    navigate(role === "seller" ? "/seller" : "/");
+    try {
+      await register(fullName || trimmedEmail.split("@")[0], trimmedEmail, password, role);
+      await login(trimmedEmail, password);
+      setSellerStoreId(role === "seller" ? storeIdValue : "");
+      navigate(role === "seller" ? "/seller" : "/");
+    } catch {
+      setErrors({ email: "Registration failed" });
+    }
   };
 
   return (
@@ -101,7 +93,7 @@ export default function RegisterPage() {
             </span>
             <h2 className="text-2xl font-bold">Create your account</h2>
             <p className="text-sm text-slate-500">
-              Join ShopUp to track orders, save favorites, and enjoy fast checkout.
+              Join QuickShop to track orders, save favorites, and enjoy fast checkout.
             </p>
           </div>
 

@@ -11,7 +11,9 @@ const blurButtonBase =
 export default function Header() {
   const navigate = useNavigate();
   const toggleCart = useStore((s) => s.toggleCart);
-  const cartCount = useStore((s) => s.cart.reduce((sum, item) => sum + item.qty, 0));
+  const cartCount = useStore((s) =>
+    s.cart.reduce((sum, item) => sum + (item.quantity ?? item.qty ?? 0), 0)
+  );
   const isAuthenticated = useStore((s) => s.isAuthenticated);
   const userRole = useStore((s) => s.userRole);
   const userName = useStore((s) => s.userName);

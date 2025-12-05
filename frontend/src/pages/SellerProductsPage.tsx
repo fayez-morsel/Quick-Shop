@@ -40,12 +40,6 @@ const categoryOptions: Category[] = [
   "Gifts",
 ];
 
-const formatProductId = (value: string) => {
-  const numeric = value.replace(/\D/g, "");
-  const padded = numeric.padStart(3, "0");
-  return `PRD-${padded}`;
-};
-
 const initialFormState: ProductFormState = {
   name: "",
   category: "Tech",
@@ -67,16 +61,21 @@ export default function SellerProductsPage() {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
 
   const tableProducts = useMemo(() => {
-    const salesByProduct = sellerOrders.reduce<Record<string, number>>((acc, order) => {
-      order.items.forEach((item) => {
-        acc[item.productId] = (acc[item.productId] ?? 0) + item.qty;
-      });
-      return acc;
-    }, {});
+    const salesByProduct = sellerOrders.reduce<Record<string, number>>(
+      (acc, order) => {
+        order.items.forEach((item) => {
+          const pid = item.productId ?? "";
+          const qty = item.qty ?? item.quantity ?? 0;
+          acc[pid] = (acc[pid] ?? 0) + qty;
+        });
+        return acc;
+      },
+      {}
+    );
 
     return products.map<TableProduct>((product) => ({
       rawId: product.id,
-      id: formatProductId(product.id),
+      id: product.id,
       name: product.title,
       category: product.category ?? "General",
       price: product.price,
@@ -212,16 +211,19 @@ export default function SellerProductsPage() {
       });
     } else {
       const fallbackStore = {
+        _id: "tech-hub",
         storeId: "tech-hub",
         storeName: "Tech Hub",
       } as const;
-      const defaultStore = products[0] ?? fallbackStore;
+      const defaultStore = products[0] ?? (fallbackStore as any);
       addProduct({
+        _id: `new-${Date.now()}`,
         id: `new-${Date.now()}`,
         title: formState.name,
         price,
-        storeId: defaultStore.storeId,
-        storeName: defaultStore.storeName,
+        storeId: defaultStore.storeId ?? defaultStore.store ?? "tech-hub",
+        store: defaultStore.storeId ?? defaultStore.store ?? "tech-hub",
+        storeName: defaultStore.storeName ?? "Tech Hub",
         category: normalizedCategory,
         stock,
         inStock: stock > 0,
@@ -459,56 +461,43 @@ export default function SellerProductsPage() {
               />
             </div>
           </div>
-        <div className="seller-product-cards mt-6 grid gap-4">
+        <div className="seller-product-cards mt-6 grid gap-4 lg:hidden">
           {filteredProducts.map((product) => (
             <article
-                key={product.id}
+                key={product.rawId}
                 className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between gap-3">
                   <p className="font-mono text-xs font-semibold text-slate-600">
                     {product.id}
                   </p>
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.4em] ${statusStyles[product.status]}`}
+                    className={`rounded-full px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.35em] ${statusStyles[product.status]}`}
                   >
                     {product.status}
                   </span>
                 </div>
-                <div className="mt-3 space-y-1 text-sm text-slate-700">
-                  <p>
-                    <span className="font-semibold text-slate-900">Name:</span>{" "}
-                    {product.name}
+                <div className="mt-3 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+                  <p className="font-semibold text-slate-900">{product.name}</p>
+                  <p className="text-slate-500">Category: {product.category}</p>
+                  <p className="text-slate-500">Price: {money(product.price)}</p>
+                  <p className={`text-slate-500 ${product.stock === 0 ? "text-rose-500" : ""}`}>
+                    Stock: {product.stock}
                   </p>
-                  <p>
-                    <span className="font-semibold text-slate-900">Category:</span>{" "}
-                    {product.category}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-slate-900">Price:</span>{" "}
-                    {money(product.price)}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-slate-900">Stock:</span>{" "}
-                    {product.stock}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-slate-900">Sales:</span>{" "}
-                    {product.sales}
-                  </p>
+                  <p className="text-slate-500">Sales: {product.sales}</p>
                 </div>
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   <button
                     type="button"
                     onClick={() => handleEditProduct(product.rawId)}
-                    className="flex-1 rounded-2xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-400"
+                    className="rounded-2xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
                   >
                     Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDeleteProduct(product.rawId)}
-                    className="flex-1 rounded-2xl border border-rose-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-rose-500 transition hover:border-rose-300"
+                    className="rounded-2xl border border-rose-200 px-3 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-rose-500 transition hover:border-rose-300"
                   >
                     Delete
                   </button>
@@ -516,7 +505,7 @@ export default function SellerProductsPage() {
               </article>
             ))}
           </div>
-            <div className="seller-product-table overflow-x-auto">
+            <div className="seller-product-table hidden overflow-x-auto lg:block">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="text-xs uppercase tracking-[0.3em] text-slate-500">
@@ -539,7 +528,7 @@ export default function SellerProductsPage() {
                   </tr>
                 )}
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="border-t border-slate-100">
+                  <tr key={product.rawId} className="border-t border-slate-100">
                     <td className="px-3 py-4 font-mono text-xs font-semibold text-slate-600">
                       {product.id}
                     </td>

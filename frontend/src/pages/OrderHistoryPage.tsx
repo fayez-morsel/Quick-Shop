@@ -54,10 +54,12 @@ export default function OrderHistoryPage() {
       )
       .filter((order) => {
         if (!normalized) return true;
+        const buyerEmail = (order.buyerEmail ?? "").toLowerCase();
+        const storeId = (order.storeId ?? "").toLowerCase();
         return (
           order.id.toLowerCase().includes(normalized) ||
-          order.buyerEmail.toLowerCase().includes(normalized) ||
-          order.storeId.toLowerCase().includes(normalized)
+          buyerEmail.includes(normalized) ||
+          storeId.includes(normalized)
         );
       });
   }, [scopedOrders, search]);
@@ -159,15 +161,16 @@ export default function OrderHistoryPage() {
                     }}
                   >
                     <div className="grid gap-3 md:grid-cols-2">
-                      {order.items.map((item) => {
+                      {order.items.map((item, index) => {
                         const product = products.find(
                           (p) => p.id === item.productId
                         );
                         const image =
                           product?.images?.[0] || product?.image || "";
+                        const qty = item.qty ?? item.quantity ?? 0;
                         return (
                           <div
-                            key={`${order.id}-${item.productId}`}
+                            key={`${order.id}-${item.productId ?? "item"}-${index}`}
                             className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-white px-3 py-3 shadow-sm md:grid-cols-[72px_minmax(0,1fr)_auto]"
                           >
                             {image ? (
@@ -186,11 +189,11 @@ export default function OrderHistoryPage() {
                                 {product?.title ?? item.productId}
                               </p>
                               <p className="text-xs text-slate-500">
-                                {product?.category ?? "Item"} · Qty: {item.qty}
+                                {product?.category ?? "Item"} · Qty: {qty}
                               </p>
                             </div>
                             <div className="flex items-center justify-end text-sm font-semibold text-slate-800 md:flex-col md:items-end md:gap-1">
-                              <span>{product ? money(product.price * item.qty) : "--"}</span>
+                              <span>{product ? money(product.price * qty) : "--"}</span>
                             </div>
                           </div>
                         );

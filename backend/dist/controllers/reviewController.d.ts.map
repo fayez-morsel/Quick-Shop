@@ -1,0 +1,1 @@
+{"version":3,"file":"reviewController.d.ts","sourceRoot":"","sources":["../../src/controllers/reviewController.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAExC,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,uBAAuB,CAAC;AAKrD,eAAO,MAAM,UAAU,GAAU,KAAK,OAAO,EAAE,KAAK,QAAQ,kBAS3D,CAAC;AAEF,eAAO,MAAM,SAAS,GAAU,KAAK,OAAO,EAAE,KAAK,QAAQ,4DAgF1D,CAAC"}

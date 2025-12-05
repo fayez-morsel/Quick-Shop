@@ -19,7 +19,8 @@ export default function ProductCard({ product, onSelect }: Props) {
   const toggleFavorite = useStore((s) => s.toggleFavorite);
   const tagline =
     product.tagline ?? `High-quality ${(product.category ?? "Product").toLowerCase()} gear crafted for you.`;
-  const isFavorite = favorites.includes(product.id);
+  const productId = product.id ?? product._id;
+  const isFavorite = favorites.includes(productId);
   const isClickable = Boolean(onSelect);
   const isAuthenticated = useStore((s) => s.isAuthenticated);
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ export default function ProductCard({ product, onSelect }: Props) {
 
   useEffect(() => {
     setActiveIndex(0);
-  }, [product.id, imageSources.length]);
+  }, [productId, imageSources.length]);
 
   useEffect(() => {
     if (imageSources.length <= 1) return;
@@ -67,7 +68,7 @@ export default function ProductCard({ product, onSelect }: Props) {
       navigate("/login");
       return;
     }
-    toggleFavorite(product.id);
+    toggleFavorite(productId);
   };
 
   const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
@@ -76,7 +77,7 @@ export default function ProductCard({ product, onSelect }: Props) {
       navigate("/login");
       return;
     }
-    addToCart(product.id);
+    addToCart(productId);
   };
 
   return (
@@ -134,6 +135,7 @@ export default function ProductCard({ product, onSelect }: Props) {
         <button
           type="button"
           onClick={handleToggleFavorite}
+          onMouseEnter={() => setIsPressingFavorite(true)}
           onMouseDown={() => setIsPressingFavorite(true)}
           onMouseUp={() => setIsPressingFavorite(false)}
           onMouseLeave={() => setIsPressingFavorite(false)}
@@ -178,6 +180,7 @@ export default function ProductCard({ product, onSelect }: Props) {
           onClick={handleAddToCart}
           disabled={!product.inStock}
           style={!product.inStock ? { cursor: blockedCursor } : undefined}
+          data-testid="add-to-cart"
           className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0d47a1] px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#0b3ba2] disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           <ShoppingCart className="h-5 w-5" aria-hidden />

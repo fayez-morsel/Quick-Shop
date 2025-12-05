@@ -15,6 +15,7 @@ import { useScopedOrders } from "../hooks/useScopedOrders";
 import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
 import type { Order, OrderStatus, Product } from "../types";
+import { useEffect } from "react";
 
 const statusStyles: Record<OrderStatus, string> = {
   Pending: "bg-amber-100 text-amber-700",
@@ -34,9 +35,11 @@ const fallbackLineTrend = [10, 12, 14, 13, 15, 17, 19, 18, 17, 16, 14, 13];
 
 const fallbackProducts: Product[] = [
   {
+    _id: "demo-headphones",
     id: "demo-headphones",
     title: "Demo Headphones",
     price: 200,
+    store: "demo",
     storeId: "demo",
     storeName: "Demo Store",
     category: "Tech",
@@ -45,9 +48,11 @@ const fallbackProducts: Product[] = [
     image: "/assets/products/headphones.png",
   },
   {
+    _id: "demo-smartwatch",
     id: "demo-smartwatch",
     title: "Demo Smartwatch",
     price: 240,
+    store: "demo",
     storeId: "demo",
     storeName: "Demo Store",
     category: "Tech",
@@ -56,9 +61,11 @@ const fallbackProducts: Product[] = [
     image: "/assets/products/smartwatch.png",
   },
   {
+    _id: "demo-keyboard",
     id: "demo-keyboard",
     title: "Demo Keyboard",
     price: 99,
+    store: "demo",
     storeId: "demo",
     storeName: "Demo Store",
     category: "Tech",
@@ -67,9 +74,11 @@ const fallbackProducts: Product[] = [
     image: "/assets/products/keyboard.png",
   },
   {
+    _id: "demo-mouse",
     id: "demo-mouse",
     title: "Demo Mouse",
     price: 65,
+    store: "demo",
     storeId: "demo",
     storeName: "Demo Store",
     category: "Tech",
@@ -104,24 +113,28 @@ const bestSellerFallbacks = [
 
 const fallbackOrders: Order[] = [
   {
+    _id: "demo-o1",
     id: "demo-o1",
     buyerName: "Avery Lane",
     buyerEmail: "avery@example.com",
+    store: "demo",
     storeId: "demo",
-    items: [{ productId: "demo-headphones", qty: 100 }],
+    items: [{ productId: "demo-headphones", product: fallbackProducts[0], qty: 100, quantity: 100, price: fallbackProducts[0].price }],
     total: 20000,
     status: "Delivered",
     placedAt: "2025-11-01T09:24:00.000Z",
     expectedDelivery: "2025-11-05T12:00:00.000Z",
   },
   {
+    _id: "demo-o2",
     id: "demo-o2",
     buyerName: "Benny Cole",
     buyerEmail: "benny@example.com",
+    store: "demo",
     storeId: "demo",
     items: [
-      { productId: "demo-smartwatch", qty: 1 },
-      { productId: "demo-mouse", qty: 1 },
+      { productId: "demo-smartwatch", product: fallbackProducts[1], qty: 1, quantity: 1, price: fallbackProducts[1].price },
+      { productId: "demo-mouse", product: fallbackProducts[3], qty: 1, quantity: 1, price: fallbackProducts[3].price },
     ],
     total: 305,
     status: "Shipped",
@@ -129,11 +142,13 @@ const fallbackOrders: Order[] = [
     expectedDelivery: "2025-11-14T15:00:00.000Z",
   },
   {
+    _id: "demo-o3",
     id: "demo-o3",
     buyerName: "Lena Brooks",
     buyerEmail: "lena@example.com",
+    store: "demo",
     storeId: "demo",
-    items: [{ productId: "demo-keyboard", qty: 3 }],
+    items: [{ productId: "demo-keyboard", product: fallbackProducts[2], qty: 3, quantity: 3, price: fallbackProducts[2].price }],
     total: 297,
     status: "Processing",
     placedAt: "2025-11-12T10:30:00.000Z",
@@ -159,6 +174,15 @@ type EnhancedOrder = Order & {
 
 export default function SellerDashboard() {
   const products = useStore((state) => state.products);
+  const fetchSellerOrders = useStore((s) => s.fetchSellerOrders);
+  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const userRole = useStore((s) => s.userRole);
+
+  useEffect(() => {
+    if (isAuthenticated && userRole === "seller") {
+      fetchSellerOrders();
+    }
+  }, [fetchSellerOrders, isAuthenticated, userRole]);
   const { scopedOrders } = useScopedOrders();
   const [searchQuery, setSearchQuery] = useState("");
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -175,7 +199,10 @@ export default function SellerDashboard() {
       effectiveOrders.map((order) => ({
         ...order,
         productNames: order.items
-          .map((item) => productLookup[item.productId]?.title ?? item.productId)
+          .map((item) => {
+            const pid = item.productId ?? (typeof item.product === "object" ? item.product.id : "");
+            return productLookup[pid]?.title ?? pid;
+          })
           .join(", "),
       })),
     [effectiveOrders, productLookup]
@@ -191,13 +218,15 @@ export default function SellerDashboard() {
     const customerEmails = new Set<string>();
 
     effectiveOrders.forEach((order) => {
-      customerEmails.add(order.buyerEmail.toLowerCase());
+      customerEmails.add((order.buyerEmail ?? "").toLowerCase());
       totalRevenue += order.total;
       order.items.forEach((item) => {
-        const entry = map.get(item.productId);
+        const pid = item.productId ?? (typeof item.product === "object" ? item.product.id : "");
+        const entry = map.get(pid);
         if (!entry) return;
-        entry.sales += item.qty;
-        entry.revenue += entry.product.price * item.qty;
+        const qty = item.qty ?? item.quantity ?? 0;
+        entry.sales += qty;
+        entry.revenue += entry.product.price * qty;
       });
     });
 
@@ -243,11 +272,11 @@ export default function SellerDashboard() {
   const customerProfiles = useMemo(() => {
     const map = new Map<string, { name: string; email: string; orders: number; lifetimeValue: number }>();
     effectiveOrders.forEach((order) => {
-      const key = order.buyerEmail.toLowerCase();
+      const key = (order.buyerEmail ?? "").toLowerCase();
       const current =
         map.get(key) ?? {
-          name: order.buyerName,
-          email: order.buyerEmail,
+          name: order.buyerName ?? "",
+          email: order.buyerEmail ?? "",
           orders: 0,
           lifetimeValue: 0,
         };
@@ -266,17 +295,17 @@ export default function SellerDashboard() {
     const matchesProduct = (product: Product) =>
       product.title.toLowerCase().includes(normalizedQuery) ||
       product.category?.toLowerCase().includes(normalizedQuery) ||
-      product.storeName.toLowerCase().includes(normalizedQuery);
+      (product.storeName ?? "").toLowerCase().includes(normalizedQuery);
 
     const matchesOrder = (order: EnhancedOrder) =>
       order.id.toLowerCase().includes(normalizedQuery) ||
-      order.buyerName.toLowerCase().includes(normalizedQuery) ||
+      (order.buyerName ?? "").toLowerCase().includes(normalizedQuery) ||
       order.productNames.toLowerCase().includes(normalizedQuery) ||
       order.status.toLowerCase().includes(normalizedQuery);
 
     const matchesCustomer = (customer: (typeof customerProfiles)[number]) =>
-      customer.name.toLowerCase().includes(normalizedQuery) ||
-      customer.email.toLowerCase().includes(normalizedQuery);
+      (customer.name ?? "").toLowerCase().includes(normalizedQuery) ||
+      (customer.email ?? "").toLowerCase().includes(normalizedQuery);
 
     return {
       products: effectiveProducts.filter(matchesProduct).slice(0, 4),
@@ -290,7 +319,6 @@ export default function SellerDashboard() {
     searchResults.products.length +
     searchResults.orders.length +
     searchResults.customers.length;
-  const recentOrders = enhancedOrders.slice(0, 6);
   const referenceRevenue = Math.max(topProducts[0]?.revenue ?? 1, 1);
 
   const formatNumber = (value: number) =>
@@ -332,7 +360,7 @@ export default function SellerDashboard() {
   return (
     <SellerLayout activeLink="Dashboard">
       <header>
-        <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm">
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center">
           <Search className="h-5 w-5 text-slate-400" />
           <input
             className="ml-3 flex-1 border-none bg-transparent text-sm text-slate-600 focus:outline-none"
@@ -352,7 +380,7 @@ export default function SellerDashboard() {
 
       {showSearchResults && (
         <section className="mt-6 rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">
                 Search results
@@ -396,7 +424,7 @@ export default function SellerDashboard() {
                   <p className="text-sm text-slate-400">No orders match that query.</p>
                 ) : (
                   searchResults.orders.map((order) => (
-                    <div key={order.id} className="rounded-2xl border border-slate-200 bg-white p-3">
+                  <div key={`${order.id}-card`} className="rounded-2xl border border-slate-200 bg-white p-3">
                       <p className="font-semibold text-slate-900">#{order.id.toUpperCase()}</p>
                       <p className="text-sm text-slate-500">{order.buyerName}</p>
                       <p className="text-sm text-slate-500">{order.productNames}</p>
@@ -460,7 +488,7 @@ export default function SellerDashboard() {
         })}
       </section>
 
-      <section className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
+      <section className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
         <article className="rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
           <div className="flex items-center justify-between">
             <div>
@@ -471,13 +499,14 @@ export default function SellerDashboard() {
               2025
             </div>
           </div>
-          <div className="mt-6">
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f9ff] p-4">
-              <ResponsiveContainer width="100%" height={280}>
+          <div className="mt-6 overflow-x-auto -mx-4 sm:mx-0">
+            <div className="w-full min-w-[320px] sm:min-w-[520px] overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f9ff] px-3 py-4 sm:p-4">
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart
                   data={monthlyPerformance}
-                  margin={{ top: 10, right: 12, left: 4, bottom: 0 }}
-                  barCategoryGap={18}
+                  margin={{ top: 10, right: 16, left: 8, bottom: 0 }}
+                  barCategoryGap={20}
+                  style={{ cursor: "pointer" }}
                 >
                   <defs>
                     <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
@@ -528,7 +557,7 @@ export default function SellerDashboard() {
                     dataKey="bar"
                     radius={[12, 12, 8, 8]}
                     fill="url(#barGradient)"
-                    maxBarSize={32}
+                    maxBarSize={36}
                   />
                   <Line
                     yAxisId="right"
@@ -538,7 +567,7 @@ export default function SellerDashboard() {
                     strokeWidth={2.5}
                     strokeLinecap="round"
                     dot={{ r: 4, strokeWidth: 2, stroke: "#f7f9ff", fill: "#0f172a" }}
-                    activeDot={{ r: 6, strokeWidth: 0 }}
+                    activeDot={{ r: 6, strokeWidth: 0, cursor: "pointer" }}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -553,108 +582,33 @@ export default function SellerDashboard() {
               <h2 className="text-2xl font-semibold text-slate-900">Best sellers</h2>
             </div>
           </div>
-          <div className="space-y-5">
-            {topProducts.map((entry) => {
-              const progress = Math.min(Math.round((entry.revenue / referenceRevenue) * 100), 100);
-              return (
-                <div key={entry.product.id}>
-                  <div className="flex items-center justify-between text-sm">
-                    <div>
-                      <p className="font-semibold text-slate-900">{entry.product.title}</p>
-                      <p className="text-xs text-slate-500">{entry.sales} sales</p>
+          <div className="mt-4 overflow-x-auto -mx-4 sm:mx-0">
+            <div className="w-full min-w-[320px] sm:min-w-[420px] space-y-5 px-3 sm:px-0">
+              {topProducts.map((entry) => {
+                const progress = Math.min(Math.round((entry.revenue / referenceRevenue) * 100), 100);
+                return (
+                  <div key={entry.product.id}>
+                    <div className="flex items-center justify-between text-sm">
+                      <div>
+                        <p className="font-semibold text-slate-900">{entry.product.title}</p>
+                        <p className="text-xs text-slate-500">{entry.sales} sales</p>
+                      </div>
+                      <span className="text-sm font-semibold text-slate-600">{money(entry.revenue)}</span>
                     </div>
-                    <span className="text-sm font-semibold text-slate-600">{money(entry.revenue)}</span>
+                    <div className="mt-2 h-2 rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full bg-linear-to-r from-blue-600 to-sky-400"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="mt-2 h-2 rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-linear-to-r from-blue-600 to-sky-400"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </article>
       </section>
 
-      <section className="mt-6 rounded-4xl bg-white p-6 shadow-[0_35px_60px_rgba(15,23,42,0.08)]">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">Recent orders</p>
-            <h2 className="text-2xl font-semibold text-slate-900">Customer orders</h2>
-          </div>
-        </div>
-        <div className="mt-6 space-y-3 recent-orders-mobile">
-          {recentOrders.length === 0 && (
-            <p className="text-sm text-slate-400">No orders yet</p>
-          )}
-          {recentOrders.map((order) => (
-            <div
-              key={order.id}
-              className="cursor-pointer rounded-2xl border border-slate-100 p-4 shadow-sm transition hover:border-slate-200"
-            >
-              <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-slate-500">
-                <span>#{order.id.toUpperCase()}</span>
-                <span>{new Date(order.placedAt).toLocaleDateString()}</span>
-              </div>
-              <div className="mt-2 text-sm font-semibold text-slate-900">{order.buyerName}</div>
-              <p className="text-sm text-slate-500">{order.productNames}</p>
-              <div className="mt-2 flex items-center justify-between text-sm">
-                <span className="text-slate-900 font-semibold">{money(order.total)}</span>
-                <span
-                  className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] ${
-                    statusStyles[order.status]
-                  }`}
-                >
-                  {order.status}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-6 overflow-x-auto recent-orders-desktop">
-          <table className="min-w-full text-left text-sm">
-            <thead>
-              <tr className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                <th className="px-3 py-3">Order ID</th>
-                <th className="px-3 py-3">Customer</th>
-                <th className="px-3 py-3">Product</th>
-                <th className="px-3 py-3">Date</th>
-                <th className="px-3 py-3">Amount</th>
-                <th className="px-3 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-700">
-              {recentOrders.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="py-6 text-center text-sm text-slate-400">
-                    No orders yet
-                  </td>
-                </tr>
-              )}
-              {recentOrders.map((order) => (
-                <tr key={order.id} className="border-t border-slate-100 cursor-pointer">
-                  <td className="px-3 py-4 font-semibold text-slate-900">#{order.id.toUpperCase()}</td>
-                  <td className="px-3 py-4">{order.buyerName}</td>
-                  <td className="px-3 py-4 text-slate-500">{order.productNames}</td>
-                  <td className="px-3 py-4 text-slate-500">{new Date(order.placedAt).toLocaleDateString()}</td>
-                  <td className="px-3 py-4 font-semibold text-slate-900">{money(order.total)}</td>
-                  <td className="px-3 py-4">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.4em] ${
-                        statusStyles[order.status]
-                      }`}
-                    >
-                      {order.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
     </SellerLayout>
   );
 }

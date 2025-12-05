@@ -9,7 +9,7 @@ export default function FavoritesPage() {
   const products = useStore((s) => s.products);
 
   const favoriteProducts = products.filter((product) =>
-    favorites.includes(product.id)
+    favorites.includes(product.id ?? product._id)
   );
 
   if (!favoriteProducts.length) {
@@ -40,7 +40,7 @@ export default function FavoritesPage() {
             <ProductCard
               key={product.id}
               product={product}
-              onSelect={() => navigate(`/product/${product.id}`)}
+              onSelect={() => navigate(`/product/${product.id ?? product._id}`)}
             />
           ))}
         </div>

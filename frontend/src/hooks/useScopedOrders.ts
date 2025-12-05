@@ -10,14 +10,7 @@ export function useScopedOrders() {
 
   const scopedOrders = useMemo(
     () => {
-      const fallbackStoreId =
-        userStoreId || (orders.find((order) => Boolean(order.storeId))?.storeId ?? "");
-      return filterOrdersForScope(
-        orders,
-        userRole,
-        userEmail,
-        fallbackStoreId
-      );
+      return filterOrdersForScope(orders, userRole, userEmail, userStoreId);
     },
     [orders, userRole, userEmail, userStoreId]
   );

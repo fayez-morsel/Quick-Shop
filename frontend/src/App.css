@@ -9,3 +9,23 @@ body {
   min-height: 100vh;
   background-color: #f8fafc;
 }
+
+html {
+  overflow-anchor: none;
+}
+
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+a,
+select {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+}

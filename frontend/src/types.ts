@@ -1,12 +1,15 @@
-//  Product info
+//  Product info (backend-driven)
 export type Product = {
+  _id: string;
   id: string;
   title: string;
   price: number;
-  compareAtPrice?: number; // old price for discount display
-  storeId: string;
-  storeName: Brand;
-  category?: Category;
+  compareAtPrice?: number; 
+  store?: string;
+  storeId?: string;
+  storeName: Brand | string;
+  brand?: Brand | string;
+  category?: Category | string;
   discounted?: boolean;
   tagline?: string;
   image: string;
@@ -20,13 +23,16 @@ export type Product = {
   discountExpires?: string;
 };
 
-// Cart item
+
 export type CartItem = {
-  productId: string;
-  qty: number;
+  product: Product;
+  quantity: number;
+  productId?: string;
+  qty?: number;
+  _id?: string;
 };
 
-// Filter State(search, store, ...)
+
 export type FilterState = {
   query: string;
   store: string | "all";
@@ -53,20 +59,28 @@ export type OrderStatus =
   | "Canceled";
 
 export type OrderItem = {
-  productId: string;
-  qty: number;
+  product: Product | string;
+  productId?: string;
+  qty?: number;
+  quantity?: number;
+  title?: string;
+  price?: number;
+  image?: string;
 };
 
 export type Order = {
+  _id: string;
   id: string;
-  buyerName: string;
-  buyerEmail: string;
+  buyer?: string;
+  buyerEmail?: string;
+  buyerName?: string;
+  store: string;
   storeId: string;
   items: OrderItem[];
   total: number;
   status: OrderStatus;
   placedAt: string;
-  expectedDelivery: string;
+  expectedDelivery?: string;
 };
 
 export type UserRole = "buyer" | "seller";
@@ -78,7 +92,8 @@ export type Category =
   | "Sport"
   | "Accessories"
   | "Books"
-  | "Gifts";
+  | "Gifts"
+  | string;
 
 export type Brand =
   | "Tech Hub"
@@ -87,4 +102,5 @@ export type Brand =
   | "DataHub"
   | "ErgoWorks"
   | "HomeLight"
-  | "Demo Store";
+  | "Demo Store"
+  | string;

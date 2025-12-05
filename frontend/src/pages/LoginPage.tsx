@@ -4,7 +4,6 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useStore } from "../store/useStore";
 import type { UserRole } from "../types";
-import { getAccountByEmail, getAccountByEmailAndRole } from "../utils/auth";
 
 const emailPattern = /^\S+@\S+\.\S+$/;
 
@@ -24,7 +23,7 @@ export default function LoginPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const validationErrors: typeof errors = {};
 
@@ -47,27 +46,20 @@ export default function LoginPage() {
 
     const normalizedEmail = form.email.trim().toLowerCase();
     const normalizedPassword = form.password.trim();
-    const account = getAccountByEmailAndRole(normalizedEmail, role);
-
-    if (!account) {
-      const registeredAccount = getAccountByEmail(normalizedEmail);
-      validationErrors.email = registeredAccount
-        ? `This email is registered as a ${registeredAccount.role} account.`
-        : "No account found with this email. Please register.";
-      setErrors(validationErrors);
-      return;
-    }
-
-    if (account.password !== normalizedPassword) {
-      setErrors({ password: "Incorrect password for this account." });
-      return;
-    }
 
     setErrors({});
-    login(role);
-    setUserInfo({ name: account.name, email: normalizedEmail });
-    setSellerStoreId(role === "seller" ? account.storeId ?? "" : "");
-    navigate(role === "seller" ? "/seller" : "/");
+    try {
+      await login(normalizedEmail, normalizedPassword);
+      const { userName, userEmail, userRole, userStoreId } = useStore.getState();
+      setUserInfo({
+        name: userName || normalizedEmail.split("@")[0],
+        email: userEmail || normalizedEmail,
+      });
+      setSellerStoreId(userStoreId ?? "");
+      navigate(userRole === "seller" ? "/seller" : "/");
+    } catch {
+      setErrors({ email: "Login failed. Check your credentials." });
+    }
   };
 
   return (
@@ -80,7 +72,7 @@ export default function LoginPage() {
             </span>
             <h2 className="text-2xl font-bold">Welcome back</h2>
             <p className="text-sm text-slate-500">
-              Sign in to continue shopping on ShopUp.
+              Sign in to continue shopping on QuickShop.
             </p>
           </div>
 

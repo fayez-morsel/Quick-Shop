@@ -44,7 +44,7 @@ export default function SellerLayout({
     <div className="flex min-h-screen min-w-[250px] bg-white text-slate-900">
       {sidebarOpen && !isWide && (
         <div
-          className="fixed inset-0 z-30 bg-black/40"
+          className="fixed inset-0 z-30"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -65,7 +65,7 @@ export default function SellerLayout({
       >
         <div className="mx-auto flex max-w-6xl flex-col gap-8">
           {showHeader && (
-            <header className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white px-6 py-4 shadow-[0_20px_45px_rgba(15,23,42,0.08)]">
+            <header className="sticky top-0 z-30 flex items-center justify-between rounded-3xl border border-slate-200 bg-white/95 px-6 py-4 text-slate-900 shadow-[0_20px_45px_rgba(15,23,42,0.08)] backdrop-blur">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -81,10 +81,10 @@ export default function SellerLayout({
                 <button
                   type="button"
                   onClick={() => navigate("/seller")}
-                  className="rounded-full px-4 py-2 text-xl font-bold text-white"
+                  className="rounded-full px-4 py-2 text-xl font-bold text-[#0b3ca9]"
                 >
-                  <span className="text-emerald-200">Quick</span>
-                  <span className="text-yellow-300">Shop</span>
+                  <span className="text-emerald-300">Quick</span>
+                  <span className="text-yellow-400">Shop</span>
                 </button>
               </div>
               <button
