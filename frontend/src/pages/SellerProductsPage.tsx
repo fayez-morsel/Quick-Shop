@@ -40,12 +40,6 @@ const categoryOptions: Category[] = [
   "Gifts",
 ];
 
-const formatProductId = (value: string) => {
-  const numeric = value.replace(/\D/g, "");
-  const padded = numeric.padStart(3, "0");
-  return `PRD-${padded}`;
-};
-
 const initialFormState: ProductFormState = {
   name: "",
   category: "Tech",
@@ -67,16 +61,21 @@ export default function SellerProductsPage() {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
 
   const tableProducts = useMemo(() => {
-    const salesByProduct = sellerOrders.reduce<Record<string, number>>((acc, order) => {
-      order.items.forEach((item) => {
-        acc[item.productId] = (acc[item.productId] ?? 0) + item.qty;
-      });
-      return acc;
-    }, {});
+    const salesByProduct = sellerOrders.reduce<Record<string, number>>(
+      (acc, order) => {
+        order.items.forEach((item) => {
+          const pid = item.productId ?? "";
+          const qty = item.qty ?? item.quantity ?? 0;
+          acc[pid] = (acc[pid] ?? 0) + qty;
+        });
+        return acc;
+      },
+      {}
+    );
 
     return products.map<TableProduct>((product) => ({
       rawId: product.id,
-      id: formatProductId(product.id),
+      id: product.id,
       name: product.title,
       category: product.category ?? "General",
       price: product.price,
@@ -212,16 +211,19 @@ export default function SellerProductsPage() {
       });
     } else {
       const fallbackStore = {
+        _id: "tech-hub",
         storeId: "tech-hub",
         storeName: "Tech Hub",
       } as const;
-      const defaultStore = products[0] ?? fallbackStore;
+      const defaultStore = products[0] ?? (fallbackStore as any);
       addProduct({
+        _id: `new-${Date.now()}`,
         id: `new-${Date.now()}`,
         title: formState.name,
         price,
-        storeId: defaultStore.storeId,
-        storeName: defaultStore.storeName,
+        storeId: defaultStore.storeId ?? defaultStore.store ?? "tech-hub",
+        store: defaultStore.storeId ?? defaultStore.store ?? "tech-hub",
+        storeName: defaultStore.storeName ?? "Tech Hub",
         category: normalizedCategory,
         stock,
         inStock: stock > 0,
@@ -462,7 +464,7 @@ export default function SellerProductsPage() {
         <div className="seller-product-cards mt-6 grid gap-4 lg:hidden">
           {filteredProducts.map((product) => (
             <article
-                key={product.id}
+                key={product.rawId}
                 className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3">
@@ -526,7 +528,7 @@ export default function SellerProductsPage() {
                   </tr>
                 )}
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="border-t border-slate-100">
+                  <tr key={product.rawId} className="border-t border-slate-100">
                     <td className="px-3 py-4 font-mono text-xs font-semibold text-slate-600">
                       {product.id}
                     </td>
