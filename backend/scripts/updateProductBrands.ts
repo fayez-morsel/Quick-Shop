@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { connectDB } from "../src/config/db.js";
 import { Product } from "../src/models/Product.js";
+import { Types } from "mongoose";
 
 const BRANDS = [
   "Tech Hub",
@@ -29,15 +30,12 @@ async function run() {
     process.exit(0);
   }
 
-  const operations = products.map((p: { _id: string }) => {
-    const brand = pickBrand(p._id.toString());
-    return {
-      updateOne: {
-        filter: { _id: p._id },
-        update: { $set: { brand } },
-      },
-    };
-  });
+  const operations = products.map((p: { _id: Types.ObjectId }) => ({
+    updateOne: {
+      filter: { _id: p._id },
+      update: { $set: { brand: pickBrand(p._id.toString()) } },
+    },
+  }));
 
   const result = await Product.bulkWrite(operations, { ordered: false });
   console.log(
