@@ -1,0 +1,70 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "QuickShop" [ref=e7] [cursor=pointer]
+      - generic [ref=e8]:
+        - button "View cart" [ref=e9] [cursor=pointer]:
+          - img [ref=e10]
+        - button "Open menu" [ref=e14] [cursor=pointer]:
+          - img [ref=e15]
+        - generic "Signed in as E2E Tester" [ref=e16]: ET
+  - main [ref=e17]:
+    - paragraph [ref=e19]: Product not found.
+  - contentinfo [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - button "QuickShop" [ref=e24] [cursor=pointer]
+          - paragraph [ref=e25]: Your trusted e-commerce platform for quality products from verified stores.
+        - generic [ref=e26]:
+          - paragraph [ref=e27]: Quick Links
+          - list [ref=e28]:
+            - listitem [ref=e29]:
+              - button "All Products" [ref=e30] [cursor=pointer]
+            - listitem [ref=e31]:
+              - button "My Orders" [ref=e32] [cursor=pointer]
+            - listitem [ref=e33]:
+              - button "Favorites" [ref=e34] [cursor=pointer]
+            - listitem [ref=e35]:
+              - button "Shopping Cart" [ref=e36] [cursor=pointer]
+        - generic [ref=e37]:
+          - paragraph [ref=e38]: Customer Service
+          - list [ref=e39]:
+            - listitem [ref=e40]:
+              - button "Help Center" [ref=e41] [cursor=pointer]
+            - listitem [ref=e42]:
+              - button "Shipping Info" [ref=e43] [cursor=pointer]
+            - listitem [ref=e44]:
+              - button "Returns" [ref=e45] [cursor=pointer]
+            - listitem [ref=e46]:
+              - button "Contact Us" [ref=e47] [cursor=pointer]
+        - generic [ref=e48]:
+          - paragraph [ref=e49]: Connect With Us
+          - generic [ref=e50]:
+            - button "Facebook" [ref=e51] [cursor=pointer]:
+              - img [ref=e52]
+            - button "Twitter" [ref=e54] [cursor=pointer]:
+              - img [ref=e55]
+            - button "Instagram" [ref=e57] [cursor=pointer]:
+              - img [ref=e58]
+            - button "Email" [ref=e61] [cursor=pointer]:
+              - img [ref=e62]
+          - paragraph [ref=e65]: Subscribe to our newsletter for updates and exclusive offers.
+      - generic [ref=e66]: © 2025 QuickShop. All rights reserved.
+  - generic [ref=e68]:
+    - banner [ref=e69]:
+      - generic [ref=e70]: My Cart
+      - button "Close cart" [ref=e71] [cursor=pointer]:
+        - img [ref=e72]
+    - paragraph [ref=e76]: Your cart is empty.
+    - contentinfo [ref=e77]:
+      - generic [ref=e78]:
+        - generic [ref=e79]: Total
+        - generic [ref=e80]: $0.00
+      - generic [ref=e81]:
+        - button "Clear" [ref=e82] [cursor=pointer]
+        - button "Checkout" [disabled] [ref=e83]
+```

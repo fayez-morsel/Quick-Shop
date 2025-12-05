@@ -1,0 +1,139 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "QuickShop" [ref=e7] [cursor=pointer]
+      - generic [ref=e8]:
+        - button "View cart" [ref=e9] [cursor=pointer]:
+          - img [ref=e10]
+        - button "Open menu" [ref=e14] [cursor=pointer]:
+          - img [ref=e15]
+  - main [ref=e16]:
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - img "Seed Product 100" [ref=e22]
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - paragraph [ref=e25]: Store
+            - heading "Seed Product 100" [level=1] [ref=e26]
+            - generic "Rating 4.3 out of 5 from 4 reviews" [ref=e28]:
+              - img [ref=e30]
+              - generic [ref=e32]: "4.3"
+              - generic [ref=e33]: (4)
+            - paragraph [ref=e34]: $105.19
+            - paragraph [ref=e35]: Discounted Price Available
+          - generic [ref=e36]:
+            - paragraph [ref=e37]: Description
+            - paragraph [ref=e38]: High quality product crafted for you.
+            - generic [ref=e39]:
+              - generic [ref=e40]:
+                - paragraph [ref=e41]: Category
+                - paragraph [ref=e42]: Accessories
+              - generic [ref=e43]:
+                - paragraph [ref=e44]: Seller
+                - paragraph [ref=e45]: Store
+          - generic [ref=e46]:
+            - button "-" [ref=e47] [cursor=pointer]
+            - generic [ref=e48]: "1"
+            - button "+" [ref=e49] [cursor=pointer]
+          - generic [ref=e50]:
+            - button "Add to cart" [ref=e51] [cursor=pointer]
+            - button "Go to products" [ref=e52] [cursor=pointer]
+      - generic [ref=e53]:
+        - heading "Customer Reviews" [level=2] [ref=e54]
+        - paragraph [ref=e55]: Write a review
+        - paragraph [ref=e56]: Signed in as guest (private)
+        - generic [ref=e58]:
+          - paragraph [ref=e59]: Reviews unlock after delivery.
+          - paragraph [ref=e60]: Sign in and purchase this product to leave a review.
+          - button "Submit review" [ref=e61] [cursor=pointer]
+        - generic [ref=e62]:
+          - generic [ref=e63]:
+            - generic [ref=e64]:
+              - generic "Rating 5.0 out of 5 from 0 reviews" [ref=e65]:
+                - img [ref=e67]
+                - generic [ref=e69]: "5.0"
+                - generic [ref=e70]: (0)
+              - generic [ref=e71]: tata tata - tata@gmail.com • 12/5/2025
+            - paragraph [ref=e72]: perfect
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - generic "Rating 5.0 out of 5 from 0 reviews" [ref=e75]:
+                - img [ref=e77]
+                - generic [ref=e79]: "5.0"
+                - generic [ref=e80]: (0)
+              - generic [ref=e81]: tata tata - tata@gmail.com • 12/5/2025
+            - paragraph [ref=e82]: very good
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - generic "Rating 3.0 out of 5 from 0 reviews" [ref=e85]:
+                - img [ref=e87]
+                - generic [ref=e89]: "3.0"
+                - generic [ref=e90]: (0)
+              - generic [ref=e91]: tata tata - tata@gmail.com • 12/5/2025
+            - paragraph [ref=e92]: not bad
+          - generic [ref=e93]:
+            - generic [ref=e94]:
+              - generic "Rating 4.0 out of 5 from 0 reviews" [ref=e95]:
+                - img [ref=e97]
+                - generic [ref=e99]: "4.0"
+                - generic [ref=e100]: (0)
+              - generic [ref=e101]: tata tata - tata@gmail.com • 12/5/2025
+            - paragraph [ref=e102]: nice product
+  - contentinfo [ref=e103]:
+    - generic [ref=e104]:
+      - generic [ref=e105]:
+        - generic [ref=e106]:
+          - button "QuickShop" [ref=e107] [cursor=pointer]
+          - paragraph [ref=e108]: Your trusted e-commerce platform for quality products from verified stores.
+        - generic [ref=e109]:
+          - paragraph [ref=e110]: Quick Links
+          - list [ref=e111]:
+            - listitem [ref=e112]:
+              - button "All Products" [ref=e113] [cursor=pointer]
+            - listitem [ref=e114]:
+              - button "My Orders" [ref=e115] [cursor=pointer]
+            - listitem [ref=e116]:
+              - button "Favorites" [ref=e117] [cursor=pointer]
+            - listitem [ref=e118]:
+              - button "Shopping Cart" [ref=e119] [cursor=pointer]
+        - generic [ref=e120]:
+          - paragraph [ref=e121]: Customer Service
+          - list [ref=e122]:
+            - listitem [ref=e123]:
+              - button "Help Center" [ref=e124] [cursor=pointer]
+            - listitem [ref=e125]:
+              - button "Shipping Info" [ref=e126] [cursor=pointer]
+            - listitem [ref=e127]:
+              - button "Returns" [ref=e128] [cursor=pointer]
+            - listitem [ref=e129]:
+              - button "Contact Us" [ref=e130] [cursor=pointer]
+        - generic [ref=e131]:
+          - paragraph [ref=e132]: Connect With Us
+          - generic [ref=e133]:
+            - button "Facebook" [ref=e134] [cursor=pointer]:
+              - img [ref=e135]
+            - button "Twitter" [ref=e137] [cursor=pointer]:
+              - img [ref=e138]
+            - button "Instagram" [ref=e140] [cursor=pointer]:
+              - img [ref=e141]
+            - button "Email" [ref=e144] [cursor=pointer]:
+              - img [ref=e145]
+          - paragraph [ref=e148]: Subscribe to our newsletter for updates and exclusive offers.
+      - generic [ref=e149]: © 2025 QuickShop. All rights reserved.
+  - generic [ref=e151]:
+    - banner [ref=e152]:
+      - generic [ref=e153]: My Cart
+      - button "Close cart" [ref=e154] [cursor=pointer]:
+        - img [ref=e155]
+    - paragraph [ref=e159]: Your cart is empty.
+    - contentinfo [ref=e160]:
+      - generic [ref=e161]:
+        - generic [ref=e162]: Total
+        - generic [ref=e163]: $0.00
+      - generic [ref=e164]:
+        - button "Clear" [ref=e165] [cursor=pointer]
+        - button "Checkout" [disabled] [ref=e166]
+```
