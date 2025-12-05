@@ -49,10 +49,13 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
         className={`fixed right-0 top-0 z-50 h-full min-h-screen w-90 transform transition-transform duration-300 ${
           cartOpen ? "translate-x-0" : "translate-x-full"
         }`}
+        data-testid="cart-drawer"
       >
         <div className="flex h-full min-h-screen flex-col border-l border-[#0b3ca9] shadow-2xl">
           <header className="flex items-center justify-between bg-linear-to-r from-[#0b47c7] to-[#0c409f] px-6 py-4 text-lg font-semibold text-white">
-            <span>My Cart</span>
+            <h2 className="text-lg font-semibold" aria-label="My Cart">
+              My Cart
+            </h2>
             <button
               type="button"
               onClick={toggleCart}
