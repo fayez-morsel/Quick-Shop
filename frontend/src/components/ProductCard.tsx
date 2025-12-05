@@ -180,6 +180,7 @@ export default function ProductCard({ product, onSelect }: Props) {
           onClick={handleAddToCart}
           disabled={!product.inStock}
           style={!product.inStock ? { cursor: blockedCursor } : undefined}
+          data-testid="add-to-cart"
           className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0d47a1] px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#0b3ba2] disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           <ShoppingCart className="h-5 w-5" aria-hidden />
