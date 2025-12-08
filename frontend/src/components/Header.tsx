@@ -1,7 +1,7 @@
 import { ClipboardList, Heart, Menu, ShoppingCart, Ticket, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useStore } from "../store/useStore";
 import { useState } from "react";
+import { useAuthStore, useCartStore, useUIStore } from "../store";
 
 const iconButtonBase =
   "cursor-pointer h-10 w-10 inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
@@ -10,14 +10,14 @@ const blurButtonBase =
 
 export default function Header() {
   const navigate = useNavigate();
-  const toggleCart = useStore((s) => s.toggleCart);
-  const cartCount = useStore((s) =>
-    s.cart.reduce((sum, item) => sum + (item.quantity ?? item.qty ?? 0), 0)
+  const toggleCart = useUIStore((s) => s.toggleCart);
+  const cartCount = useCartStore(
+    (s) => Object.values(s.cart).reduce((sum, qty) => sum + qty, 0)
   );
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
-  const userRole = useStore((s) => s.userRole);
-  const userName = useStore((s) => s.userName);
-  const logout = useStore((s) => s.logout);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const userRole = useAuthStore((s) => s.userRole);
+  const userName = useAuthStore((s) => s.userName);
+  const logout = useAuthStore((s) => s.logout);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const isSellerView = userRole === "seller" && location.pathname === "/seller";
