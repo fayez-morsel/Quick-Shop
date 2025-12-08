@@ -1,31 +1,39 @@
 import { Trash2, X } from "lucide-react";
-import { useStore } from "../store/useStore";
 import { useNavigate } from "react-router-dom";
 import { money } from "../utils/format";
+import {
+  useAuthStore,
+  useCartStore,
+  useOrderStore,
+  useProductStore,
+  useUIStore,
+} from "../store";
 
 type CartProps = {
   onCheckoutComplete?: (orderId?: string) => void;
 };
 
 export default function Cart({ onCheckoutComplete }: CartProps) {
-  const cart = useStore((s) => s.cart);
-  const products = useStore((s) => s.products);
-  const toggleCart = useStore((s) => s.toggleCart);
-  const placeOrder = useStore((s) => s.placeOrder);
-  const clearCart = useStore((s) => s.clearCart);
-  const cartOpen = useStore((s) => s.ui.cartOpen);
-  const setQty = useStore((s) => s.setQty);
-  const removeFromCart = useStore((s) => s.removeFromCart);
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const cart = useCartStore((s) => s.cart);
+  const productsMap = useProductStore((s) => s.productsMap);
+  const cartOpen = useUIStore((s) => s.cartOpen);
+  const toggleCart = useUIStore((s) => s.toggleCart);
+  const placeOrder = useOrderStore((s) => s.placeOrder);
+  const clearCart = useCartStore((s) => s.clearCart);
+  const setQty = useCartStore((s) => s.setQty);
+  const removeFromCart = useCartStore((s) => s.removeFromCart);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const navigate = useNavigate();
 
-  const total = cart.reduce((sum, item) => {
-    const product = item.product ?? products.find((p) => p._id === item.productId);
-    return sum + (product ? product.price * (item.quantity ?? item.qty ?? 1) : 0);
+  const cartEntries = Object.entries(cart);
+
+  const total = cartEntries.reduce((sum, [productId, qty]) => {
+    const product = productsMap[productId];
+    return sum + (product ? product.price * qty : 0);
   }, 0);
 
   const handleCheckout = async () => {
-    if (!cart.length) return;
+    if (!cartEntries.length) return;
     if (!isAuthenticated) {
       navigate("/login");
       return;
@@ -67,13 +75,12 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
           </header>
 
           <div className="flex-1 overflow-y-auto bg-white px-6 py-4 text-slate-900">
-            {cart.length === 0 ? (
+            {cartEntries.length === 0 ? (
               <p className="text-sm text-slate-500">Your cart is empty.</p>
             ) : (
               <ul className="space-y-4">
-                {cart.map((item) => {
-                  const product =
-                    item.product ?? products.find((p) => p._id === item.productId);
+                {cartEntries.map(([productId, qty]) => {
+                  const product = productsMap[productId];
                   if (!product) return null;
                   const imageSources =
                     product.images && product.images.length
@@ -82,8 +89,6 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
                       ? [product.image]
                       : [];
                   const cartImage = imageSources[0] ?? product.image;
-                  const qty = item.quantity ?? item.qty ?? 1;
-                  const productId = product._id;
                   return (
                     <li
                       key={productId}
@@ -162,7 +167,7 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
               <button
                 type="button"
                 onClick={handleCheckout}
-                disabled={!cart.length}
+                disabled={!cartEntries.length}
                 className="cursor-pointer flex-1 rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#0c409f] transition duration-200 ease-in-out hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-white/40"
               >
                 Checkout
