@@ -1,7 +1,7 @@
 import { Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useStore } from "../store/useStore";
+import { useAuthStore } from "../store";
 import SellerSidebar from "./SellerSidebar";
 
 type SellerLayoutProps = {
@@ -16,7 +16,7 @@ export default function SellerLayout({
   showHeader = true,
 }: SellerLayoutProps) {
   const navigate = useNavigate();
-  const logout = useStore((s) => s.logout);
+  const logout = useAuthStore((s) => s.logout);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isWide, setIsWide] = useState(
     typeof window !== "undefined" ? window.innerWidth >= 1800 : false
