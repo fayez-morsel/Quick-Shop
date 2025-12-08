@@ -1,48 +1,48 @@
 import { Heart, ShoppingCart } from "lucide-react";
 import clsx from "clsx";
-import { useEffect, useState } from "react";
-import type { MouseEvent } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type MouseEvent,
+} from "react";
 import type { Product } from "../types";
-import { useStore } from "../store/useStore";
+import {
+  useAuthStore,
+  useCartStore,
+  useFavoriteStore,
+  useProductStore,
+} from "../store";
 import { money } from "../utils/format";
 import Rating from "./Rating";
 import { useNavigate } from "react-router-dom";
 
 type Props = {
-  product: Product;
+  productId: string;
   onSelect?: (product: Product) => void;
 };
 
-export default function ProductCard({ product, onSelect }: Props) {
-  const addToCart = useStore((s) => s.addToCart);
-  const favorites = useStore((s) => s.favorites);
-  const toggleFavorite = useStore((s) => s.toggleFavorite);
-  const tagline =
-    product.tagline ?? `High-quality ${(product.category ?? "Product").toLowerCase()} gear crafted for you.`;
-  const productId = product.id ?? product._id;
-  const isFavorite = favorites.includes(productId);
-  const isClickable = Boolean(onSelect);
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
+function ProductCardComponent({ productId, onSelect }: Props) {
+  const product = useProductStore((s) => s.productsMap[productId]);
+  const addToCart = useCartStore((s) => s.addToCart);
+  const isFavorite = useFavoriteStore((s) => Boolean(s.favoritesMap[productId]));
+  const toggleFavorite = useFavoriteStore((s) => s.toggleFavorite);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const navigate = useNavigate();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPressingFavorite, setIsPressingFavorite] = useState(false);
+
   const blockedCursor =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='18'%3E%F0%9F%9A%AB%3C/text%3E%3C/svg%3E\") 12 12, not-allowed";
-  const hasDiscount =
-    Boolean(product.discounted) &&
-    typeof product.compareAtPrice === "number" &&
-    product.compareAtPrice > product.price;
-  const discountPercent =
-    hasDiscount && product.compareAtPrice
-      ? Math.round(
-          ((product.compareAtPrice - product.price) / product.compareAtPrice) * 100
-        )
-      : null;
-  const imageSources =
-    product.images && product.images.length > 0
-      ? product.images
-      : product.image
-      ? [product.image]
-      : [];
-  const [activeIndex, setActiveIndex] = useState(0);
+
+  const imageSources = useMemo(() => {
+    if (!product) return [];
+    if (product.images && product.images.length > 0) return product.images;
+    if (product.image) return [product.image];
+    return [];
+  }, [product]);
 
   useEffect(() => {
     setActiveIndex(0);
@@ -56,29 +56,52 @@ export default function ProductCard({ product, onSelect }: Props) {
     return () => window.clearInterval(id);
   }, [imageSources.length]);
 
-  const [isPressingFavorite, setIsPressingFavorite] = useState(false);
+  const tagline = product
+    ? product.tagline ??
+      `High-quality ${(product.category ?? "Product").toLowerCase()} gear crafted for you.`
+    : "";
+  const hasDiscount =
+    product &&
+    Boolean(product.discounted) &&
+    typeof product.compareAtPrice === "number" &&
+    product.compareAtPrice > product.price;
+  const discountPercent =
+    product && hasDiscount && product.compareAtPrice
+      ? Math.round(
+          ((product.compareAtPrice - product.price) / product.compareAtPrice) * 100
+        )
+      : null;
+  const isClickable = Boolean(onSelect);
 
-  const handleClick = () => {
-    if (onSelect) onSelect(product);
-  };
+  const handleClick = useCallback(() => {
+    if (product && onSelect) onSelect(product);
+  }, [onSelect, product]);
 
-  const handleToggleFavorite = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-    toggleFavorite(productId);
-  };
+  const handleToggleFavorite = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      if (!isAuthenticated) {
+        navigate("/login");
+        return;
+      }
+      toggleFavorite(productId);
+    },
+    [isAuthenticated, navigate, productId, toggleFavorite]
+  );
 
-  const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-    addToCart(productId);
-  };
+  const handleAddToCart = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      if (!isAuthenticated) {
+        navigate("/login");
+        return;
+      }
+      void addToCart(productId);
+    },
+    [addToCart, isAuthenticated, navigate, productId]
+  );
+
+  if (!product) return null;
 
   return (
     <article
@@ -190,3 +213,7 @@ export default function ProductCard({ product, onSelect }: Props) {
     </article>
   );
 }
+
+const ProductCard = memo(ProductCardComponent);
+
+export default ProductCard;
