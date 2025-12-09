@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useStore } from "../store/useStore";
+import { useAuthStore, useCartStore, useOrderStore, useProductStore } from "../store";
 import { money } from "../utils/format";
 import Rating from "../components/Rating";
 import { apiAddReview, apiGetReviews } from "../api/reviews";
@@ -19,15 +19,15 @@ type Review = {
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const product = useStore((s) => s.products.find((p) => p.id === id));
-  const productId = product?.id ?? "";
-  const addToCart = useStore((s) => s.addToCart);
-  const userName = useStore((s) => s.userName);
-  const userEmail = useStore((s) => s.userEmail);
-  const orders = useStore((s) => s.orders);
-  const fetchBuyerOrders = useStore((s) => s.fetchBuyerOrders);
-  const fetchProducts = useStore((s) => s.fetchProducts);
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const product = useProductStore((s) => (id ? s.productsMap[id] : undefined));
+  const productId = product?.id ?? id ?? "";
+  const addToCart = useCartStore((s) => s.addToCart);
+  const userName = useAuthStore((s) => s.userName);
+  const userEmail = useAuthStore((s) => s.userEmail);
+  const orders = useOrderStore((s) => s.orders);
+  const fetchBuyerOrders = useOrderStore((s) => s.fetchBuyerOrders);
+  const fetchProducts = useProductStore((s) => s.fetchProducts);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const [quantity, setQuantity] = useState(1);
   const [reviewList, setReviewList] = useState<Review[]>([]);
@@ -342,6 +342,10 @@ export default function ProductDetailsPage() {
               <button
                 type="button"
                 onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate("/login");
+                    return;
+                  }
                   addToCart(product.id, quantity || 1);
                 }}
                 disabled={isOutOfStock}
