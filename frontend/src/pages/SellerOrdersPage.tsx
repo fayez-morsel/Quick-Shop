@@ -1,9 +1,9 @@
 import { useMemo, useState, useEffect } from "react";
 import SellerLayout from "../components/SellerLayout";
 import { useScopedOrders } from "../hooks/useScopedOrders";
-import { useStore } from "../store/useStore";
 import { money } from "../utils/format";
 import type { OrderStatus, Product } from "../types";
+import { useAuthStore, useOrderStore, useProductStore } from "../store";
 
 const statusBadgeStyles: Record<OrderStatus, string> = {
   Pending: "bg-amber-50 text-amber-700 border border-amber-100",
@@ -53,17 +53,17 @@ const formatOrderId = (id: string) => {
 };
 
 export default function SellerOrdersPage() {
-  const products = useStore((state) => state.products);
+  const productsMap = useProductStore((state) => state.productsMap);
   const { scopedOrders: sellerOrders } = useScopedOrders();
   const [statusFilter, setStatusFilter] = useState<StatusCardKey>("all");
-  const updateOrderStatus = useStore((state) => state.updateOrderStatus);
-  const fetchSellerOrders = useStore((s) => s.fetchSellerOrders);
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
-  const userRole = useStore((s) => s.userRole);
+  const updateOrderStatus = useOrderStore((state) => state.updateOrderStatus);
+  const fetchSellerOrders = useOrderStore((s) => s.fetchSellerOrders);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const userRole = useAuthStore((s) => s.userRole);
 
   const productLookup = useMemo<Record<string, Product>>(() => {
-    return Object.fromEntries(products.map((product) => [product.id, product]));
-  }, [products]);
+    return { ...productsMap };
+  }, [productsMap]);
 
   useEffect(() => {
     if (isAuthenticated && userRole === "seller") {
