@@ -1,16 +1,24 @@
 import { useNavigate } from "react-router-dom";
-import { useStore } from "../store/useStore";
 import ProductCard from "../components/ProductCard";
+import { useFavoriteStore, useProductStore } from "../store";
+import { useMemo } from "react";
 
 
 export default function FavoritesPage() {
   const navigate = useNavigate();
-  const favorites = useStore((s) => s.favorites);
-  const products = useStore((s) => s.products);
+  const favoritesMap = useFavoriteStore((s) => s.favoritesMap);
+  const productsMap = useProductStore((s) => s.productsMap);
 
-  const favoriteProducts = products.filter((product) =>
-    favorites.includes(product.id ?? product._id)
+  const favoriteProducts = useMemo(
+    () =>
+      Object.keys(favoritesMap)
+        .filter((id) => favoritesMap[id])
+        .map((id) => productsMap[id])
+        .filter(Boolean),
+    [favoritesMap, productsMap]
   );
+
+  const count = favoriteProducts.length;
 
   if (!favoriteProducts.length) {
     return (
@@ -33,13 +41,13 @@ export default function FavoritesPage() {
       <div className="mx-auto max-w-6xl space-y-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Favorites</h1>
-          <p className="text-sm text-slate-600">{favoriteProducts.length} products saved</p>
+          <p className="text-sm text-slate-600">{count} products saved</p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {favoriteProducts.map((product) => (
             <ProductCard
               key={product.id}
-              product={product}
+              productId={product.id}
               onSelect={() => navigate(`/product/${product.id ?? product._id}`)}
             />
           ))}
