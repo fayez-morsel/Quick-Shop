@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useStore } from "../store/useStore";
+import { useAuthStore } from "../store";
 import { sellerSidebarLinks } from "../pages/seller/sidebarLinks";
 
 type SellerSidebarProps = {
@@ -17,8 +17,8 @@ export default function SellerSidebar({
   showClose = false,
 }: SellerSidebarProps) {
   const navigate = useNavigate();
-  const userName = useStore((s) => s.userName);
-  const userEmail = useStore((s) => s.userEmail);
+  const userName = useAuthStore((s) => s.userName);
+  const userEmail = useAuthStore((s) => s.userEmail);
   const initials = userName
     ? userName
         .split(" ")
