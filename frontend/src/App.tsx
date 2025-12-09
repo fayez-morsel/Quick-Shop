@@ -15,7 +15,13 @@ import SellerOrdersPage from "./pages/SellerOrdersPage";
 import SellerProductsPage from "./pages/SellerProductsPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import { useStore } from "./store/useStore";
+import {
+  useAuthStore,
+  useCartStore,
+  useFavoriteStore,
+  useOrderStore,
+  useProductStore,
+} from "./store";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -31,15 +37,15 @@ function AppContent() {
   const location = useLocation();
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
-  const userName = useStore((s) => s.userName);
-  const userEmail = useStore((s) => s.userEmail);
-  const autoDeliverAfterConfirm = useStore((s) => s.autoDeliverAfterConfirm);
-  const clearCart = useStore((s) => s.clearCart);
-  const fetchProducts = useStore((s) => s.fetchProducts);
-  const initializeAuth = useStore((s) => s.initializeAuth);
-  const loadCart = useStore((s) => s.loadCart);
-  const loadFavorites = useStore((s) => s.loadFavorites);
-  const fetchBuyerOrders = useStore((s) => s.fetchBuyerOrders);
+  const userName = useAuthStore((s) => s.userName);
+  const userEmail = useAuthStore((s) => s.userEmail);
+  const autoDeliverAfterConfirm = useOrderStore((s) => s.autoDeliverAfterConfirm);
+  const clearCart = useCartStore((s) => s.clearCart);
+  const fetchProducts = useProductStore((s) => s.fetchProducts);
+  const initializeAuth = useAuthStore((s) => s.initializeAuth);
+  const loadCart = useCartStore((s) => s.loadCart);
+  const loadFavorites = useFavoriteStore((s) => s.loadFavorites);
+  const fetchBuyerOrders = useOrderStore((s) => s.fetchBuyerOrders);
 
   useEffect(() => {
     initializeAuth();

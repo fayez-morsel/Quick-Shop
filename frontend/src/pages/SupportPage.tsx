@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { CheckCircle } from "lucide-react";
-import { useStore } from "../store/useStore";
+import { useAuthStore } from "../store";
 
 const issueTypes = [
   "Order issue",
@@ -12,9 +12,9 @@ const issueTypes = [
 ];
 
 export default function SupportPage() {
-  const userName = useStore((s) => s.userName);
-  const userEmail = useStore((s) => s.userEmail);
-  const setUserInfo = useStore((s) => s.setUserInfo);
+  const userName = useAuthStore((s) => s.userName);
+  const userEmail = useAuthStore((s) => s.userEmail);
+  const setUserInfo = useAuthStore((s) => s.setUserInfo);
   const [formData, setFormData] = useState({
     name: userName,
     email: userEmail,

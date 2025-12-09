@@ -13,7 +13,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { useStore } from "../store/useStore";
+import { useProductStore, useUIStore } from "../store";
 import type { Category } from "../types";
 
 const categoryOptions: {
@@ -87,13 +87,13 @@ const highlights = [
 ];
 
 export default function HomePage() {
-  const products = useStore((s) => s.products);
+  const productIds = useProductStore((s) => s.productIds);
   const navigate = useNavigate();
-  const setCategory = useStore((s) => s.setCategory);
-  const setBrand = useStore((s) => s.setBrand);
-  const setQuery = useStore((s) => s.setQuery);
+  const setCategory = useUIStore((s) => s.setCategory);
+  const setBrand = useUIStore((s) => s.setBrand);
+  const setQuery = useUIStore((s) => s.setQuery);
 
-  const featured = products.slice(0, 8);
+  const featuredIds = productIds.slice(0, 8);
 
   const handleCategorySelect = (value: Category) => {
     setCategory([value]);
@@ -182,11 +182,11 @@ export default function HomePage() {
             </div>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {featured.map((product) => (
+            {featuredIds.map((id) => (
               <ProductCard
-                key={product.id}
-                product={product}
-                onSelect={() => navigate(`/product/${product.id}`)}
+                key={id}
+                productId={id}
+                onSelect={(product) => navigate(`/product/${product.id}`)}
               />
             ))}
           </div>

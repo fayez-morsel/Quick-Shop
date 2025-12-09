@@ -1,6 +1,6 @@
 import { Facebook, Instagram, Mail, Twitter } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useStore } from "../store/useStore";
+import { useUIStore } from "../store";
 
 const quickLinks = [
   { label: "All Products", to: "/product" },
@@ -18,7 +18,7 @@ const customerLinks = [
 export default function Footer() {
   const location = useLocation();
   const navigate = useNavigate();
-  const toggleCart = useStore((s) => s.toggleCart);
+  const toggleCart = useUIStore((s) => s.toggleCart);
   const isSellerPath = location.pathname.startsWith("/seller");
 
   const handleNav = (to: string) => {

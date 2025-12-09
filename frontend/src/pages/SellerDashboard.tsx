@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import SellerLayout from "../components/SellerLayout";
 import { useScopedOrders } from "../hooks/useScopedOrders";
-import { useStore } from "../store/useStore";
+import { useAuthStore, useOrderStore, useProductStore } from "../store";
 import { money } from "../utils/format";
 import type { Order, OrderStatus, Product } from "../types";
 import { useEffect } from "react";
@@ -173,10 +173,15 @@ type EnhancedOrder = Order & {
 };
 
 export default function SellerDashboard() {
-  const products = useStore((state) => state.products);
-  const fetchSellerOrders = useStore((s) => s.fetchSellerOrders);
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
-  const userRole = useStore((s) => s.userRole);
+  const productsMap = useProductStore((state) => state.productsMap);
+  const productIds = useProductStore((state) => state.productIds);
+  const products = useMemo(
+    () => productIds.map((id) => productsMap[id]).filter(Boolean),
+    [productIds, productsMap]
+  );
+  const fetchSellerOrders = useOrderStore((s) => s.fetchSellerOrders);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const userRole = useAuthStore((s) => s.userRole);
 
   useEffect(() => {
     if (isAuthenticated && userRole === "seller") {

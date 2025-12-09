@@ -1,14 +1,17 @@
 import { useMemo } from "react";
 import ProductCard from "./ProductCard";
-import { useStore } from "../store/useStore";
+import { useProductStore, useUIStore } from "../store";
 
 export default function ProductsGrid() {
-  const products = useStore((s) => s.products);
-  const filters = useStore((s) => s.filters);
+  const productsMap = useProductStore((s) => s.productsMap);
+  const productIds = useProductStore((s) => s.productIds);
+  const filters = useUIStore((s) => s.filters);
 
   const filtered = useMemo(() => {
     const { query, store, minPrice, maxPrice, discountedOnly, sortBy } = filters;
-    let list = products;
+    let list = productIds
+      .map((id) => productsMap[id])
+      .filter(Boolean);
 
     if (query.trim()) {
       const q = query.toLowerCase();
@@ -27,7 +30,7 @@ export default function ProductsGrid() {
     if (sortBy === "priceHigh") list = [...list].sort((a, b) => b.price - a.price);
 
     return list;
-  }, [products, filters]);
+  }, [productIds, productsMap, filters]);
 
   if (filtered.length === 0)
     return (
@@ -42,7 +45,7 @@ export default function ProductsGrid() {
       data-testid="product-list"
     >
       {filtered.map((p) => (
-        <ProductCard key={p.id} product={p} />
+        <ProductCard key={p.id} productId={p.id} />
       ))}
     </div>
   );

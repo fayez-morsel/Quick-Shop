@@ -2,32 +2,34 @@ import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { useStore } from "../store/useStore";
+import { useFavoriteStore, useProductStore, useUIStore } from "../store";
 import type { Category, Brand, FilterState } from "../types";
 
 const iconButtonBase =
   "rounded-full border border-white/30 bg-white/10 p-2 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
 
 export default function ProductPage() {
-  const products = useStore((s) => s.products);
-  const filters = useStore((s) => s.filters);
-  const setCategory = useStore((s) => s.setCategory);
-  const setBrand = useStore((s) => s.setBrand);
-  const setSort = useStore((s) => s.setSort);
-  const setDiscounted = useStore((s) => s.setDiscounted);
-  const setQuery = useStore((s) => s.setQuery);
-  const clearFilters = useStore((s) => s.clearFilters);
-  const favorites = useStore((s) => s.favorites);
+  const productsMap = useProductStore((s) => s.productsMap);
+  const productIds = useProductStore((s) => s.productIds);
+  const filters = useUIStore((s) => s.filters);
+  const setCategory = useUIStore((s) => s.setCategory);
+  const setBrand = useUIStore((s) => s.setBrand);
+  const setSort = useUIStore((s) => s.setSort);
+  const setDiscounted = useUIStore((s) => s.setDiscounted);
+  const setQuery = useUIStore((s) => s.setQuery);
+  const clearFilters = useUIStore((s) => s.clearFilters);
+  const setMaxPrice = useUIStore((s) => s.setMaxPrice);
+  const favoritesMap = useFavoriteStore((s) => s.favoritesMap);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1100);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
 
-  const setMaxPrice = (v: number) =>
-    useStore.setState((s) => ({
-      filters: { ...s.filters, maxPrice: v },
-    }));
-
   const navigate = useNavigate();
+
+  const products = useMemo(
+    () => productIds.map((id) => productsMap[id]).filter(Boolean),
+    [productIds, productsMap]
+  );
 
   const categories = useMemo(
     () =>
@@ -89,7 +91,7 @@ export default function ProductPage() {
     }
 
     if (favoritesOnly) {
-      list = list.filter((p) => favorites.includes(p.id));
+      list = list.filter((p) => favoritesMap[p.id]);
     }
 
     if (filters.sortBy === "priceLow") {
@@ -99,7 +101,7 @@ export default function ProductPage() {
     }
 
     return list;
-  }, [products, filters, favorites, favoritesOnly]);
+  }, [products, filters, favoritesMap, favoritesOnly]);
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1100);
@@ -254,7 +256,7 @@ export default function ProductPage() {
             {filtered.map((product) => (
               <div key={product.id} className="flex h-full">
                 <ProductCard
-                  product={product}
+                  productId={product.id}
                   onSelect={() => navigate(`/product/${product.id}`)}
                 />
               </div>

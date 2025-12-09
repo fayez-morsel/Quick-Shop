@@ -1,12 +1,12 @@
 import { useMemo } from "react";
-import { useStore } from "../store/useStore";
+import { useAuthStore, useOrderStore } from "../store";
 import { filterOrdersForScope } from "../utils/orderFilters";
 
 export function useScopedOrders() {
-  const orders = useStore((state) => state.orders);
-  const userRole = useStore((state) => state.userRole);
-  const userEmail = useStore((state) => state.userEmail);
-  const userStoreId = useStore((state) => state.userStoreId);
+  const orders = useOrderStore((state) => state.orders);
+  const userRole = useAuthStore((state) => state.userRole);
+  const userEmail = useAuthStore((state) => state.userEmail);
+  const userStoreId = useAuthStore((state) => state.userStoreId);
 
   const scopedOrders = useMemo(
     () => {
