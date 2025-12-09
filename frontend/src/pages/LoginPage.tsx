@@ -2,7 +2,7 @@ import { Store } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useStore } from "../store/useStore";
+import { useAuthStore } from "../store";
 import type { UserRole } from "../types";
 
 const emailPattern = /^\S+@\S+\.\S+$/;
@@ -10,9 +10,9 @@ const emailPattern = /^\S+@\S+\.\S+$/;
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const login = useStore((s) => s.login);
-  const setUserInfo = useStore((s) => s.setUserInfo);
-  const setSellerStoreId = useStore((s) => s.setSellerStoreId);
+  const login = useAuthStore((s) => s.login);
+  const setUserInfo = useAuthStore((s) => s.setUserInfo);
+  const setSellerStoreId = useAuthStore((s) => s.setSellerStoreId);
   const [role, setRole] = useState<UserRole>(
     ((location.state as { role?: UserRole })?.role ?? "buyer") as UserRole
   );
@@ -50,7 +50,7 @@ export default function LoginPage() {
     setErrors({});
     try {
       await login(normalizedEmail, normalizedPassword);
-      const { userName, userEmail, userRole, userStoreId } = useStore.getState();
+      const { userName, userEmail, userRole, userStoreId } = useAuthStore.getState();
       setUserInfo({
         name: userName || normalizedEmail.split("@")[0],
         email: userEmail || normalizedEmail,
