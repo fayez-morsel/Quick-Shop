@@ -4,7 +4,8 @@ import { money } from "../utils/format";
 import { useScopedOrders } from "../hooks/useScopedOrders";
 import type { OrderStatus } from "../types";
 import { useNavigate } from "react-router-dom";
-import { useStore } from "../store/useStore";
+import { useAuthStore, useProductStore } from "../store";
+import ProductListItem from "../components/ProductListItem";
 
 const statusStyles: Record<OrderStatus, string> = {
   Pending: "bg-amber-50 text-amber-700 border border-amber-100",
@@ -32,11 +33,11 @@ const formatDateTime = (value: string) =>
 
 export default function OrderHistoryPage() {
   const { scopedOrders } = useScopedOrders();
-  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
-  const products = useStore((s) => s.products);
+  const productsMap = useProductStore((s) => s.productsMap);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -162,40 +163,28 @@ export default function OrderHistoryPage() {
                   >
                     <div className="grid gap-3 md:grid-cols-2">
                       {order.items.map((item, index) => {
-                        const product = products.find(
-                          (p) => p.id === item.productId
-                        );
-                        const image =
-                          product?.images?.[0] || product?.image || "";
+                        const productId =
+                          item.productId ??
+                          (typeof item.product === "string"
+                            ? item.product
+                            : item.product?._id ?? item.product?.id ?? "");
                         const qty = item.qty ?? item.quantity ?? 0;
+                        const fallbackTitle =
+                          item.title ??
+                          productsMap[productId]?.title ??
+                          productId;
                         return (
-                          <div
-                            key={`${order.id}-${item.productId ?? "item"}-${index}`}
-                            className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-white px-3 py-3 shadow-sm md:grid-cols-[72px_minmax(0,1fr)_auto]"
-                          >
-                            {image ? (
-                              <img
-                                src={image}
-                                alt={product?.title ?? item.productId}
-                                className="h-16 w-16 rounded-xl object-cover md:h-14 md:w-14"
-                              />
-                            ) : (
-                              <div className="grid h-14 w-14 place-items-center rounded-xl bg-slate-100 text-xs font-semibold text-slate-500">
-                                IMG
-                              </div>
-                            )}
-                            <div className="flex flex-col gap-1">
-                              <p className="text-sm font-semibold text-slate-900">
-                                {product?.title ?? item.productId}
-                              </p>
-                              <p className="text-xs text-slate-500">
-                                {product?.category ?? "Item"} · Qty: {qty}
-                              </p>
-                            </div>
-                            <div className="flex items-center justify-end text-sm font-semibold text-slate-800 md:flex-col md:items-end md:gap-1">
-                              <span>{product ? money(product.price * qty) : "--"}</span>
-                            </div>
-                          </div>
+                          <ProductListItem
+                            key={`${order.id}-${productId ?? "item"}-${index}`}
+                            productId={productId}
+                            quantity={qty}
+                            fallbackTitle={fallbackTitle}
+                            footer={
+                              <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">
+                                {productsMap[productId]?.category ?? "Item"}
+                              </span>
+                            }
+                          />
                         );
                       })}
                     </div>
@@ -209,6 +198,3 @@ export default function OrderHistoryPage() {
     </div>
   );
 }
-
-
-
