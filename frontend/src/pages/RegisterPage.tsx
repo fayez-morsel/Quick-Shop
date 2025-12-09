@@ -2,7 +2,7 @@ import { Store } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useStore } from "../store/useStore";
+import { useAuthStore } from "../store";
 import type { UserRole } from "../types";
 
 const emailPattern = /^\S+@\S+\.\S+$/;
@@ -13,8 +13,8 @@ const normalizeStoreId = (value: string) =>
 export default function RegisterPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const login = useStore((s) => s.login);
-  const register = useStore((s) => s.register);
+  const login = useAuthStore((s) => s.login);
+  const register = useAuthStore((s) => s.register);
   const [role, setRole] = useState<UserRole>(
     ((location.state as { role?: UserRole })?.role ?? "buyer") as UserRole
   );
@@ -27,7 +27,7 @@ export default function RegisterPage() {
     storeId: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const setSellerStoreId = useStore((s) => s.setSellerStoreId);
+  const setSellerStoreId = useAuthStore((s) => s.setSellerStoreId);
 
   const handleChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
