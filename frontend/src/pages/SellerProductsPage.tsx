@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import SellerLayout from "../components/SellerLayout";
 import { useScopedOrders } from "../hooks/useScopedOrders";
 import { money } from "../utils/format";
-import { useStore } from "../store/useStore";
+import { useProductStore } from "../store";
 import type { Category } from "../types";
 
 type TableProduct = {
@@ -49,16 +49,22 @@ const initialFormState: ProductFormState = {
 };
 
 export default function SellerProductsPage() {
-  const products = useStore((state) => state.products);
-  const addProduct = useStore((state) => state.addProduct);
-  const removeProduct = useStore((state) => state.removeProduct);
-  const updateProductDetails = useStore((state) => state.updateProductDetails);
+  const productsMap = useProductStore((state) => state.productsMap);
+  const productIds = useProductStore((state) => state.productIds);
+  const addProduct = useProductStore((state) => state.addProduct);
+  const removeProduct = useProductStore((state) => state.removeProduct);
+  const updateProductDetails = useProductStore((state) => state.updateProductDetails);
   const { scopedOrders: sellerOrders } = useScopedOrders();
   const [query, setQuery] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"add" | "edit">("add");
   const [formState, setFormState] = useState<ProductFormState>(initialFormState);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+
+  const products = useMemo(
+    () => productIds.map((id) => productsMap[id]).filter(Boolean),
+    [productIds, productsMap]
+  );
 
   const tableProducts = useMemo(() => {
     const salesByProduct = sellerOrders.reduce<Record<string, number>>(
