@@ -11,3 +11,6 @@ export const apiGetSellerOrders = () =>
 
 export const apiUpdateOrderStatus = (id: string, status: string) =>
   http.patch(`/orders/${id}/status`, { status });
+
+export const apiConfirmOrder = (orderId: string, code: string) =>
+  http.post("/orders/confirm", { orderId, code });

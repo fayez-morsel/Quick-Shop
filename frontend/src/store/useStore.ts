@@ -35,6 +35,22 @@ import type {
   UserRole,
 } from "../types";
 
+const toApiStatus = (status: OrderStatus): "unconfirmed" | "pending" | "canceled" | "delivered" => {
+  switch (status) {
+    case "unconfirmed":
+    case "pending":
+    case "canceled":
+    case "delivered":
+      return status;
+    case "Delivered":
+      return "delivered";
+    case "Canceled":
+      return "canceled";
+    default:
+      return "pending";
+  }
+};
+
 const initialAuth =
   typeof window !== "undefined"
     ? localStorage.getItem("isAuthenticated") === "true"
@@ -468,7 +484,7 @@ export const useStore = create<State & Actions>((set, get) => ({
     const token = typeof window !== "undefined" ? localStorage.getItem("qs-token") : null;
     if (!get().isAuthenticated || !token) return;
     setTimeout(() => {
-      void get().updateOrderStatus(orderId, "Delivered");
+      void get().updateOrderStatus(orderId, "delivered");
     }, 5 * 60 * 1000);
   },
   placeOrder: async (items) => {
@@ -484,14 +500,21 @@ export const useStore = create<State & Actions>((set, get) => ({
     const res = await apiPlaceOrder(payload);
     await get().loadCart();
     await get().fetchBuyerOrders();
-    return res.data?._id ?? null;
+    return (
+      res.data?.orderId ??
+      res.data?._id ??
+      res.data?.order?._id ??
+      res.data?.order?.id ??
+      null
+    );
   },
   updateOrderStatus: async (orderId, status) => {
     const token = typeof window !== "undefined" ? localStorage.getItem("qs-token") : null;
     if (!get().isAuthenticated || !token) {
       return;
     }
-    await apiUpdateOrderStatus(orderId, status);
+    const apiStatus = toApiStatus(status);
+    await apiUpdateOrderStatus(orderId, apiStatus);
     // Refresh both seller and buyer views so status updates propagate to reviews eligibility
     await Promise.allSettled([get().fetchSellerOrders(), get().fetchBuyerOrders()]);
   },

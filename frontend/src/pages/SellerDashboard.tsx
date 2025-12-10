@@ -18,6 +18,10 @@ import type { Order, OrderStatus, Product } from "../types";
 import { useEffect } from "react";
 
 const statusStyles: Record<OrderStatus, string> = {
+  unconfirmed: "bg-amber-100 text-amber-700",
+  pending: "bg-amber-100 text-amber-700",
+  canceled: "bg-rose-100 text-rose-600",
+  delivered: "bg-emerald-100 text-emerald-700",
   Pending: "bg-amber-100 text-amber-700",
   Processing: "bg-sky-100 text-sky-700",
   Dispatched: "bg-indigo-100 text-indigo-700",
