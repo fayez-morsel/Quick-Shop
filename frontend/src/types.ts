@@ -50,6 +50,10 @@ export type UIState = {
 }
 
 export type OrderStatus =
+  | "unconfirmed"
+  | "pending"
+  | "canceled"
+  | "delivered"
   | "Pending"
   | "Processing"
   | "Dispatched"
