@@ -8,6 +8,10 @@ import { useAuthStore, useProductStore } from "../store";
 import ProductListItem from "../components/ProductListItem";
 
 const statusStyles: Record<OrderStatus, string> = {
+  unconfirmed: "bg-amber-50 text-amber-700 border border-amber-100",
+  pending: "bg-amber-50 text-amber-700 border border-amber-100",
+  canceled: "bg-rose-50 text-rose-600 border border-rose-100",
+  delivered: "bg-emerald-50 text-emerald-700 border border-emerald-100",
   Pending: "bg-amber-50 text-amber-700 border border-amber-100",
   Processing: "bg-sky-50 text-sky-700 border border-sky-100",
   Dispatched: "bg-indigo-50 text-indigo-700 border border-indigo-100",
