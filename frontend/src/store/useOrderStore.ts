@@ -2,6 +2,7 @@ import { create } from "zustand";
 import {
   apiGetBuyerOrders,
   apiGetSellerOrders,
+  apiConfirmOrder,
   apiPlaceOrder,
   apiUpdateOrderStatus,
 } from "../api/orders";
@@ -22,12 +23,29 @@ type OrderActions = {
   placeOrder: (items?: CartItem[]) => Promise<string | null>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
   autoDeliverAfterConfirm: (orderId: string) => void;
+  confirmOrder: (orderId: string, code: string) => Promise<void>;
   markOrderConfirmed: (orderId: string) => void;
   hardReset: () => void;
 };
 
 const hasToken = () =>
   typeof window !== "undefined" && Boolean(localStorage.getItem("qs-token"));
+
+const toApiStatus = (status: OrderStatus): "unconfirmed" | "pending" | "canceled" | "delivered" => {
+  switch (status) {
+    case "unconfirmed":
+    case "pending":
+    case "canceled":
+    case "delivered":
+      return status;
+    case "Delivered":
+      return "delivered";
+    case "Canceled":
+      return "canceled";
+    default:
+      return "pending";
+  }
+};
 
 const normalizeOrderItem = (item: any) => {
   const normalizedProduct = typeof item.product === "object" ? normalizeProduct(item.product) : undefined;
@@ -124,25 +142,38 @@ export const useOrderStore = create<OrderState & OrderActions>((set) => ({
       quantity: item.quantity ?? item.qty ?? 1,
     }));
     const res = await apiPlaceOrder(payload);
-    await cartStore.clearCart();
     await useOrderStore.getState().fetchBuyerOrders();
-    return res.data?._id ?? null;
+    return (
+      res.data?.orderId ??
+      res.data?._id ??
+      res.data?.order?._id ??
+      res.data?.order?.id ??
+      null
+    );
   },
 
   updateOrderStatus: async (orderId, status) => {
     if (!hasToken()) return;
-    await apiUpdateOrderStatus(orderId, status);
+    const apiStatus = toApiStatus(status);
+    await apiUpdateOrderStatus(orderId, apiStatus);
     await Promise.allSettled([
       useOrderStore.getState().fetchSellerOrders(),
       useOrderStore.getState().fetchBuyerOrders(),
     ]);
   },
 
+  confirmOrder: async (orderId, code) => {
+    if (!hasToken()) return;
+    await apiConfirmOrder(orderId, code);
+    useOrderStore.getState().markOrderConfirmed(orderId);
+    await useOrderStore.getState().fetchBuyerOrders();
+  },
+
   autoDeliverAfterConfirm: (orderId) => {
     useOrderStore.getState().markOrderConfirmed(orderId);
     if (!hasToken()) return;
     setTimeout(() => {
-      void useOrderStore.getState().updateOrderStatus(orderId, "Delivered");
+      void useOrderStore.getState().updateOrderStatus(orderId, "delivered");
     }, 5 * 60 * 1000);
   },
 
