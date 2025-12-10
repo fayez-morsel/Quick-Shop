@@ -1,14 +1,7 @@
 // src/models/Order.ts
 import { Schema, model, type Document, Types } from "mongoose";
 
-export type OrderStatus =
-  | "Pending"
-  | "Processing"
-  | "Dispatched"
-  | "Shipped"
-  | "Delivered"
-  | "Delivery Unsuccessful"
-  | "Canceled";
+export type OrderStatus = "unconfirmed" | "pending" | "canceled" | "delivered";
 
 export interface IOrderItem {
   product: Types.ObjectId;
@@ -19,12 +12,14 @@ export interface IOrderItem {
 }
 
 export interface IOrder extends Document {
-  buyer: Types.ObjectId; 
-  store: Types.ObjectId;  
+  buyer: Types.ObjectId;
+  store: Types.ObjectId;
   items: IOrderItem[];
   status: OrderStatus;
   total: number;
   placedAt: Date;
+  checkoutCode: string | null;
+  checkoutCodeExpires: Date | null;
   updatedAt: Date;
   updateHistory?: Array<{
     status: OrderStatus;
@@ -50,19 +45,13 @@ const orderSchema = new Schema<IOrder>(
     items: { type: [orderItemSchema], required: true },
     status: {
       type: String,
-      enum: [
-        "Pending",
-        "Processing",
-        "Dispatched",
-        "Shipped",
-        "Delivered",
-        "Delivery Unsuccessful",
-        "Canceled",
-      ],
-      default: "Pending",
+      enum: ["unconfirmed", "pending", "canceled", "delivered"],
+      default: "unconfirmed",
     },
     total: { type: Number, required: true, min: 0 },
     placedAt: { type: Date, default: Date.now },
+    checkoutCode: { type: String, default: null },
+    checkoutCodeExpires: { type: Date, default: null },
     updateHistory: [
       {
         status: { type: String },
