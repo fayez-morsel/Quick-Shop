@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { type ChangeEvent, useEffect, useState } from "react";
+import { useOrderStore } from "../store";
 
 type Props = {
   open: boolean;
@@ -18,15 +19,18 @@ export default function OrderConfirmation({
   orderId,
   onVerified,
 }: Props) {
+  const confirmOrder = useOrderStore((s) => s.confirmOrder);
   const [code, setCode] = useState("");
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setCode("");
       setVerified(false);
       setError("");
+      setSubmitting(false);
     }
   }, [open]);
 
@@ -47,8 +51,20 @@ export default function OrderConfirmation({
       setError("We couldn't locate the order to confirm.");
       return;
     }
-    setVerified(true);
-    onVerified?.(orderId);
+    setSubmitting(true);
+    confirmOrder(orderId, code)
+      .then(() => {
+        setVerified(true);
+        onVerified?.(orderId);
+      })
+      .catch((err: any) => {
+        const apiMsg =
+          err?.response?.data?.error ??
+          err?.response?.data?.message ??
+          "Something went wrong confirming your order.";
+        setError(apiMsg);
+      })
+      .finally(() => setSubmitting(false));
   };
 
   const handleClose = () => {
@@ -128,10 +144,10 @@ export default function OrderConfirmation({
 
               <button
                 onClick={handleConfirm}
-                disabled={code.length !== 6 || !orderId}
+                disabled={code.length !== 6 || !orderId || submitting}
                 className="w-full rounded-md bg-blue-600 text-white py-2 text-sm font-semibold tracking-wide hover:bg-blue-700 transition disabled:opacity-50 disabled:hover:bg-blue-600"
               >
-                Confirm Order
+                {submitting ? "Confirming..." : "Confirm Order"}
               </button>
             </>
           ) : (
