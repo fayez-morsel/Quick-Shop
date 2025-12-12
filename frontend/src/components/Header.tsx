@@ -1,12 +1,8 @@
 import { ClipboardList, Heart, Menu, ShoppingCart, Ticket, X } from "lucide-react";
+import clsx from "clsx";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore, useCartStore, useUIStore } from "../store";
-
-const iconButtonBase =
-  "cursor-pointer h-10 w-10 inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
-const blurButtonBase =
-  "cursor-pointer rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-[#0b47c7] transition duration-200 ease-in-out backdrop-blur hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -19,8 +15,18 @@ export default function Header() {
   const userName = useAuthStore((s) => s.userName);
   const logout = useAuthStore((s) => s.logout);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const isSellerView = userRole === "seller" && location.pathname === "/seller";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 12);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const initials = (() => {
     const trimmed = (userName || "").trim();
@@ -35,11 +41,25 @@ export default function Header() {
     navigate("/");
   };
 
+  const iconButtonClass = clsx(
+    "cursor-pointer h-10 w-10 inline-flex items-center justify-center rounded-full border transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+    scrolled
+      ? "border-slate-200 bg-white/80 text-slate-900 shadow-sm hover:shadow-md focus-visible:outline-slate-300"
+      : "border-white/30 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white/80"
+  );
+
+  const blurButtonClass = clsx(
+    "cursor-pointer rounded-full px-4 py-2 text-sm font-semibold transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+    scrolled
+      ? "border border-slate-200 bg-white/80 text-[#0b47c7] hover:shadow-sm focus-visible:outline-slate-300"
+      : "bg-white/80 text-[#0b47c7] hover:bg-white focus-visible:outline-white/80"
+  );
+
   const MenuButton = () => (
     <button
       type="button"
       onClick={() => setMenuOpen(true)}
-      className={iconButtonBase}
+      className={iconButtonClass}
       aria-label="Open menu"
     >
       <Menu className="h-5 w-5" />
@@ -48,13 +68,23 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-[#0D47A1] px-4 py-3 text-white shadow-md shadow-blue-900/30">
+      <header
+        className={clsx(
+          "sticky top-0 z-50 w-full border-b px-4 py-3 backdrop-blur transition-colors duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
+          scrolled
+            ? "border-white/50 bg-white/80 text-slate-900 shadow-lg shadow-slate-900/10"
+            : "border-transparent bg-[#0D47A1] text-white shadow-md shadow-blue-900/30"
+        )}
+      >
         <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <button
               type="button"
               onClick={() => navigate(isSellerView ? "/seller" : "/")}
-              className="cursor-pointer rounded-full px-4 py-2 text-xl font-bold "
+              className={clsx(
+                "cursor-pointer rounded-full px-4 py-2 text-xl font-bold transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:scale-[1.02]",
+                scrolled && "hover:shadow-sm"
+              )}
             >
               <span className="text-emerald-200">Quick</span>
               <span className="text-yellow-300">Shop</span>
@@ -67,7 +97,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className={blurButtonBase}
+                  className={blurButtonClass}
                 >
                   Log out
                 </button>
@@ -78,7 +108,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => toggleCart()}
-              className={`${iconButtonBase} relative shadow-lg shadow-white/40`}
+              className={`${iconButtonClass} relative shadow-lg shadow-white/40`}
               aria-label="View cart"
             >
               <ShoppingCart className="h-4 w-4" aria-hidden />
@@ -91,7 +121,12 @@ export default function Header() {
             <MenuButton />
             {isAuthenticated && initials && (
               <span
-                className="grid h-10 w-10 place-items-center rounded-full bg-[#fcd34d] text-sm font-bold uppercase text-[#0b47c7] shadow-md shadow-blue-900/30"
+                className={clsx(
+                  "grid h-10 w-10 place-items-center rounded-full text-sm font-bold uppercase shadow-md transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
+                  scrolled
+                    ? "bg-[#0b47c7] text-white shadow-slate-900/10"
+                    : "bg-[#fcd34d] text-[#0b47c7] shadow-blue-900/30"
+                )}
                 aria-label={`Signed in as ${userName}`}
               >
                 {initials}
@@ -104,10 +139,10 @@ export default function Header() {
       {menuOpen && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-black/40"
+            className="fixed inset-0 z-60 bg-black/40"
             onClick={() => setMenuOpen(false)}
           />
-          <aside className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col items-center gap-6 bg-white px-6 py-6 text-slate-900 shadow-2xl">
+          <aside className="fixed right-0 top-0 z-70 flex h-full w-72 flex-col items-center gap-6 bg-white px-6 py-6 text-slate-900 shadow-2xl">
             <div className="flex w-full items-center justify-between gap-4">
               <span className="text-lg font-semibold">Menu</span>
               <button
