@@ -10,10 +10,12 @@ import {
 } from "../store";
 
 type CartProps = {
+  onCheckoutStart?: () => void;
   onCheckoutComplete?: (orderId?: string) => void;
+  onCheckoutError?: (message?: string) => void;
 };
 
-export default function Cart({ onCheckoutComplete }: CartProps) {
+export default function Cart({ onCheckoutStart, onCheckoutComplete, onCheckoutError }: CartProps) {
   const cart = useCartStore((s) => s.cart);
   const productsMap = useProductStore((s) => s.productsMap);
   const cartOpen = useUIStore((s) => s.cartOpen);
@@ -39,9 +41,20 @@ export default function Cart({ onCheckoutComplete }: CartProps) {
       return;
     }
     toggleCart();
-    const orderId = await placeOrder();
-    if (orderId) {
-      onCheckoutComplete?.(orderId);
+    onCheckoutStart?.();
+    try {
+      const orderId = await placeOrder();
+      if (orderId) {
+        onCheckoutComplete?.(orderId);
+      } else {
+        onCheckoutError?.("We couldn't create your order. Please try again.");
+      }
+    } catch (err: any) {
+      const apiMsg =
+        err?.response?.data?.error ??
+        err?.response?.data?.message ??
+        "We couldn't create your order. Please try again.";
+      onCheckoutError?.(apiMsg);
     }
   };
 
