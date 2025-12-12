@@ -36,7 +36,9 @@ function ScrollToTop() {
 function AppContent() {
   const location = useLocation();
   const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const [orderPlacementError, setOrderPlacementError] = useState<string | null>(null);
   const userName = useAuthStore((s) => s.userName);
   const userEmail = useAuthStore((s) => s.userEmail);
   const autoDeliverAfterConfirm = useOrderStore((s) => s.autoDeliverAfterConfirm);
@@ -55,16 +57,32 @@ function AppContent() {
     fetchBuyerOrders();
   }, [fetchBuyerOrders, fetchProducts, initializeAuth, loadCart, loadFavorites]);
 
+  const handleCheckoutStart = () => {
+    setOrderPlacementError(null);
+    setPlacingOrder(true);
+    setPendingOrderId(null);
+    setConfirmationOpen(true);
+  };
   const handleCheckoutComplete = (orderId?: string) => {
+    setPlacingOrder(false);
     if (!orderId) {
+      setOrderPlacementError("We couldn't create your order. Please try again.");
       return;
     }
     setPendingOrderId(orderId);
     setConfirmationOpen(true);
   };
+  const handleCheckoutError = (message?: string) => {
+    setPlacingOrder(false);
+    setPendingOrderId(null);
+    setOrderPlacementError(message ?? "We couldn't create your order. Please try again.");
+    setConfirmationOpen(true);
+  };
   const handleCloseConfirmation = () => {
     setConfirmationOpen(false);
     setPendingOrderId(null);
+    setOrderPlacementError(null);
+    setPlacingOrder(false);
   };
 
   const showFooter =
@@ -90,10 +108,16 @@ function AppContent() {
         </Routes>
       </main>
       {showFooter && <Footer />}
-      <Cart onCheckoutComplete={handleCheckoutComplete} />
+      <Cart
+        onCheckoutStart={handleCheckoutStart}
+        onCheckoutComplete={handleCheckoutComplete}
+        onCheckoutError={handleCheckoutError}
+      />
       <OrderConfirmation
         open={confirmationOpen}
         onClose={handleCloseConfirmation}
+        isPlacingOrder={placingOrder}
+        placementError={orderPlacementError ?? undefined}
         customerName={userName}
         customerEmail={userEmail}
         orderId={pendingOrderId ?? undefined}
