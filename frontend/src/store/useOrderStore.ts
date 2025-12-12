@@ -142,7 +142,7 @@ export const useOrderStore = create<OrderState & OrderActions>((set) => ({
       quantity: item.quantity ?? item.qty ?? 1,
     }));
     const res = await apiPlaceOrder(payload);
-    await useOrderStore.getState().fetchBuyerOrders();
+    void useOrderStore.getState().fetchBuyerOrders();
     return (
       res.data?.orderId ??
       res.data?._id ??
