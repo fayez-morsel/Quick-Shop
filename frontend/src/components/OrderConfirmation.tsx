@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { useOrderStore } from "../store";
 
@@ -9,6 +9,8 @@ type Props = {
   customerEmail?: string;
   orderId?: string | null;
   onVerified?: (orderId: string) => void;
+  isPlacingOrder?: boolean;
+  placementError?: string;
 };
 
 export default function OrderConfirmation({
@@ -18,6 +20,8 @@ export default function OrderConfirmation({
   customerEmail,
   orderId,
   onVerified,
+  isPlacingOrder = false,
+  placementError,
 }: Props) {
   const confirmOrder = useOrderStore((s) => s.confirmOrder);
   const [code, setCode] = useState("");
@@ -90,7 +94,31 @@ export default function OrderConfirmation({
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
-          {!verified ? (
+          {placementError ? (
+            <>
+              <div className="mx-auto h-12 w-12 rounded-full bg-rose-50 text-rose-600 grid place-items-center">
+                <X className="h-6 w-6" aria-hidden />
+              </div>
+              <h2 className="text-xl font-semibold">Unable to create order</h2>
+              <p className="text-sm text-gray-600">{placementError}</p>
+              <button
+                onClick={handleClose}
+                className="w-full rounded-md bg-slate-900 text-white py-2 text-sm font-semibold hover:bg-slate-800 transition"
+              >
+                Close
+              </button>
+            </>
+          ) : isPlacingOrder ? (
+            <>
+              <div className="mx-auto h-12 w-12 rounded-full bg-blue-50 text-blue-600 grid place-items-center">
+                <Loader2 className="h-6 w-6 animate-spin" aria-hidden />
+              </div>
+              <h2 className="text-xl font-semibold">Finalizing your order...</h2>
+              <p className="text-sm text-gray-600">
+                We&apos;re creating your order now. This usually takes just a moment.
+              </p>
+            </>
+          ) : !verified ? (
             <>
               <div className="mx-auto h-12 w-12 rounded-full bg-blue-50 text-blue-600 grid place-items-center">
                 <svg

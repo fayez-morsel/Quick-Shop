@@ -12,9 +12,12 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import ProductCard from "../components/ProductCard";
 import { useProductStore, useUIStore } from "../store";
 import type { Category } from "../types";
+import { imageVariants, itemVariants, staggerList } from "../animations/variants";
+import MotionSection from "../components/MotionSection";
 
 const categoryOptions: {
   label: string;
@@ -105,109 +108,137 @@ export default function HomePage() {
   return (
     <div className="bg-[#dfeeff] pb-10">
       {/* Hero banner*/}
-      <section className="w-full bg-linear-to-r from-[#1E88E5] to-[#0D47A1] px-6 py-16 text-white shadow-lg">
-        <div className="mx-auto max-w-5xl">
-          <h1
+      <MotionSection className="w-full bg-linear-to-r from-[#1E88E5] to-[#0D47A1] px-6 py-16 text-white shadow-lg">
+        <div className="mx-auto max-w-5xl space-y-4">
+          <motion.h1
             className="mt-4 font-bold leading-snug"
             style={{ fontSize: "clamp(1.75rem, 5vw, 3.5rem)" }}
+            variants={itemVariants}
           >
             Discover Amazing Products from Trusted Stores
-          </h1>
-          <p className="mt-4 max-w-2xl text-base text-blue-100 sm:text-lg"
-          style={{ fontSize: "clamp(0.75rem, 2vw, 1.5rem)" }}>
+          </motion.h1>
+          <motion.p
+            className="mt-4 max-w-2xl text-base text-blue-100 sm:text-lg"
+            style={{ fontSize: "clamp(0.75rem, 2vw, 1.5rem)" }}
+            variants={itemVariants}
+          >
             Shop the latest products from verified sellers. Quality guaranteed,
             fast shipping, and exceptional customer service.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <button
+          </motion.p>
+          <motion.div className="mt-8 flex flex-wrap gap-4" variants={staggerList}>
+            <motion.button
               type="button"
               onClick={() => navigate("/product")}
-              className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-[#0a45c5] shadow transition hover:bg-blue-50 hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-[#0a45c5] shadow transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-xl focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-white/70"
+              variants={itemVariants}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
             >
               Shop Now
               <ArrowRight className="h-4 w-4" aria-hidden />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               onClick={() =>
                 navigate("/login", { state: { role: "seller" } })
               }
-              className="cursor-pointer rounded-full border border-white/60 px-8 py-3 text-sm font-semibold text-white transition hover:bg-white/10 hover:-translate-y-0.5"
+              className="rounded-full border border-white/60 px-8 py-3 text-sm font-semibold text-white transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-white/10 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-white/70"
+              variants={itemVariants}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
             >
               Become a seller
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
-      </section>
+      </MotionSection>
 
       <div className="flex flex-col gap-12 px-0 pt-10">
-        <section className="w-full space-y-6   px-6 py-10 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+        <MotionSection className="w-full space-y-6 px-6 py-10 shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
           <div className="mx-auto max-w-6xl space-y-6">
-            <div className="text-center">
+            <motion.div className="text-center" variants={itemVariants}>
               <h2 className="text-3xl font-semibold text-slate-900">Shop by Category</h2>
-            </div>
+            </motion.div>
             <div className="overflow-hidden">
-              <div className="flex gap-5 overflow-x-auto pb-4 pr-4 sm:gap-6 sm:pr-6 lg:grid lg:grid-cols-6 lg:overflow-visible lg:pr-0">
+              <motion.div
+                className="flex gap-5 overflow-x-auto pb-4 pr-4 sm:gap-6 sm:pr-6 lg:grid lg:grid-cols-6 lg:overflow-visible lg:pr-0"
+                variants={staggerList}
+              >
                 {categoryOptions.map(({ label, value, Icon, accent, iconColor }) => (
-                  <button
+                  <motion.button
                     type="button"
                     key={`${label}-${value}`}
                     onClick={() => handleCategorySelect(value)}
-                  className="cursor-pointer shrink-0 w-[200px] rounded-[28px] border border-white bg-white px-5 py-6 text-center shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-300 lg:w-auto"
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="shrink-0 w-[200px] cursor-pointer rounded-[28px] border border-white bg-white px-5 py-6 text-center shadow-sm transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-300 lg:w-auto"
                   >
-                    <span
+                    <motion.span
                       className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full ${accent}`}
+                      variants={imageVariants}
                     >
                       <Icon className={`h-6 w-6 ${iconColor}`} aria-hidden />
-                    </span>
+                    </motion.span>
                     <p className="text-base font-semibold text-slate-900">{label}</p>
-                  </button>
+                  </motion.button>
                 ))}
-              </div>
+              </motion.div>
             </div>
           </div>
-        </section>
+        </MotionSection>
 
-        <section className="mx-auto w-full max-w-6xl space-y-6 px-4">
-          <div className="flex flex-wrap items-center gap-3">
+        <MotionSection className="mx-auto w-full max-w-6xl space-y-6 px-4">
+          <motion.div className="flex flex-wrap items-center gap-3" variants={itemVariants}>
             <h2 className="text-3xl font-bold text-slate-900">Featured Products</h2>
             <div className="ml-auto">
               <button
                 type="button"
                 onClick={() => navigate("/product")}
-                className="cursor-pointer text-sm font-semibold text-[#0a45c5] hover:underline"
+                className="cursor-pointer text-sm font-semibold text-[#0a45c5] transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:scale-[1.02] hover:underline"
               >
                 View all
               </button>
             </div>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {featuredIds.map((id) => (
+          </motion.div>
+          <motion.div
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            variants={staggerList}
+          >
+            {featuredIds.map((id, index) => (
               <ProductCard
                 key={id}
                 productId={id}
+                animationOrder={index}
                 onSelect={(product) => navigate(`/product/${product.id}`)}
               />
             ))}
-          </div>
-        </section>
+          </motion.div>
+        </MotionSection>
 
-        <section className="w-full px-6 py-10 text-center">
+        <MotionSection className="w-full px-6 py-10 text-center">
           <div className="mx-auto max-w-6xl space-y-10">
-            <h2 className="text-3xl font-bold text-slate-900">Why Choose QuickShop?</h2>
-            <div className="mt-10 grid gap-6 sm:grid-cols-3">
-            {highlights.map(({ title, description, icon: Icon }) => (
-              <div key={title} className="space-y-4 px-4">
-                <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e3f0ff] text-[#0a45c5]">
-                  <Icon className="h-7 w-7" aria-hidden />
-                </span>
-                <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
-                <p className="text-sm text-slate-500">{description}</p>
-              </div>
-            ))}
-            </div>
+            <motion.h2 className="text-3xl font-bold text-slate-900" variants={itemVariants}>
+              Why Choose QuickShop?
+            </motion.h2>
+            <motion.div className="mt-10 grid gap-6 sm:grid-cols-3" variants={staggerList}>
+              {highlights.map(({ title, description, icon: Icon }) => (
+                <motion.div
+                  key={title}
+                  className="space-y-4 rounded-3xl bg-white/70 px-4 py-6 shadow-sm ring-1 ring-white/50 transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:-translate-y-1 hover:shadow-xl"
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.03 }}
+                >
+                  <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e3f0ff] text-[#0a45c5] shadow-inner shadow-white/50">
+                    <Icon className="h-7 w-7" aria-hidden />
+                  </span>
+                  <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
+                  <p className="text-sm text-slate-500">{description}</p>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
-        </section>
+        </MotionSection>
       </div>
 
     </div>

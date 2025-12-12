@@ -1,5 +1,6 @@
 import { Heart, ShoppingCart } from "lucide-react";
 import clsx from "clsx";
+import { motion } from "framer-motion";
 import {
   memo,
   useCallback,
@@ -18,13 +19,16 @@ import {
 import { money } from "../utils/format";
 import Rating from "./Rating";
 import { useNavigate } from "react-router-dom";
+import { cardVariants, imageVariants } from "../animations/variants";
+import { useScrollAnimation } from "../hooks/useScrollAnimation";
 
 type Props = {
   productId: string;
   onSelect?: (product: Product) => void;
+  animationOrder?: number;
 };
 
-function ProductCardComponent({ productId, onSelect }: Props) {
+function ProductCardComponent({ productId, onSelect, animationOrder = 0 }: Props) {
   const product = useProductStore((s) => s.productsMap[productId]);
   const addToCart = useCartStore((s) => s.addToCart);
   const isFavorite = useFavoriteStore((s) => Boolean(s.favoritesMap[productId]));
@@ -33,6 +37,7 @@ function ProductCardComponent({ productId, onSelect }: Props) {
   const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPressingFavorite, setIsPressingFavorite] = useState(false);
+  const { ref, controls } = useScrollAnimation({ threshold: 0.25 });
 
   const blockedCursor =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='18'%3E%F0%9F%9A%AB%3C/text%3E%3C/svg%3E\") 12 12, not-allowed";
@@ -104,9 +109,14 @@ function ProductCardComponent({ productId, onSelect }: Props) {
   if (!product) return null;
 
   return (
-    <article
+    <motion.article
+      ref={ref}
+      initial="hidden"
+      animate={controls}
+      variants={cardVariants}
+      custom={animationOrder}
       className={clsx(
-        "group flex h-full min-h-[520px] flex-col overflow-hidden rounded-4xl bg-white shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-xl",
+        "group flex h-full min-h-[520px] flex-col overflow-hidden rounded-4xl bg-white shadow-sm ring-1 ring-slate-100 transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:-translate-y-1 hover:shadow-xl",
         isClickable && "cursor-pointer focus-visible:outline focus-visible:outline-blue-300"
       )}
       role={isClickable ? "button" : undefined}
@@ -126,10 +136,11 @@ function ProductCardComponent({ productId, onSelect }: Props) {
       >
         {imageSources.length > 0 ? (
           <>
-            <img
+            <motion.img
               src={imageSources[activeIndex] ?? imageSources[0]}
               alt={product.title}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover transition duration-500 ease-[cubic-bezier(0.33,1,0.68,1)] group-hover:scale-105"
+              variants={imageVariants}
             />
             {imageSources.length > 1 && (
               <div className="absolute inset-x-0 bottom-3 flex justify-center gap-2">
@@ -204,13 +215,13 @@ function ProductCardComponent({ productId, onSelect }: Props) {
           disabled={!product.inStock}
           style={!product.inStock ? { cursor: blockedCursor } : undefined}
           data-testid="add-to-cart"
-          className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0d47a1] px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#0b3ba2] disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0d47a1] px-4 py-3 text-sm font-semibold text-white shadow transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:scale-[1.01] hover:bg-[#0b3ba2] hover:shadow-lg disabled:cursor-not-allowed disabled:scale-100 disabled:bg-slate-300"
         >
           <ShoppingCart className="h-5 w-5" aria-hidden />
           {product.inStock ? "Add to Cart" : "Out of Stock"}
         </button>
       </div>
-    </article>
+    </motion.article>
   );
 }
 
