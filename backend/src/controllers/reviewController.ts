@@ -83,7 +83,7 @@ export const addReview = async (req: AuthReq, res: Response) => {
           attemptedIndexFix = true;
           try {
             await Review.collection.dropIndex("product_1_user_1");
-            continue; // retry once after dropping legacy unique index
+            continue; 
           } catch (dropErr) {
             console.error("Failed dropping legacy review index", dropErr);
           }

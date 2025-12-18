@@ -24,6 +24,7 @@ const storeSchema = new Schema<IStore>(
     description: { type: String },
     approved: { type: Boolean, default: false },
     status: {
+      
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
