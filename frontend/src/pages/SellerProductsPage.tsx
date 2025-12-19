@@ -60,6 +60,9 @@ export default function SellerProductsPage() {
   const [formMode, setFormMode] = useState<"add" | "edit">("add");
   const [formState, setFormState] = useState<ProductFormState>(initialFormState);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [confirmProductId, setConfirmProductId] = useState<string | null>(null);
+  const [confirmProductName, setConfirmProductName] = useState<string>("");
+  const [deleteInFlight, setDeleteInFlight] = useState(false);
 
   const products = useMemo(
     () => productIds.map((id) => productsMap[id]).filter(Boolean),
@@ -241,11 +244,31 @@ export default function SellerProductsPage() {
     handleFormClose();
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    removeProduct(productId);
-    if (editingProductId === productId) {
-      handleFormClose();
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    setConfirmProductId(productId);
+    setConfirmProductName(productName);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmProductId) return;
+    setDeleteInFlight(true);
+    try {
+      await removeProduct(confirmProductId);
+      if (editingProductId === confirmProductId) {
+        handleFormClose();
+      }
+    } catch {
+      // ignore for now; UI stays unchanged
+    } finally {
+      setDeleteInFlight(false);
+      setConfirmProductId(null);
+      setConfirmProductName("");
     }
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmProductId(null);
+    setConfirmProductName("");
   };
 
   return (
@@ -502,7 +525,7 @@ export default function SellerProductsPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDeleteProduct(product.rawId)}
+                    onClick={() => handleDeleteProduct(product.rawId, product.name)}
                     className="rounded-2xl border border-rose-200 px-3 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-rose-500 transition hover:border-rose-300"
                   >
                     Delete
@@ -573,8 +596,8 @@ export default function SellerProductsPage() {
                         <button
                           type="button"
                           aria-label="Delete product"
-                          onClick={() => handleDeleteProduct(product.rawId)}
-                          className="rounded-full border border-slate-200 p-2 text-rose-500 transition hover:border-rose-300"
+                          onClick={() => handleDeleteProduct(product.rawId, product.name)}
+                          className="rounded-full border border-rose-100 bg-rose-50 p-2 text-rose-600 transition hover:border-rose-200 hover:bg-rose-100"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -587,6 +610,54 @@ export default function SellerProductsPage() {
           </div>
         </section>
       </div>
+
+      {confirmProductId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl shadow-slate-900/10">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+                  Confirm delete
+                </p>
+                <h3 className="text-lg font-semibold text-slate-900">
+                  Delete “{confirmProductName}”?
+                </h3>
+                <p className="text-sm text-slate-600">
+                  This action cannot be undone and will remove the product from your store.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCancelDelete}
+                aria-label="Close confirmation"
+                className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={handleCancelDelete}
+                className="rounded-2xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleteInFlight}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {deleteInFlight ? "Deleting..." : "Delete product"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </SellerLayout>
   );
 }
