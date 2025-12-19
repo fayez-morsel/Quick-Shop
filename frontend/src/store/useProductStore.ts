@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { apiCreateProduct, apiGetProducts } from "../api/products";
+import { apiCreateProduct, apiDeleteProduct, apiGetProducts } from "../api/products";
 import type { Product } from "../types";
 import { arrayToMap, normalizeProduct } from "./shared";
 
@@ -13,7 +13,7 @@ type ProductState = {
 type ProductActions = {
   fetchProducts: () => Promise<void>;
   addProduct: (product: Product) => Promise<void>;
-  removeProduct: (id: string) => void;
+  removeProduct: (id: string) => Promise<void>;
   updateProductDetails: (id: string, updates: Partial<Product>) => void;
   upsertProducts: (products: Product[]) => void;
   replaceProducts: (products: Product[]) => void;
@@ -71,8 +71,30 @@ export const useProductStore = create<ProductState & ProductActions>((set) => ({
 
   addProduct: async (product) => {
     try {
-      const res = await apiCreateProduct(product);
-      const created = normalizeProduct(res.data ?? product);
+      const looksLikeObjectId = (value: unknown) =>
+        typeof value === "string" && /^[a-f\\d]{24}$/i.test(value);
+      const userStoreId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("userStoreId") ?? undefined
+          : undefined;
+      const validStoreId =
+        (userStoreId && looksLikeObjectId(userStoreId) && userStoreId) ||
+        (product.storeId && looksLikeObjectId(product.storeId) && product.storeId) ||
+        (product.store && looksLikeObjectId(product.store) && product.store) ||
+        undefined;
+      const payload = {
+        title: product.title,
+        price: product.price,
+        compareAtPrice: product.compareAtPrice,
+        category: product.category,
+        stock: product.stock,
+        image: product.image ?? product.images?.[0],
+        images: product.images,
+        brand: product.brand,
+        storeId: validStoreId,
+      };
+      const res = await apiCreateProduct(payload);
+      const created = normalizeProduct(res.data ?? payload);
       set((state) => {
         const nextMap = { ...state.productsMap, [created.id]: created };
         const ids = state.productIds.includes(created.id)
@@ -85,7 +107,13 @@ export const useProductStore = create<ProductState & ProductActions>((set) => ({
     }
   },
 
-  removeProduct: (id) =>
+  removeProduct: async (id) => {
+    try {
+      await apiDeleteProduct(id);
+    } catch {
+      // ignore failed deletions for now
+      return;
+    }
     set((state) => {
       if (!state.productsMap[id]) return state;
       const nextMap = { ...state.productsMap };
@@ -94,7 +122,8 @@ export const useProductStore = create<ProductState & ProductActions>((set) => ({
         productsMap: nextMap,
         productIds: state.productIds.filter((pid) => pid !== id),
       };
-    }),
+    });
+  },
 
   updateProductDetails: (id, updates) =>
     set((state) => {

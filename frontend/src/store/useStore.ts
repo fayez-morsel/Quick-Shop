@@ -5,7 +5,8 @@ import {
 } from "../api/auth";
 import {
   apiGetProducts,
-  apiCreateProduct
+  apiCreateProduct,
+  apiDeleteProduct
 } from "../api/products";
 import {
   apiGetCart,
@@ -111,7 +112,7 @@ type Actions = {
   // products
   fetchProducts: () => Promise<void>;
   addProduct: (product: Product) => Promise<void>;
-  removeProduct: (id: string) => void;
+  removeProduct: (id: string) => Promise<void>;
   updateProductDetails: (id: string, updates: Partial<Product>) => void;
 
   // orders
@@ -284,17 +285,46 @@ export const useStore = create<State & Actions>((set, get) => ({
   },
   addProduct: async (product) => {
     try {
-      const res = await apiCreateProduct(product);
-      const created = normalizeProduct(res.data);
+      const looksLikeObjectId = (value: unknown) =>
+        typeof value === "string" && /^[a-f\\d]{24}$/i.test(value);
+      const userStoreId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("userStoreId") ?? undefined
+          : undefined;
+      const validStoreId =
+        (userStoreId && looksLikeObjectId(userStoreId) && userStoreId) ||
+        (product.storeId && looksLikeObjectId(product.storeId) && product.storeId) ||
+        (product.store && looksLikeObjectId(product.store) && product.store) ||
+        undefined;
+      const payload = {
+        title: product.title,
+        price: product.price,
+        compareAtPrice: product.compareAtPrice,
+        category: product.category,
+        stock: product.stock,
+        image: product.image ?? product.images?.[0],
+        images: product.images,
+        brand: product.brand,
+        storeId: validStoreId,
+      };
+      const res = await apiCreateProduct(payload);
+      const created = normalizeProduct(res.data ?? payload);
       set((s) => ({ products: [...s.products, created] }));
     } catch {
       // swallow
     }
   },
-  removeProduct: (id) =>
+  removeProduct: async (id) => {
+    try {
+      await apiDeleteProduct(id);
+    } catch {
+      // ignore API errors for now
+      return;
+    }
     set((s) => ({
       products: s.products.filter((product) => product._id !== id),
-    })),
+    }));
+  },
   updateProductDetails: (id, updates) =>
     set((s) => ({
       products: s.products.map((product) => {

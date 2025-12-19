@@ -53,6 +53,9 @@ export const getProductById = async (req, res) => {
 export const createProduct = async (req, res) => {
     try {
         const { storeId, title, price, compareAtPrice, category, stock, image, brand } = req.body;
+        if (!req.user || req.user.role !== "seller") {
+            return res.status(403).json({ error: "Only sellers can create products" });
+        }
         if (!title || typeof title !== "string") {
             return res.status(400).json({ error: "Title is required" });
         }
@@ -65,15 +68,29 @@ export const createProduct = async (req, res) => {
         const safeImage = typeof image === "string" && image.trim().length > 0
             ? image
             : "https://via.placeholder.com/400";
-        // Resolve store id: provided or seller-owned
+        // Resolve store id: must belong to the authenticated seller
         let resolvedStoreId = storeId;
-        if (!resolvedStoreId && req.user?.userId) {
-            const owned = await Store.findOne({ owner: req.user.userId });
-            resolvedStoreId = owned?._id?.toString();
-            // Auto-create store for seller without store
-            if (!resolvedStoreId && req.user.role === "seller") {
+        let store = null;
+        if (resolvedStoreId) {
+            if (!Types.ObjectId.isValid(resolvedStoreId)) {
+                return res.status(400).json({ error: "Invalid or missing storeId" });
+            }
+            store = await Store.findById(new Types.ObjectId(resolvedStoreId));
+            if (!store) {
+                return res.status(400).json({ error: "Store not found" });
+            }
+            if (store.owner.toString() !== req.user.userId.toString()) {
+                return res
+                    .status(403)
+                    .json({ error: "You can only create products for your own store" });
+            }
+        }
+        else {
+            store = await Store.findOne({ owner: req.user.userId });
+            if (!store) {
+                // Auto-create store for seller without store
                 const user = await User.findById(req.user.userId);
-                const newStore = await Store.create({
+                store = await Store.create({
                     name: user?.name ? `${user.name}'s Store` : "My Store",
                     owner: req.user.userId,
                     email: user?.email ?? "",
@@ -81,19 +98,15 @@ export const createProduct = async (req, res) => {
                     approved: false,
                     status: "pending",
                 });
-                resolvedStoreId = newStore._id.toString();
             }
+            resolvedStoreId = store?._id?.toString();
         }
-        if (!resolvedStoreId || !Types.ObjectId.isValid(resolvedStoreId)) {
+        if (!resolvedStoreId || !Types.ObjectId.isValid(resolvedStoreId) || !store) {
             return res.status(400).json({ error: "Invalid or missing storeId" });
         }
-        const storeObjectId = new Types.ObjectId(resolvedStoreId);
-        const store = await Store.findById(storeObjectId);
-        if (!store)
-            return res.status(400).json({ error: "Store not found" });
         const numericStock = typeof stock === "number" ? stock : Number(stock ?? 0);
         const product = await Product.create({
-            store: storeObjectId,
+            store: store._id,
             title,
             price,
             compareAtPrice,
@@ -109,6 +122,36 @@ export const createProduct = async (req, res) => {
     }
     catch (err) {
         console.error("createProduct error", err);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+export const deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: "Invalid product id" });
+        }
+        if (!req.user || req.user.role !== "seller") {
+            return res.status(403).json({ error: "Only sellers can delete products" });
+        }
+        const productObjectId = new Types.ObjectId(id);
+        const product = await Product.findById(productObjectId);
+        if (!product)
+            return res.status(404).json({ error: "Product not found" });
+        const store = await Store.findById(product.store);
+        if (!store) {
+            return res.status(400).json({ error: "Store not found for this product" });
+        }
+        if (store.owner.toString() !== req.user.userId.toString()) {
+            return res
+                .status(403)
+                .json({ error: "You are not allowed to delete this product" });
+        }
+        await Product.deleteOne({ _id: productObjectId });
+        res.json({ success: true, message: "Product deleted" });
+    }
+    catch (err) {
+        console.error("deleteProduct error", err);
         res.status(500).json({ error: "Server error" });
     }
 };

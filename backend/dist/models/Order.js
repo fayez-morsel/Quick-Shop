@@ -13,19 +13,13 @@ const orderSchema = new Schema({
     items: { type: [orderItemSchema], required: true },
     status: {
         type: String,
-        enum: [
-            "Pending",
-            "Processing",
-            "Dispatched",
-            "Shipped",
-            "Delivered",
-            "Delivery Unsuccessful",
-            "Canceled",
-        ],
-        default: "Pending",
+        enum: ["unconfirmed", "pending", "canceled", "delivered"],
+        default: "unconfirmed",
     },
     total: { type: Number, required: true, min: 0 },
     placedAt: { type: Date, default: Date.now },
+    checkoutCode: { type: String, default: null },
+    checkoutCodeExpires: { type: Date, default: null },
     updateHistory: [
         {
             status: { type: String },

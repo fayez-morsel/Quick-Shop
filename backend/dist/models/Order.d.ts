@@ -1,5 +1,5 @@
 import { type Document, Types } from "mongoose";
-export type OrderStatus = "Pending" | "Processing" | "Dispatched" | "Shipped" | "Delivered" | "Delivery Unsuccessful" | "Canceled";
+export type OrderStatus = "unconfirmed" | "pending" | "canceled" | "delivered";
 export interface IOrderItem {
     product: Types.ObjectId;
     title: string;
@@ -14,6 +14,8 @@ export interface IOrder extends Document {
     status: OrderStatus;
     total: number;
     placedAt: Date;
+    checkoutCode: string | null;
+    checkoutCodeExpires: Date | null;
     updatedAt: Date;
     updateHistory?: Array<{
         status: OrderStatus;
