@@ -83,7 +83,6 @@ export const createProduct = async (req: AuthReq, res: Response) => {
         ? image
         : "https://via.placeholder.com/400";
 
-    // Resolve store id: must belong to the authenticated seller
     let resolvedStoreId = storeId as string | undefined;
     let store: HydratedDocument<IStore> | null = null;
 
@@ -103,7 +102,6 @@ export const createProduct = async (req: AuthReq, res: Response) => {
     } else {
       store = await Store.findOne({ owner: req.user.userId });
       if (!store) {
-        // Auto-create store for seller without store
         const user = await User.findById(req.user.userId);
         store = await Store.create({
           name: user?.name ? `${user.name}'s Store` : "My Store",
