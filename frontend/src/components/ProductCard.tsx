@@ -116,7 +116,7 @@ function ProductCardComponent({ productId, onSelect, animationOrder = 0 }: Props
       variants={cardVariants}
       custom={animationOrder}
       className={clsx(
-        "group flex h-full min-h-[520px] flex-col overflow-hidden rounded-4xl bg-white shadow-sm ring-1 ring-slate-100 transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:-translate-y-1 hover:shadow-xl",
+        "group relative flex h-full min-h-[540px] flex-col overflow-hidden rounded-4xl bg-gradient-to-br from-slate-50 via-white to-slate-100 shadow-[0_20px_60px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/70 transition duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] hover:-translate-y-1 hover:shadow-[0_30px_80px_rgba(15,23,42,0.16)]",
         isClickable && "cursor-pointer focus-visible:outline focus-visible:outline-blue-300"
       )}
       role={isClickable ? "button" : undefined}
@@ -131,7 +131,7 @@ function ProductCardComponent({ productId, onSelect, animationOrder = 0 }: Props
       }}
     >
       <div
-        className="relative w-full overflow-hidden rounded-t-4xl"
+        className="relative w-full overflow-hidden rounded-t-4xl bg-slate-900/5"
         style={{ aspectRatio: "3 / 2" }}
       >
         {imageSources.length > 0 ? (
@@ -166,6 +166,7 @@ function ProductCardComponent({ productId, onSelect, animationOrder = 0 }: Props
             No image
           </div>
         )}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent opacity-0 transition duration-300 group-hover:opacity-100" />
         <button
           type="button"
           onClick={handleToggleFavorite}
@@ -196,7 +197,19 @@ function ProductCardComponent({ productId, onSelect, animationOrder = 0 }: Props
 
       <div className="flex flex-1 flex-col gap-3 px-5 pb-5 pt-4">
         <div className="space-y-1">
-          <h3 className="text-2xl font-semibold text-slate-900">{product.title}</h3>
+          <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+            {product.brand ?? "Featured"}
+            {product.inStock ? (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                In stock
+              </span>
+            ) : (
+              <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-600">
+                Out of stock
+              </span>
+            )}
+          </div>
+          <h3 className="text-xl font-semibold text-slate-900 sm:text-2xl">{product.title}</h3>
           <p className="text-sm text-slate-500">{tagline}</p>
         </div>
 
@@ -204,9 +217,23 @@ function ProductCardComponent({ productId, onSelect, animationOrder = 0 }: Props
           <Rating value={product.rating.value} count={product.rating.count} />
         )}
 
-        <div className="space-y-0.5">
-          <p className="text-2xl font-bold text-[#0d4bc9]">{money(product.price)}</p>
-          <p className="text-sm text-slate-500">{product.storeName}</p>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold text-[#0d4bc9]">{money(product.price)}</p>
+              {product.compareAtPrice && product.compareAtPrice > product.price && (
+                <span className="text-sm text-slate-400 line-through">
+                  {money(product.compareAtPrice)}
+                </span>
+              )}
+            </div>
+            <p className="text-sm font-medium text-slate-600">{product.storeName}</p>
+          </div>
+          {hasDiscount && discountPercent && (
+            <span className="rounded-xl bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+              Save {discountPercent}%
+            </span>
+          )}
         </div>
 
         <button

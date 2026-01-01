@@ -10,15 +10,20 @@ const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
 export const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password, role } = req.body;
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
-    const exists = await User.findOne({ email });
+    if (!name || !normalizedEmail || !password || !role) {
+      return res.status(400).json({ error: "Name, email, password and role are required" });
+    }
+
+    const exists = await User.findOne({ email: normalizedEmail });
     if (exists) return res.status(400).json({ error: "Email already exists" });
 
     const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       passwordHash,
       role
     });
@@ -43,8 +48,12 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    if (!normalizedEmail || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
 
-    const user = await User.findOne({ email }).populate("store");
+    const user = await User.findOne({ email: normalizedEmail }).populate("store");
     if (!user) return res.status(400).json({ error: "Invalid credentials" });
 
     const valid = await bcrypt.compare(password, user.passwordHash);
